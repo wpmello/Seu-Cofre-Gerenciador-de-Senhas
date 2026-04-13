@@ -1,0 +1,16 @@
+services:
+  codex:
+    build: .
+    working_dir: /workspace
+    container_name: codex
+    environment:
+      CODEX_HOME: /codex-home
+    volumes:
+      - .:/workspace
+      - codex_home:/codex-home
+    stdin_open: true
+    tty: true
+    entrypoint: ["codex"]
+
+volumes:
+  codex_home:
