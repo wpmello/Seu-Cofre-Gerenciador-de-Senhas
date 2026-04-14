@@ -2,14 +2,18 @@ services:
   codex:
     build: .
     working_dir: /workspace
-    container_name: codex
     environment:
       CODEX_HOME: /codex-home
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      ANDROID_SDK_ROOT: /opt/android-sdk
     volumes:
       - .:/workspace
       - codex_home:/codex-home
     stdin_open: true
     tty: true
+    init: true
+    security_opt:
+      - seccomp=unconfined
     entrypoint: ["codex"]
 
 volumes:
