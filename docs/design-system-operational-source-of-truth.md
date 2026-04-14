@@ -255,6 +255,45 @@ Texto e ícones em cima de gradiente devem manter contraste suficiente e passar 
 
 ---
 
+## Motivo recorrente de escudo
+
+O escudo usado na splash deve ser tratado como **motivo visual recorrente de segurança percebida** do produto.
+
+### Quando reutilizar
+- splash screen;
+- onboarding de confiança;
+- loading protegido;
+- estados de autenticação;
+- estados vazios ou de sucesso ligados a proteção, cofre, criptografia ou confiança.
+
+### Composição base aprovada
+- container principal quadrado de `128.dp`;
+- `RoundedCornerShape(40.dp)`;
+- superfície tonal escura próxima de `surfaceContainerHighest`;
+- halo circular suave atrás do container, nunca sombra pesada como linguagem principal;
+- símbolo central com leitura clara de escudo;
+- proporção visual centralizada e respiro generoso ao redor.
+
+### O que funcionou bem
+- halo sutil com blur amplo e baixa opacidade;
+- container tonal com ghost border discreta;
+- símbolo de escudo com boa legibilidade em tamanho aproximado de `50.dp`;
+- uso de acento azul como cor-base do símbolo;
+- composição mais próxima de branding do que de “ícone utilitário solto”.
+
+### O que não deve ser repetido
+- escudo desenhado manualmente sem fidelidade visual suficiente ao frame aprovado;
+- card do logo com peso visual excessivo, como se fosse um botão ou tile comum;
+- uso de sombras escuras pesadas para simular profundidade;
+- variação casual de radius, halo ou proporção quando a intenção for repetir o mesmo motivo de marca.
+
+### Regra prática para escolha do símbolo
+- usar ícone do sistema apenas quando ele preservar bem a leitura visual aprovada;
+- usar vetor próprio quando o Figma exigir forma ou recorte que o ícone do sistema não reproduza;
+- não trocar entre um e outro por preferência pessoal do implementador.
+
+---
+
 ## Espaçamento, forma e composição
 
 ## Espaçamento

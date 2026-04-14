@@ -192,6 +192,21 @@ O agente deve atualizar documentação se a tela introduzir:
 - nova decisão arquitetural
 - nova regra de segurança
 
+### Etapa 8 — Registrar acertos e erros quando a tela inaugura padrão visual
+Se a tela implementada inaugurar ou consolidar um padrão visual reutilizável do produto, o agente deve registrar:
+- o que aproximou a implementação do Figma;
+- o que afastou a implementação do Figma nas primeiras tentativas;
+- quais decisões devem ser repetidas;
+- quais decisões não devem ser repetidas;
+- quais partes viram referência para telas futuras.
+
+### Exemplos de quando isso é obrigatório
+- hero de marca;
+- container-base de onboarding/splash;
+- motivo visual recorrente de segurança;
+- componente novo que provavelmente será reutilizado em outras telas;
+- tela que define fallback visual para estados futuros do app.
+
 ---
 
 ## Como interpretar a UI como requisito de produto
@@ -277,6 +292,30 @@ Se a nova tela pertencer a um fluxo já existente, o agente deve:
 - evitar duplicar lógica
 - manter consistência visual e comportamental
 - garantir que os testes do fluxo sejam atualizados
+
+---
+
+## Caso documentado: splash screen do cofre
+
+### Por que este caso importa
+A splash inaugurou um padrão de branding e segurança percebida que tende a reaparecer em onboarding, autenticação, loading protegido e estados vazios sensíveis.
+
+### O que o intake deveria capturar obrigatoriamente em casos parecidos
+- se o ícone central é decorativo ou semântico;
+- se o símbolo central precisa coincidir com um motivo de marca recorrente;
+- se o halo e o container do logo são parte da identidade, e não mero enfeite;
+- se o Figma está pedindo ícone do sistema, vetor próprio ou apenas leitura visual equivalente;
+- quais proporções precisam ser preservadas para o símbolo não perder a identidade.
+
+### Falhas já observadas que não devem se repetir
+- assumir cedo demais que um desenho vetorial manual representa o motivo visual do frame;
+- tratar o logo container como card genérico quando o Figma define glow controlado e massa tonal específica;
+- parar na primeira aproximação “boa o suficiente” sem reconsultar o frame quando o símbolo central ainda não bate visualmente.
+
+### Conduta correta para próximas telas derivadas
+- reabrir o frame antes de refinar símbolo, halo ou proporção;
+- promover o padrão para documentação operacional assim que a tela definir uma linguagem repetível;
+- usar a splash como referência base quando outra tela pedir um escudo central com leitura de segurança e marca.
 
 ---
 
@@ -510,4 +549,3 @@ Significa:
 - proteger consistência arquitetural
 - atualizar testes
 - evoluir a documentação do projeto
-

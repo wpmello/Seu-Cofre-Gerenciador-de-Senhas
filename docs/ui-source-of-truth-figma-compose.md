@@ -139,6 +139,18 @@ Textos de tela devem usar recursos Android e `stringResource(...)`. O projeto de
 
 Texto hardcoded em composables só é aceitável em preview local temporário e deve ser removido antes da conclusão da tarefa.
 
+### 7. Tema Compose fora de draw lambdas
+Valores de `MaterialTheme`, `stringResource`, `dimensionResource` e qualquer outra API composable devem ser resolvidos **antes** de lambdas como `drawBehind`, `drawWithCache`, `Canvas` ou callbacks não-composable.
+
+#### Regra
+- capturar cores, shapes, strings e tokens em variáveis locais no escopo composable;
+- passar apenas valores já resolvidos para o código de desenho;
+- tratar qualquer acesso direto a `MaterialTheme` dentro de draw lambdas como erro de implementação.
+
+#### Caso real já ocorrido no projeto
+Na splash screen, o acesso direto a `MaterialTheme.colorScheme.outlineVariant` dentro de `drawBehind` quebrou a compilação no ambiente do app.  
+A correção correta foi resolver as cores antes e reutilizá-las nas operações de desenho.
+
 ---
 
 ## Como usar o Figma como insumo de projeto
@@ -242,6 +254,38 @@ Quando o Figma revelar comportamento ou estrutura relevantes, o agente deve atua
 ### Regra prática
 Se uma decisão afeta apenas composição visual, não precisa virar ADR.
 Se uma decisão afeta estrutura, fluxo de dados, domínio, persistência, navegação, dependências ou segurança, ela deve ser documentada.
+
+---
+
+## Lições aprendidas já consolidadas
+
+### Caso: splash screen com escudo arquitetural
+O frame de splash aprovado no Figma estabeleceu um padrão reutilizável para telas futuras do app:
+- fundo escuro com gradiente radial concentrado no centro;
+- halo suave no quadrante superior esquerdo;
+- bloco central com logo em card arredondado de `40.dp`;
+- símbolo de escudo como motivo recorrente de segurança percebida;
+- progress bar horizontal fina com gradiente `primary -> secondary`;
+- hint inferior discreto de criptografia.
+
+### O que foi feito de errado inicialmente
+- o símbolo começou como um desenho manual que não refletia bem a leitura visual de escudo aprovada no Figma;
+- o fundo do logo foi tratado como um card pesado demais, em vez de um container tonal com halo suave;
+- houve acesso a `MaterialTheme` dentro de `drawBehind`, o que não é seguro nem compilável;
+- a implementação se afastou do frame ao tentar “interpretar” demais o escudo, quando o Figma já dava a direção suficiente.
+
+### O que foi feito de certo depois
+- o frame foi reconsultado antes de refinar a UI;
+- a composição foi aproximada da estrutura central do Figma, sem redesenhar a tela por conta própria;
+- o halo do logo passou a ser tratado como glow circular sutil, não como sombra pesada;
+- o progresso passou a ser desenhado em `Canvas`, o que refletiu melhor a espessura e o preenchimento do frame;
+- o escudo foi consolidado como motivo visual recorrente e deve ser tratado como elemento semântico de segurança percebida.
+
+### Regra para telas futuras com escudo
+- se a tela exigir o mesmo símbolo de escudo da splash, reutilizar a mesma direção composicional;
+- preferir o mesmo container base de `128.dp` com `RoundedCornerShape(40.dp)` quando a intenção visual for “brand/security hero”;
+- preservar halo, contraste tonal e proporção do símbolo antes de criar novas variações;
+- só trocar entre ícone do sistema e vetor próprio quando a fidelidade ao Figma justificar claramente a mudança.
 
 ---
 
