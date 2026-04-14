@@ -232,6 +232,14 @@ Criar branches curtas, específicas e revisáveis com prefixo por tipo:
 * Uma branch deve ter um único objetivo principal.
 * Evitar misturar refactor amplo com feature nova.
 * Antes de mudanças maiores, garantir que a base atual está íntegra.
+* Salvo caso explicitamente justificado, toda branch nova deve nascer da branch de integração alvo do merge, normalmente `master`.
+* Não empilhar branches por padrão. Não criar `docs`, `chore` ou `fix` em cima de uma `feature` anterior apenas por conveniência local.
+* Se o trabalho atual for uma única tarefa coesa, manter tudo em **uma única branch** mesmo quando houver tipos diferentes de alteração dentro dela.
+* Dentro dessa branch única, separar responsabilidades por commit, não por branch.
+* Exemplo obrigatório: se uma feature de tela nova exigir adicionar dependência, ajustar tema, criar rota e implementar UI, tudo isso fica na branch da feature; a separação deve acontecer entre commits lógicos.
+* Só criar múltiplas branches para o mesmo contexto quando existirem entregas realmente independentes e mergeáveis separadamente.
+* Antes de abrir PR ou criar branches adicionais, o agente deve verificar se a base correta é a branch de integração alvo ou outra branch explicitamente informada pelo usuário.
+* Ao detectar que branches foram criadas sobre base errada, corrigir com segurança: criar backups, recriar cada branch na base correta, reaplicar somente os commits relevantes e validar o novo grafo antes de prosseguir.
 
 ## Estratégia de desenvolvimento
 
@@ -398,6 +406,7 @@ Quando existir, o agente deve usar e manter coerência com:
 * `docs/design-system-operational-source-of-truth.md` -> fallback visual e comportamental para UI quando não houver tela do Figma ou quando o Figma não detalhar suficientemente estados, componentes ou tokens
 * `docs/design-system-stitch-origin.md` -> fonte conceitual original do design system e da intenção visual
 * `docs/ui-source-of-truth-figma-compose.md` -> fonte operacional de implementação de UI a partir do Figma em Compose
+* `docs/branching-and-commit-strategy.md` -> fonte operacional para criação de branches, separação por commits e correção de branches criadas sobre base errada
 * `docs/release.md` -> quando houver
 * `docs/adr/`
 * `README.md`
