@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Tu Cofre</string>
+    <string name="splash_title">Tu cofre</string>
+    <string name="splash_subtitle">TU COFRE DIGITAL SEGURO</string>
+    <string name="splash_loading">Cargando…</string>
+    <string name="splash_encryption_hint">CIFRADO DE EXTREMO A EXTREMO</string>
+    <string name="home_title">HomeScreen</string>
+</resources>

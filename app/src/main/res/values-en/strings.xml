@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Your Vault</string>
+    <string name="splash_title">Your vault</string>
+    <string name="splash_subtitle">YOUR SECURE DIGITAL VAULT</string>
+    <string name="splash_loading">Loading…</string>
+    <string name="splash_encryption_hint">END-TO-END ENCRYPTED</string>
+    <string name="home_title">HomeScreen</string>
+</resources>

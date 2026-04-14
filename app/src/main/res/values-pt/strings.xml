@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+<resources>
     <string name="app_name">Seu Cofre</string>
     <string name="splash_title">Seu cofre</string>
     <string name="splash_subtitle">SEU COFRE DIGITAL SEGURO</string>
