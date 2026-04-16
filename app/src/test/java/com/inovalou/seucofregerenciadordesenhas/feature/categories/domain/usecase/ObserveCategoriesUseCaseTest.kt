@@ -16,8 +16,8 @@ class ObserveCategoriesUseCaseTest {
     @Test
     fun givenRepositoryFlow_whenInvokingUseCase_thenReturnsRepositoryEmission() = runTest {
         val expected = listOf(
-            Category(id = 1L, name = "Trabalho", itemCount = 42),
-            Category(id = 2L, name = "Educação", itemCount = 15)
+            Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
+            Category(id = 2L, name = "Educação", iconKey = "ic_home_2", itemCount = 15)
         )
         val useCase = ObserveCategoriesUseCase(
             categoryRepository = FakeCategoryRepository(flowOf(expected))
@@ -53,6 +53,8 @@ class ObserveCategoriesUseCaseTest {
     private class FakeCategoryRepository(
         private val categoriesFlow: Flow<List<Category>>
     ) : CategoryRepository {
+
+        override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
         override fun observeCategories(): Flow<List<Category>> = categoriesFlow
     }
