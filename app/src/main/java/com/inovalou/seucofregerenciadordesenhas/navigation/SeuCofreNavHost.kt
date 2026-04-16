@@ -6,12 +6,11 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.inovalou.seucofregerenciadordesenhas.feature.home.presentation.HomeScreen
 import com.inovalou.seucofregerenciadordesenhas.feature.splash.presentation.SplashRoute
 
 private object SeuCofreRoutes {
     const val SPLASH = "splash"
-    const val HOME = "home"
+    const val APP = "app"
 }
 
 @Composable
@@ -26,7 +25,7 @@ fun SeuCofreNavHost(modifier: Modifier = Modifier) {
         composable(SeuCofreRoutes.SPLASH) {
             SplashRoute(
                 onSplashFinished = {
-                    navController.navigate(SeuCofreRoutes.HOME) {
+                    navController.navigate(SeuCofreRoutes.APP) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             inclusive = true
                         }
@@ -36,8 +35,8 @@ fun SeuCofreNavHost(modifier: Modifier = Modifier) {
             )
         }
 
-        composable(SeuCofreRoutes.HOME) {
-            HomeScreen()
+        composable(SeuCofreRoutes.APP) {
+            SeuCofreAppShell()
         }
     }
 }

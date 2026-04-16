@@ -5,4 +5,42 @@
     <string name="splash_loading">Carregando…</string>
     <string name="splash_encryption_hint">ENCRYPTED END-TO-END</string>
     <string name="home_title">HomeScreen</string>
+    <string name="onboarding_brand">Seu cofre</string>
+    <string name="onboarding_next">Próximo</string>
+    <string name="onboarding_existing_account">Já tem uma conta? </string>
+    <string name="onboarding_sign_in">Entrar</string>
+    <string name="onboarding_step_one_title">Proteja todas as suas senhas em um só lugar</string>
+    <string name="onboarding_step_one_body">Armazene com segurança e acesse com biometria.</string>
+    <string name="onboarding_step_two_title">Suas senhas protegidas</string>
+    <string name="onboarding_step_two_body">Guarde suas credenciais com mais segurança em um cofre digital feito para proteger o que é importante.</string>
+    <string name="onboarding_step_three_title">Acesso rápido e seguro</string>
+    <string name="onboarding_step_three_body">Suas senhas sempre à mão.</string>
+    <string name="onboarding_vault_encrypted">VAULT ENCRYPTED</string>
+    <string name="app_brand_name">Seu cofre</string>
+    <string name="categories_search">Buscar</string>
+    <string name="categories_security_status">STATUS DE SEGURANÇA</string>
+    <string name="categories_security_excellent">Excelente</string>
+    <string name="categories_total_items_label">ITEMS\nTOTAL</string>
+    <string name="categories_encrypted_indicator">COFRE CRIPTOGRAFADO</string>
+    <string name="categories_title">Categorias</string>
+    <string name="categories_view_all">Ver todas</string>
+    <string name="categories_current_category_name">Trabalho</string>
+    <string name="categories_current_badge">ATUAL</string>
+    <string name="categories_add_new">NOVA\nCATEGORIA</string>
+    <string name="categories_load_error">Não foi possível carregar as categorias.</string>
+    <string name="bottom_nav_vault">COFRE</string>
+    <string name="bottom_nav_passwords">SENHAS</string>
+    <string name="bottom_nav_categories">CATEGORIAS</string>
+    <string name="bottom_nav_settings">AJUSTES</string>
+    <string name="placeholder_vault">Cofre</string>
+    <string name="placeholder_passwords">Senhas</string>
+    <string name="placeholder_settings">Ajustes</string>
+    <plurals name="categories_password_count">
+        <item quantity="one">%d Senha</item>
+        <item quantity="other">%d Senhas</item>
+    </plurals>
+    <plurals name="categories_items_count">
+        <item quantity="one">%d Item</item>
+        <item quantity="other">%d Items</item>
+    </plurals>
 </resources>

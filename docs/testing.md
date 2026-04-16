@@ -90,6 +90,8 @@ Regras:
 - não depender de framework Android quando isso puder ser evitado
 - usar doubles de teste quando necessário para isolar o sujeito sob teste
 - falhas devem apontar claramente qual regra de negócio foi quebrada
+- para todo contrato novo relevante em `data`, `domain` ou `presentation`, cobrir pelo menos um caminho de sucesso e um caminho de falha quando o comportamento puder falhar
+- quando um componente não tiver caminho triste significativo por ser mapeamento puro, estrutura passiva ou contrato sem ramificação, isso deve ser uma decisão consciente e explícita, não omissão acidental
 
 ### 2. Testes de integração pequenos ou médios
 Usar quando for necessário validar integração real entre duas ou mais partes importantes.
@@ -134,6 +136,7 @@ Cobrir com prioridade máxima:
 - contratos de comportamento
 - tratamento de erro de domínio
 - garantias de segurança que não dependem da UI
+- tanto o resultado esperado quanto a propagação ou tradução de falhas quando o contrato puder quebrar
 
 ### Data
 Cobrir:
@@ -144,6 +147,7 @@ Cobrir:
 - persistência segura de dados
 - tratamento de erro de fontes locais e remotas
 - migrações de banco quando houver mudança de schema
+- propagação, tradução ou contenção de falhas das fontes quando esse comportamento fizer parte do contrato do componente
 
 ## Prioridades de teste deste projeto
 

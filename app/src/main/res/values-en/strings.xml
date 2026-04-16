@@ -5,4 +5,42 @@
     <string name="splash_loading">Loading…</string>
     <string name="splash_encryption_hint">END-TO-END ENCRYPTED</string>
     <string name="home_title">HomeScreen</string>
+    <string name="onboarding_brand">Your vault</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_existing_account">Already have an account? </string>
+    <string name="onboarding_sign_in">Sign in</string>
+    <string name="onboarding_step_one_title">Protect all your passwords in one place</string>
+    <string name="onboarding_step_one_body">Store them securely and access them with biometrics.</string>
+    <string name="onboarding_step_two_title">Your passwords are protected</string>
+    <string name="onboarding_step_two_body">Security for your credentials.</string>
+    <string name="onboarding_step_three_title">Fast and secure access</string>
+    <string name="onboarding_step_three_body">Your passwords always at hand.</string>
+    <string name="onboarding_vault_encrypted">VAULT ENCRYPTED</string>
+    <string name="app_brand_name">Your vault</string>
+    <string name="categories_search">Search</string>
+    <string name="categories_security_status">SECURITY STATUS</string>
+    <string name="categories_security_excellent">Excellent</string>
+    <string name="categories_total_items_label">ITEMS\nTOTAL</string>
+    <string name="categories_encrypted_indicator">ENCRYPTED VAULT</string>
+    <string name="categories_title">Categories</string>
+    <string name="categories_view_all">View all</string>
+    <string name="categories_current_category_name">Work</string>
+    <string name="categories_current_badge">CURRENT</string>
+    <string name="categories_add_new">NEW\nCATEGORY</string>
+    <string name="categories_load_error">Could not load categories.</string>
+    <string name="bottom_nav_vault">VAULT</string>
+    <string name="bottom_nav_passwords">PASSWORDS</string>
+    <string name="bottom_nav_categories">CATEGORIES</string>
+    <string name="bottom_nav_settings">SETTINGS</string>
+    <string name="placeholder_vault">Vault</string>
+    <string name="placeholder_passwords">Passwords</string>
+    <string name="placeholder_settings">Settings</string>
+    <plurals name="categories_password_count">
+        <item quantity="one">%d Password</item>
+        <item quantity="other">%d Passwords</item>
+    </plurals>
+    <plurals name="categories_items_count">
+        <item quantity="one">%d Item</item>
+        <item quantity="other">%d Items</item>
+    </plurals>
 </resources>

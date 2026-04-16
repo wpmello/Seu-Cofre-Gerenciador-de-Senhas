@@ -5,4 +5,42 @@
     <string name="splash_loading">Cargando…</string>
     <string name="splash_encryption_hint">CIFRADO DE EXTREMO A EXTREMO</string>
     <string name="home_title">HomeScreen</string>
+    <string name="onboarding_brand">Tu cofre</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_existing_account">¿Ya tienes una cuenta? </string>
+    <string name="onboarding_sign_in">Entrar</string>
+    <string name="onboarding_step_one_title">Protege todas tus contraseñas en un solo lugar</string>
+    <string name="onboarding_step_one_body">Guárdalas de forma segura y accede con biometría.</string>
+    <string name="onboarding_step_two_title">Tus contraseñas están protegidas</string>
+    <string name="onboarding_step_two_body">Seguridad para tus credenciales.</string>
+    <string name="onboarding_step_three_title">Acceso rápido y seguro</string>
+    <string name="onboarding_step_three_body">Tus contraseñas siempre a mano.</string>
+    <string name="onboarding_vault_encrypted">VAULT ENCRYPTED</string>
+    <string name="app_brand_name">Tu cofre</string>
+    <string name="categories_search">Buscar</string>
+    <string name="categories_security_status">ESTADO DE SEGURIDAD</string>
+    <string name="categories_security_excellent">Excelente</string>
+    <string name="categories_total_items_label">ITEMS\nTOTAL</string>
+    <string name="categories_encrypted_indicator">COFRE CIFRADO</string>
+    <string name="categories_title">Categorías</string>
+    <string name="categories_view_all">Ver todas</string>
+    <string name="categories_current_category_name">Trabajo</string>
+    <string name="categories_current_badge">ACTUAL</string>
+    <string name="categories_add_new">NUEVA\nCATEGORÍA</string>
+    <string name="categories_load_error">No se pudieron cargar las categorías.</string>
+    <string name="bottom_nav_vault">COFRE</string>
+    <string name="bottom_nav_passwords">CLAVES</string>
+    <string name="bottom_nav_categories">CATEGORÍAS</string>
+    <string name="bottom_nav_settings">AJUSTES</string>
+    <string name="placeholder_vault">Cofre</string>
+    <string name="placeholder_passwords">Claves</string>
+    <string name="placeholder_settings">Ajustes</string>
+    <plurals name="categories_password_count">
+        <item quantity="one">%d Contraseña</item>
+        <item quantity="other">%d Contraseñas</item>
+    </plurals>
+    <plurals name="categories_items_count">
+        <item quantity="one">%d Item</item>
+        <item quantity="other">%d Items</item>
+    </plurals>
 </resources>
