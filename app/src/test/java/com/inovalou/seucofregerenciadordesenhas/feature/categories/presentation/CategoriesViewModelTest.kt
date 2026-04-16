@@ -5,6 +5,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -55,6 +56,24 @@ class CategoriesViewModelTest {
         assertEquals(2, categoriesState.categories.size)
         assertEquals("Trabalho", categoriesState.categories.first().name)
         assertEquals(42, categoriesState.categories.first().itemCount)
+    }
+
+    @Test
+    fun givenRepositoryFailure_whenObservingState_thenEmitsErrorState() = runTest {
+        val repository = object : CategoryRepository {
+            override fun observeCategories(): Flow<List<Category>> = flow {
+                throw IllegalStateException("repository failure")
+            }
+        }
+        val viewModel = CategoriesViewModel(
+            observeCategoriesUseCase = ObserveCategoriesUseCase(repository)
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        advanceUntilIdle()
+
+        val categoriesState = viewModel.uiState.value.categoriesState
+        assertTrue(categoriesState is CategoriesContentUiState.Error)
     }
 
     private class FakeCategoryRepository(

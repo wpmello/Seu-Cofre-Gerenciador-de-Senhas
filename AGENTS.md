@@ -268,6 +268,7 @@ Sempre  usar **TDD + BDD** como disciplina de trabalho e desde o início do proj
 * implementar o mínimo necessário
 * refatorar com segurança
 * rodar novamente os testes relevantes
+* cobrir caminho feliz e caminho triste sempre que o comportamento implementado puder falhar; quando não houver caminho triste significativo, isso deve ser consciente e justificável
 
 #### BDD
 
@@ -420,4 +421,3 @@ Ao agir neste repositório, o agente deve pensar assim:
 * clareza antes de esperteza
 * correção antes de volume de código
 * mudança pequena e verificável antes de refactor desnecessário
-
