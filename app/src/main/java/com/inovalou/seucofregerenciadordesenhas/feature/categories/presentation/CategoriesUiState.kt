@@ -37,5 +37,7 @@ sealed interface CategoriesContentUiState {
 data class CategoryCardUiModel(
     val id: Long,
     val name: String,
+    val iconKey: String,
+    val iconResId: Int,
     val itemCount: Int
 )

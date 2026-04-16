@@ -1,6 +1,5 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,8 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.FolderCopy
-import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,9 +36,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -75,6 +70,7 @@ private val EncryptedGreen = Color(0xFF3FFF8B)
 
 @Composable
 fun CategoriesRoute(
+    onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoriesViewModel = hiltViewModel()
 ) {
@@ -83,6 +79,7 @@ fun CategoriesRoute(
     CategoriesScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
+        onAddCategoryClick = onAddCategoryClick,
         modifier = modifier
     )
 }
@@ -91,6 +88,7 @@ fun CategoriesRoute(
 fun CategoriesScreen(
     uiState: CategoriesUiState,
     onAction: (CategoriesAction) -> Unit,
+    onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -181,7 +179,7 @@ fun CategoriesScreen(
 
             item {
                 AddCategoryCard(
-                    onClick = { onAction(CategoriesAction.OnAddCategoryClick) }
+                    onClick = onAddCategoryClick
                 )
             }
         }
@@ -478,7 +476,7 @@ private fun CategoryCard(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Rounded.GridView,
+                imageVector = ImageVector.vectorResource(category.iconResId),
                 contentDescription = null,
                 tint = SoftWhite,
                 modifier = Modifier.size(18.dp)
@@ -566,14 +564,15 @@ private fun CategoriesScreenPreview() {
             uiState = CategoriesUiState(
                 categoriesState = CategoriesContentUiState.Content(
                     categories = listOf(
-                        CategoryCardUiModel(id = 1, name = "Entretenimento", itemCount = 28),
-                        CategoryCardUiModel(id = 2, name = "Educação", itemCount = 15),
-                        CategoryCardUiModel(id = 3, name = "Saúde", itemCount = 12),
-                        CategoryCardUiModel(id = 4, name = "Viagens", itemCount = 21)
+                        CategoryCardUiModel(id = 1, name = "Entretenimento", iconKey = "ic_favorite", iconResId = R.drawable.ic_favorite, itemCount = 28),
+                        CategoryCardUiModel(id = 2, name = "Educação", iconKey = "ic_home_2", iconResId = R.drawable.ic_home_2, itemCount = 15),
+                        CategoryCardUiModel(id = 3, name = "Saúde", iconKey = "ic_padlock", iconResId = R.drawable.ic_padlock, itemCount = 12),
+                        CategoryCardUiModel(id = 4, name = "Viagens", iconKey = "ic_global", iconResId = R.drawable.ic_global, itemCount = 21)
                     )
                 )
             ),
-            onAction = {}
+            onAction = {},
+            onAddCategoryClick = {}
         )
     }
 }

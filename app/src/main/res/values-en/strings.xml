@@ -28,6 +28,17 @@
     <string name="categories_current_badge">CURRENT</string>
     <string name="categories_add_new">NEW\nCATEGORY</string>
     <string name="categories_load_error">Could not load categories.</string>
+    <string name="new_category_back">Go back</string>
+    <string name="new_category_title">New category</string>
+    <string name="new_category_description">Organize your access by creating exclusive spaces for your digital credentials.</string>
+    <string name="new_category_name_label">CATEGORY NAME</string>
+    <string name="new_category_name_hint">ex: Work, Personal</string>
+    <string name="new_category_icon_label">SELECT AN ICON</string>
+    <string name="new_category_icons_available">%1$d icons available</string>
+    <string name="new_category_create_button">Create Category</string>
+    <string name="new_category_name_error_blank">Enter a category name.</string>
+    <string name="new_category_icon_error_missing">Select an icon to continue.</string>
+    <string name="new_category_create_error">Could not create the category.</string>
     <string name="bottom_nav_vault">VAULT</string>
     <string name="bottom_nav_passwords">PASSWORDS</string>
     <string name="bottom_nav_categories">CATEGORIES</string>

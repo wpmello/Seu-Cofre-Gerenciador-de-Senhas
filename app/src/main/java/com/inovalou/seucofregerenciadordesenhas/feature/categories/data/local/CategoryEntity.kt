@@ -10,6 +10,8 @@ data class CategoryEntity(
     val id: Long = 0,
     @ColumnInfo(name = "name")
     val name: String,
+    @ColumnInfo(name = "icon_key")
+    val iconKey: String,
     @ColumnInfo(name = "item_count")
     val itemCount: Int
 )

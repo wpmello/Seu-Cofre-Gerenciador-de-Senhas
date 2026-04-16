@@ -4,6 +4,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.Ca
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.RoomCategoriesLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.repository.CategoryRepositoryImpl
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.DefaultCategoryIconCatalog
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -13,6 +15,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class CategoriesModule {
+
+    @Binds
+    abstract fun bindCategoryIconCatalog(
+        iconCatalog: DefaultCategoryIconCatalog
+    ): CategoryIconCatalog
 
     @Binds
     abstract fun bindCategoriesLocalDataSource(
