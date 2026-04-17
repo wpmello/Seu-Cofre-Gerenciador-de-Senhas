@@ -6,21 +6,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.AppBottomDestination
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.SeuCofreBottomBar
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.appBottomDestinationForRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.CategoriesRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryEntry
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
-
-private object AppShellRoutes {
-    const val NewCategory = "categories/new"
-}
 
 @Composable
 fun SeuCofreAppShell(modifier: Modifier = Modifier) {
@@ -60,13 +60,28 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
             }
             composable(AppBottomDestination.Categories.route) {
                 CategoriesRoute(
+                    onCategoryClick = { categoryId ->
+                        navController.navigate(EditCategoryRoute.createRoute(categoryId))
+                    },
                     onAddCategoryClick = {
-                        navController.navigate(AppShellRoutes.NewCategory)
+                        navController.navigate("categories/new")
                     }
                 )
             }
-            composable(AppShellRoutes.NewCategory) {
+            composable("categories/new") {
                 NewCategoryRoute(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = EditCategoryRoute.routePattern,
+                arguments = listOf(
+                    navArgument(EditCategoryRoute.categoryIdArg) {
+                        type = NavType.LongType
+                    }
+                )
+            ) {
+                EditCategoryEntry(
                     onBackClick = { navController.popBackStack() }
                 )
             }
