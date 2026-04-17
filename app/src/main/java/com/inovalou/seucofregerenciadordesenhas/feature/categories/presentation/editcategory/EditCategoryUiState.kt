@@ -30,5 +30,6 @@ sealed interface CategoryPasswordsSectionUiState {
 }
 
 sealed interface EditCategoryEffect {
-    data object NavigateBack : EditCategoryEffect
+    data class NavigateBackToOrigin(val openedFrom: EditCategoryOpenedFrom) : EditCategoryEffect
+    data object NavigateToCategories : EditCategoryEffect
 }

@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory
 
 sealed interface EditCategoryAction {
+    data object OnBackClick : EditCategoryAction
     data class OnNameChanged(val name: String) : EditCategoryAction
     data object OnEditIconClick : EditCategoryAction
     data object OnIconPickerDismissed : EditCategoryAction

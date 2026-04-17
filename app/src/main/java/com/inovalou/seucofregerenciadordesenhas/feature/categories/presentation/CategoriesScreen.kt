@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
@@ -71,6 +72,7 @@ private val EncryptedGreen = Color(0xFF3FFF8B)
 @Composable
 fun CategoriesRoute(
     onCategoryClick: (Long) -> Unit,
+    onViewAllClick: () -> Unit,
     onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoriesViewModel = hiltViewModel()
@@ -81,6 +83,7 @@ fun CategoriesRoute(
         uiState = uiState.value,
         onAction = viewModel::onAction,
         onCategoryClick = onCategoryClick,
+        onViewAllClick = onViewAllClick,
         onAddCategoryClick = onAddCategoryClick,
         modifier = modifier
     )
@@ -91,6 +94,7 @@ fun CategoriesScreen(
     uiState: CategoriesUiState,
     onAction: (CategoriesAction) -> Unit,
     onCategoryClick: (Long) -> Unit,
+    onViewAllClick: () -> Unit,
     onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -128,7 +132,7 @@ fun CategoriesScreen(
 
             item(span = { GridItemSpan(maxLineSpan) }) {
                 CategoriesSectionHeader(
-                    onViewAllClick = { onAction(CategoriesAction.OnViewAllClick) }
+                    onViewAllClick = onViewAllClick
                 )
             }
 
@@ -162,7 +166,7 @@ fun CategoriesScreen(
                         items = categoriesState.categories,
                         key = { category -> category.id }
                     ) { category ->
-                        CategoryCard(
+                        CategoryGridCard(
                             category = category,
                             onClick = { onCategoryClick(category.id) }
                         )
@@ -457,64 +461,6 @@ private fun HighlightedCategoryCard(
 }
 
 @Composable
-private fun CategoryCard(
-    category: CategoryCardUiModel,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(160.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .clickable(onClick = onClick)
-            .background(
-                color = DeepNavy,
-                shape = RoundedCornerShape(24.dp)
-            )
-            .padding(20.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    color = SlateBlue.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(12.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(category.iconResId),
-                contentDescription = null,
-                tint = SoftWhite,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = category.name,
-                color = SoftWhite,
-                fontSize = 18.sp,
-                lineHeight = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = pluralStringResource(
-                    R.plurals.categories_items_count,
-                    category.itemCount,
-                    category.itemCount
-                ),
-                color = MistText,
-                fontSize = 12.sp,
-                lineHeight = 16.sp
-            )
-        }
-    }
-}
-
-@Composable
 private fun AddCategoryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -582,6 +528,7 @@ private fun CategoriesScreenPreview() {
             ),
             onAction = {},
             onCategoryClick = {},
+            onViewAllClick = {},
             onAddCategoryClick = {}
         )
     }

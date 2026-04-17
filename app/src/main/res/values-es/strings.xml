@@ -59,6 +59,14 @@
     <string name="edit_category_passwords_title">Contraseñas en esta categoría</string>
     <string name="edit_category_passwords_empty_title">La lista de contraseñas aparecerá aquí</string>
     <string name="edit_category_passwords_empty_message">La estructura de esta sección ya está lista para recibir los elementos reales cuando se implemente la capa de contraseñas.</string>
+    <string name="all_categories_back">Volver</string>
+    <string name="all_categories_title">Todas las Categorías</string>
+    <string name="all_categories_search_placeholder">Buscar categorías...</string>
+    <string name="all_categories_load_error">No se pudieron cargar todas las categorías.</string>
+    <string name="all_categories_empty_title">No hay categorías creadas</string>
+    <string name="all_categories_empty_message">Crea una categoría para organizar tus credenciales en el cofre.</string>
+    <string name="all_categories_search_empty_title">No se encontraron categorías</string>
+    <string name="all_categories_search_empty_message">Prueba buscar con otro nombre de categoría.</string>
     <string name="bottom_nav_vault">COFRE</string>
     <string name="bottom_nav_passwords">CLAVES</string>
     <string name="bottom_nav_categories">CATEGORÍAS</string>
