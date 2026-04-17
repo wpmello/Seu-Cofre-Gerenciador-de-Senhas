@@ -88,9 +88,62 @@ class CategoriesViewModelTest {
     }
 
     @Test
+    fun givenCategoriesAreUpdatedAfterEdit_whenObservingState_thenListReflectsNewNameAndIcon() = runTest {
+        val repository = FakeCategoryRepository(
+            listOf(
+                Category(id = 5, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 8)
+            )
+        )
+        val viewModel = CategoriesViewModel(
+            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        repository.emit(
+            listOf(
+                Category(id = 5, name = "Corporativo", iconKey = "ic_directory", itemCount = 8)
+            )
+        )
+        advanceUntilIdle()
+
+        val categoriesState = viewModel.uiState.value.categoriesState
+        assertTrue(categoriesState is CategoriesContentUiState.Content)
+        categoriesState as CategoriesContentUiState.Content
+        assertEquals("Corporativo", categoriesState.categories.single().name)
+        assertEquals("ic_directory", categoriesState.categories.single().iconKey)
+        assertEquals(R.drawable.ic_directory, categoriesState.categories.single().iconResId)
+    }
+
+    @Test
+    fun givenCategoriesBecomeEmptyAfterDelete_whenObservingState_thenListReflectsEmptyState() = runTest {
+        val repository = FakeCategoryRepository(
+            listOf(
+                Category(id = 6, name = "Pessoal", iconKey = "ic_directory", itemCount = 1)
+            )
+        )
+        val viewModel = CategoriesViewModel(
+            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        repository.emit(emptyList())
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.categoriesState is CategoriesContentUiState.Empty)
+    }
+
+    @Test
     fun givenRepositoryFailure_whenObservingState_thenEmitsErrorState() = runTest {
         val repository = object : CategoryRepository {
             override suspend fun createCategory(name: String, iconKey: String): Long = 1L
+
+            override suspend fun getCategoryById(categoryId: Long): Category? = null
+
+            override suspend fun updateCategory(category: Category) = Unit
+
+            override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
             override fun observeCategories(): Flow<List<Category>> = flow {
                 throw IllegalStateException("repository failure")
@@ -116,7 +169,17 @@ class CategoriesViewModelTest {
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
+        override suspend fun getCategoryById(categoryId: Long): Category? = null
+
+        override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
         override fun observeCategories(): Flow<List<Category>> = categoriesFlow
+
+        fun emit(categories: List<Category>) {
+            categoriesFlow.value = categories
+        }
     }
 
     private class FakeCategoryIconCatalog : CategoryIconCatalog {

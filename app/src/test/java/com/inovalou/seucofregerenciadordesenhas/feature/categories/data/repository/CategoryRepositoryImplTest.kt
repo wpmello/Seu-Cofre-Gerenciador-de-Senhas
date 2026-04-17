@@ -78,11 +78,79 @@ class CategoryRepositoryImplTest {
     }
 
     @Test
+    fun givenPersistedCategoryId_whenGettingCategory_thenMapsEntityToDomainModel() = runTest {
+        val repository = CategoryRepositoryImpl(
+            FakeCategoriesLocalDataSource(
+                initialCategories = emptyList(),
+                categoryById = CategoryEntity(
+                    id = 31L,
+                    name = "Financeiro",
+                    iconKey = "ic_star",
+                    itemCount = 6
+                )
+            )
+        )
+
+        val category = repository.getCategoryById(31L)
+
+        assertEquals(
+            Category(
+                id = 31L,
+                name = "Financeiro",
+                iconKey = "ic_star",
+                itemCount = 6
+            ),
+            category
+        )
+    }
+
+    @Test
+    fun givenUpdatedCategory_whenUpdating_thenPersistsMappedEntity() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(emptyList())
+        val repository = CategoryRepositoryImpl(localDataSource)
+
+        repository.updateCategory(
+            Category(
+                id = 41L,
+                name = "Nova",
+                iconKey = "ic_cloud",
+                itemCount = 9
+            )
+        )
+
+        assertEquals(
+            CategoryEntity(
+                id = 41L,
+                name = "Nova",
+                iconKey = "ic_cloud",
+                itemCount = 9
+            ),
+            localDataSource.updatedCategory
+        )
+    }
+
+    @Test
+    fun givenCategoryId_whenDeleting_thenDelegatesDeleteToLocalSource() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(emptyList())
+        val repository = CategoryRepositoryImpl(localDataSource)
+
+        repository.deleteCategoryById(52L)
+
+        assertEquals(52L, localDataSource.deletedCategoryId)
+    }
+
+    @Test
     fun givenLocalDataSourceFailure_whenObservingCategories_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("local source failure")
         val repository = CategoryRepositoryImpl(
             object : CategoriesLocalDataSource {
                 override suspend fun insertCategory(category: CategoryEntity): Long = 1L
+
+                override suspend fun getCategoryById(categoryId: Long): CategoryEntity? = null
+
+                override suspend fun updateCategory(category: CategoryEntity) = Unit
+
+                override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
                 override fun observeCategories(): Flow<List<CategoryEntity>> = flow {
                     throw expected
@@ -102,15 +170,28 @@ class CategoryRepositoryImplTest {
     }
 
     private class FakeCategoriesLocalDataSource(
-        initialCategories: List<CategoryEntity>
+        initialCategories: List<CategoryEntity>,
+        private val categoryById: CategoryEntity? = null
     ) : CategoriesLocalDataSource {
 
         private val categoriesFlow = MutableStateFlow(initialCategories)
         var insertedCategory: CategoryEntity? = null
+        var updatedCategory: CategoryEntity? = null
+        var deletedCategoryId: Long? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
             insertedCategory = category
             return 77L
+        }
+
+        override suspend fun getCategoryById(categoryId: Long): CategoryEntity? = categoryById
+
+        override suspend fun updateCategory(category: CategoryEntity) {
+            updatedCategory = category
+        }
+
+        override suspend fun deleteCategoryById(categoryId: Long) {
+            deletedCategoryId = categoryId
         }
 
         override fun observeCategories(): Flow<List<CategoryEntity>> = categoriesFlow

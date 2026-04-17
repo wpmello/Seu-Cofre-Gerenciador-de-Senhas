@@ -21,6 +21,7 @@ class CategoriesScreenTest {
                         categoriesState = CategoriesContentUiState.Empty
                     ),
                     onAction = {},
+                    onCategoryClick = {},
                     onAddCategoryClick = {}
                 )
             }

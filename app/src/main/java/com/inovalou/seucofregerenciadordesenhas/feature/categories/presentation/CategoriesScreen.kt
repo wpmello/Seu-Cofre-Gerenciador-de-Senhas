@@ -70,6 +70,7 @@ private val EncryptedGreen = Color(0xFF3FFF8B)
 
 @Composable
 fun CategoriesRoute(
+    onCategoryClick: (Long) -> Unit,
     onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoriesViewModel = hiltViewModel()
@@ -79,6 +80,7 @@ fun CategoriesRoute(
     CategoriesScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
+        onCategoryClick = onCategoryClick,
         onAddCategoryClick = onAddCategoryClick,
         modifier = modifier
     )
@@ -88,6 +90,7 @@ fun CategoriesRoute(
 fun CategoriesScreen(
     uiState: CategoriesUiState,
     onAction: (CategoriesAction) -> Unit,
+    onCategoryClick: (Long) -> Unit,
     onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -159,7 +162,10 @@ fun CategoriesScreen(
                         items = categoriesState.categories,
                         key = { category -> category.id }
                     ) { category ->
-                        CategoryCard(category = category)
+                        CategoryCard(
+                            category = category,
+                            onClick = { onCategoryClick(category.id) }
+                        )
                     }
                 }
 
@@ -453,12 +459,15 @@ private fun HighlightedCategoryCard(
 @Composable
 private fun CategoryCard(
     category: CategoryCardUiModel,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .height(160.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(onClick = onClick)
             .background(
                 color = DeepNavy,
                 shape = RoundedCornerShape(24.dp)
@@ -572,6 +581,7 @@ private fun CategoriesScreenPreview() {
                 )
             ),
             onAction = {},
+            onCategoryClick = {},
             onAddCategoryClick = {}
         )
     }

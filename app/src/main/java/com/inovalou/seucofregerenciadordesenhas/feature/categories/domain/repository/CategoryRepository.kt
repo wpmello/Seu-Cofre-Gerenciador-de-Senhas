@@ -10,5 +10,11 @@ interface CategoryRepository {
         iconKey: String
     ): Long
 
+    suspend fun getCategoryById(categoryId: Long): Category?
+
+    suspend fun updateCategory(category: Category)
+
+    suspend fun deleteCategoryById(categoryId: Long)
+
     fun observeCategories(): Flow<List<Category>>
 }

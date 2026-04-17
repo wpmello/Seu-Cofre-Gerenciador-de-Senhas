@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.data.reposit
 
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoriesLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.mapper.toDomain
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.mapper.toEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoryEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
@@ -23,6 +24,17 @@ class CategoryRepositoryImpl @Inject constructor(
             itemCount = 0
         )
     )
+
+    override suspend fun getCategoryById(categoryId: Long): Category? =
+        localDataSource.getCategoryById(categoryId)?.toDomain()
+
+    override suspend fun updateCategory(category: Category) {
+        localDataSource.updateCategory(category.toEntity())
+    }
+
+    override suspend fun deleteCategoryById(categoryId: Long) {
+        localDataSource.deleteCategoryById(categoryId)
+    }
 
     override fun observeCategories(): Flow<List<Category>> =
         localDataSource.observeCategories().map { entities ->

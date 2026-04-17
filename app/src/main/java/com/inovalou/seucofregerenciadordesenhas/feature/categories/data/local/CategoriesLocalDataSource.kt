@@ -7,6 +7,12 @@ interface CategoriesLocalDataSource {
 
     suspend fun insertCategory(category: CategoryEntity): Long
 
+    suspend fun getCategoryById(categoryId: Long): CategoryEntity?
+
+    suspend fun updateCategory(category: CategoryEntity)
+
+    suspend fun deleteCategoryById(categoryId: Long)
+
     fun observeCategories(): Flow<List<CategoryEntity>>
 }
 
@@ -16,6 +22,17 @@ class RoomCategoriesLocalDataSource @Inject constructor(
 
     override suspend fun insertCategory(category: CategoryEntity): Long =
         categoryDao.insertCategory(category)
+
+    override suspend fun getCategoryById(categoryId: Long): CategoryEntity? =
+        categoryDao.getCategoryById(categoryId)
+
+    override suspend fun updateCategory(category: CategoryEntity) {
+        categoryDao.updateCategory(category)
+    }
+
+    override suspend fun deleteCategoryById(categoryId: Long) {
+        categoryDao.deleteCategoryById(categoryId)
+    }
 
     override fun observeCategories(): Flow<List<CategoryEntity>> = categoryDao.observeCategories()
 }

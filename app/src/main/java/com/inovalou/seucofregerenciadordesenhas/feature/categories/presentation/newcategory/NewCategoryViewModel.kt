@@ -7,6 +7,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecas
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryNameError
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryResult
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySelectableIconUiModel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -31,7 +32,7 @@ class NewCategoryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         NewCategoryUiState(
             availableIcons = iconOptions.map { option ->
-                NewCategoryIconUiModel(
+                CategorySelectableIconUiModel(
                     iconKey = option.iconKey,
                     iconResId = option.drawableResId,
                     isSelected = option.iconKey == defaultIconKey
