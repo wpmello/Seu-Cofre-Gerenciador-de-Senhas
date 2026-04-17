@@ -5,5 +5,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface CategoryRepository {
 
+    suspend fun createCategory(
+        name: String,
+        iconKey: String
+    ): Long
+
     fun observeCategories(): Flow<List<Category>>
 }

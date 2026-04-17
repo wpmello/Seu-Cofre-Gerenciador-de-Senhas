@@ -44,18 +44,19 @@ class CategoryDaoTest {
     @Test
     fun givenPersistedCategories_whenObserving_thenReturnsNameOrderedListIgnoringCase() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, item_count) VALUES (1, 'zeta', 2)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (1, 'zeta', 'ic_star', 2)"
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, item_count) VALUES (2, 'Alpha', 1)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (2, 'Alpha', 'ic_directory', 1)"
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, item_count) VALUES (3, 'bravo', 3)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (3, 'bravo', 'ic_padlock', 3)"
         )
 
         val categories = categoryDao.observeCategories().first()
 
         assertEquals(listOf("Alpha", "bravo", "zeta"), categories.map { it.name })
+        assertEquals(listOf("ic_directory", "ic_padlock", "ic_star"), categories.map { it.iconKey })
         assertEquals(listOf(1, 3, 2), categories.map { it.itemCount })
     }
 }

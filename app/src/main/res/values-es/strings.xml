@@ -28,6 +28,17 @@
     <string name="categories_current_badge">ACTUAL</string>
     <string name="categories_add_new">NUEVA\nCATEGORÍA</string>
     <string name="categories_load_error">No se pudieron cargar las categorías.</string>
+    <string name="new_category_back">Volver</string>
+    <string name="new_category_title">Nueva categoría</string>
+    <string name="new_category_description">Organiza tus accesos creando espacios exclusivos para tus credenciales digitales.</string>
+    <string name="new_category_name_label">NOMBRE DE LA CATEGORÍA</string>
+    <string name="new_category_name_hint">ej: Trabajo, Personal</string>
+    <string name="new_category_icon_label">SELECCIONA UN ÍCONO</string>
+    <string name="new_category_icons_available">%1$d íconos disponibles</string>
+    <string name="new_category_create_button">Crear categoría</string>
+    <string name="new_category_name_error_blank">Ingresa el nombre de la categoría.</string>
+    <string name="new_category_icon_error_missing">Selecciona un ícono para continuar.</string>
+    <string name="new_category_create_error">No se pudo crear la categoría.</string>
     <string name="bottom_nav_vault">COFRE</string>
     <string name="bottom_nav_passwords">CLAVES</string>
     <string name="bottom_nav_categories">CATEGORÍAS</string>

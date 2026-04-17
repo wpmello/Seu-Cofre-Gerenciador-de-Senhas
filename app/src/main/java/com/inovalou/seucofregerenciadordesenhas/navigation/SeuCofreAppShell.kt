@@ -15,7 +15,12 @@ import com.inovalou.seucofregerenciadordesenhas.core.navigation.AppBottomDestina
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.SeuCofreBottomBar
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.appBottomDestinationForRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.CategoriesRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
+
+private object AppShellRoutes {
+    const val NewCategory = "categories/new"
+}
 
 @Composable
 fun SeuCofreAppShell(modifier: Modifier = Modifier) {
@@ -54,7 +59,16 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 PlaceholderTabScreen(titleResId = R.string.placeholder_passwords)
             }
             composable(AppBottomDestination.Categories.route) {
-                CategoriesRoute()
+                CategoriesRoute(
+                    onAddCategoryClick = {
+                        navController.navigate(AppShellRoutes.NewCategory)
+                    }
+                )
+            }
+            composable(AppShellRoutes.NewCategory) {
+                NewCategoryRoute(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable(AppBottomDestination.Settings.route) {
                 PlaceholderTabScreen(titleResId = R.string.placeholder_settings)

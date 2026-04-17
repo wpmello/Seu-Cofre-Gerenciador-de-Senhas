@@ -7,7 +7,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.Ca
 
 @Database(
     entities = [CategoryEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class SeuCofreDatabase : RoomDatabase() {

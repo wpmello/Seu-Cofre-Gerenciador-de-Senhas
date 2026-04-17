@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,7 +15,8 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
-    observeCategoriesUseCase: ObserveCategoriesUseCase
+    observeCategoriesUseCase: ObserveCategoriesUseCase,
+    private val categoryIconCatalog: CategoryIconCatalog
 ) : ViewModel() {
 
     val uiState = observeCategoriesUseCase()
@@ -36,7 +38,6 @@ class CategoriesViewModel @Inject constructor(
 
     fun onAction(action: CategoriesAction) {
         when (action) {
-            CategoriesAction.OnAddCategoryClick,
             CategoriesAction.OnSearchClick,
             CategoriesAction.OnViewAllClick -> Unit
         }
@@ -51,6 +52,8 @@ class CategoriesViewModel @Inject constructor(
                     CategoryCardUiModel(
                         id = category.id,
                         name = category.name,
+                        iconKey = category.iconKey,
+                        iconResId = categoryIconCatalog.resolve(category.iconKey).drawableResId,
                         itemCount = category.itemCount
                     )
                 }

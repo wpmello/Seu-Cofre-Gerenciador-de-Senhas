@@ -18,8 +18,8 @@ class CategoryRepositoryImplTest {
     fun givenLocalEntities_whenObservingCategories_thenMapsEntitiesToDomainModels() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(
             listOf(
-                CategoryEntity(id = 11L, name = "Viagens", itemCount = 21),
-                CategoryEntity(id = 12L, name = "Saúde", itemCount = 12)
+                CategoryEntity(id = 11L, name = "Viagens", iconKey = "ic_global", itemCount = 21),
+                CategoryEntity(id = 12L, name = "Saúde", iconKey = "ic_padlock", itemCount = 12)
             )
         )
         val repository = CategoryRepositoryImpl(localDataSource)
@@ -28,8 +28,8 @@ class CategoryRepositoryImplTest {
 
         assertEquals(
             listOf(
-                Category(id = 11L, name = "Viagens", itemCount = 21),
-                Category(id = 12L, name = "Saúde", itemCount = 12)
+                Category(id = 11L, name = "Viagens", iconKey = "ic_global", itemCount = 21),
+                Category(id = 12L, name = "Saúde", iconKey = "ic_padlock", itemCount = 12)
             ),
             observed
         )
@@ -42,7 +42,7 @@ class CategoryRepositoryImplTest {
 
         localDataSource.emit(
             listOf(
-                CategoryEntity(id = 21L, name = "Entretenimento", itemCount = 28)
+                CategoryEntity(id = 21L, name = "Entretenimento", iconKey = "ic_favorite", itemCount = 28)
             )
         )
 
@@ -50,9 +50,30 @@ class CategoryRepositoryImplTest {
 
         assertEquals(
             listOf(
-                Category(id = 21L, name = "Entretenimento", itemCount = 28)
+                Category(id = 21L, name = "Entretenimento", iconKey = "ic_favorite", itemCount = 28)
             ),
             observed
+        )
+    }
+
+    @Test
+    fun givenValidInput_whenCreatingCategory_thenPersistsNameAndIconKeyWithZeroItems() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(emptyList())
+        val repository = CategoryRepositoryImpl(localDataSource)
+
+        val insertedId = repository.createCategory(
+            name = "Pessoal",
+            iconKey = "ic_user_profile"
+        )
+
+        assertEquals(77L, insertedId)
+        assertEquals(
+            CategoryEntity(
+                name = "Pessoal",
+                iconKey = "ic_user_profile",
+                itemCount = 0
+            ),
+            localDataSource.insertedCategory
         )
     }
 
@@ -61,6 +82,8 @@ class CategoryRepositoryImplTest {
         val expected = IllegalStateException("local source failure")
         val repository = CategoryRepositoryImpl(
             object : CategoriesLocalDataSource {
+                override suspend fun insertCategory(category: CategoryEntity): Long = 1L
+
                 override fun observeCategories(): Flow<List<CategoryEntity>> = flow {
                     throw expected
                 }
@@ -83,6 +106,12 @@ class CategoryRepositoryImplTest {
     ) : CategoriesLocalDataSource {
 
         private val categoriesFlow = MutableStateFlow(initialCategories)
+        var insertedCategory: CategoryEntity? = null
+
+        override suspend fun insertCategory(category: CategoryEntity): Long {
+            insertedCategory = category
+            return 77L
+        }
 
         override fun observeCategories(): Flow<List<CategoryEntity>> = categoriesFlow
 

@@ -6,5 +6,6 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.
 fun CategoryEntity.toDomain(): Category = Category(
     id = id,
     name = name,
+    iconKey = iconKey,
     itemCount = itemCount
 )

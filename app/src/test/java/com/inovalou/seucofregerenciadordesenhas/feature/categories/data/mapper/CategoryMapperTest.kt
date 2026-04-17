@@ -11,6 +11,7 @@ class CategoryMapperTest {
         val entity = CategoryEntity(
             id = 7L,
             name = "Trabalho",
+            iconKey = "ic_work_bag_add_category",
             itemCount = 42
         )
 
@@ -18,6 +19,7 @@ class CategoryMapperTest {
 
         assertEquals(7L, category.id)
         assertEquals("Trabalho", category.name)
+        assertEquals("ic_work_bag_add_category", category.iconKey)
         assertEquals(42, category.itemCount)
     }
 }
