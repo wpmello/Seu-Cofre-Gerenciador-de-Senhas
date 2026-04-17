@@ -59,6 +59,14 @@
     <string name="edit_category_passwords_title">Passwords in this category</string>
     <string name="edit_category_passwords_empty_title">The password list will appear here</string>
     <string name="edit_category_passwords_empty_message">This section is already prepared to receive the real items when the passwords layer is implemented.</string>
+    <string name="all_categories_back">Go back</string>
+    <string name="all_categories_title">All Categories</string>
+    <string name="all_categories_search_placeholder">Search categories...</string>
+    <string name="all_categories_load_error">Could not load all categories.</string>
+    <string name="all_categories_empty_title">No categories created</string>
+    <string name="all_categories_empty_message">Create a category to organize your credentials in the vault.</string>
+    <string name="all_categories_search_empty_title">No categories found</string>
+    <string name="all_categories_search_empty_message">Try searching with a different category name.</string>
     <string name="bottom_nav_vault">VAULT</string>
     <string name="bottom_nav_passwords">PASSWORDS</string>
     <string name="bottom_nav_categories">CATEGORIES</string>

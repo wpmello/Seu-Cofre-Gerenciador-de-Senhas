@@ -22,6 +22,7 @@ class CategoriesScreenTest {
                     ),
                     onAction = {},
                     onCategoryClick = {},
+                    onViewAllClick = {},
                     onAddCategoryClick = {}
                 )
             }

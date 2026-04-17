@@ -34,6 +34,9 @@ class EditCategoryViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val categoryId: Long? = savedStateHandle.get<Long>(EditCategoryRoute.categoryIdArg)
+    private val openedFrom = EditCategoryOpenedFrom.fromRouteValue(
+        savedStateHandle.get<String>(EditCategoryRoute.openedFromArg)
+    )
     private val iconOptions = categoryIconCatalog.all()
     private val defaultIconKey = categoryIconCatalog.default().iconKey
 
@@ -60,6 +63,7 @@ class EditCategoryViewModel @Inject constructor(
 
     fun onAction(action: EditCategoryAction) {
         when (action) {
+            EditCategoryAction.OnBackClick -> navigateBackToOrigin()
             is EditCategoryAction.OnNameChanged -> onNameChanged(action.name)
             EditCategoryAction.OnEditIconClick -> {
                 _uiState.update { it.copy(isIconPickerVisible = true) }
@@ -121,6 +125,12 @@ class EditCategoryViewModel @Inject constructor(
         }
     }
 
+    private fun navigateBackToOrigin() {
+        viewModelScope.launch {
+            _effects.emit(EditCategoryEffect.NavigateBackToOrigin(openedFrom))
+        }
+    }
+
     private fun onNameChanged(name: String) {
         _uiState.update { state ->
             state.copy(
@@ -166,7 +176,7 @@ class EditCategoryViewModel @Inject constructor(
             ) {
                 UpdateCategoryResult.Success -> {
                     _uiState.update { it.copy(isSaving = false) }
-                    _effects.emit(EditCategoryEffect.NavigateBack)
+                    _effects.emit(EditCategoryEffect.NavigateToCategories)
                 }
                 is UpdateCategoryResult.ValidationError -> {
                     _uiState.update { state ->
@@ -212,7 +222,7 @@ class EditCategoryViewModel @Inject constructor(
             when (deleteCategoryUseCase(resolvedCategoryId)) {
                 DeleteCategoryResult.Success -> {
                     _uiState.update { it.copy(isDeleting = false) }
-                    _effects.emit(EditCategoryEffect.NavigateBack)
+                    _effects.emit(EditCategoryEffect.NavigateToCategories)
                 }
                 DeleteCategoryResult.NotFound -> {
                     _uiState.update { state ->

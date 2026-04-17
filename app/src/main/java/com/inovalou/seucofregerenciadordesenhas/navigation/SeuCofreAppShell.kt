@@ -16,8 +16,11 @@ import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.AppBottomDestination
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.SeuCofreBottomBar
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.appBottomDestinationForRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.allcategories.AllCategoriesEntry
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.allcategories.AllCategoriesRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.CategoriesRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryEntry
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
@@ -63,8 +66,29 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                     onCategoryClick = { categoryId ->
                         navController.navigate(EditCategoryRoute.createRoute(categoryId))
                     },
+                    onViewAllClick = {
+                        navController.navigate(AllCategoriesRoute.route)
+                    },
                     onAddCategoryClick = {
                         navController.navigate("categories/new")
+                    }
+                )
+            }
+            composable(AllCategoriesRoute.route) {
+                AllCategoriesEntry(
+                    onBackClick = {
+                        navController.popBackStack(
+                            AppBottomDestination.Categories.route,
+                            inclusive = false
+                        )
+                    },
+                    onEditCategoryClick = { categoryId, openedFrom ->
+                        navController.navigate(
+                            EditCategoryRoute.createRoute(
+                                categoryId = categoryId,
+                                openedFrom = openedFrom
+                            )
+                        )
                     }
                 )
             }
@@ -78,11 +102,37 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 arguments = listOf(
                     navArgument(EditCategoryRoute.categoryIdArg) {
                         type = NavType.LongType
+                    },
+                    navArgument(EditCategoryRoute.openedFromArg) {
+                        type = NavType.StringType
+                        defaultValue = EditCategoryOpenedFrom.Categories.routeValue
                     }
                 )
             ) {
                 EditCategoryEntry(
-                    onBackClick = { navController.popBackStack() }
+                    onNavigateBackToOrigin = { openedFrom ->
+                        when (openedFrom) {
+                            EditCategoryOpenedFrom.Categories -> {
+                                navController.popBackStack(
+                                    AppBottomDestination.Categories.route,
+                                    inclusive = false
+                                )
+                            }
+
+                            EditCategoryOpenedFrom.AllCategories -> {
+                                navController.popBackStack(
+                                    AllCategoriesRoute.route,
+                                    inclusive = false
+                                )
+                            }
+                        }
+                    },
+                    onNavigateToCategories = {
+                        navController.popBackStack(
+                            AppBottomDestination.Categories.route,
+                            inclusive = false
+                        )
+                    }
                 )
             }
             composable(AppBottomDestination.Settings.route) {

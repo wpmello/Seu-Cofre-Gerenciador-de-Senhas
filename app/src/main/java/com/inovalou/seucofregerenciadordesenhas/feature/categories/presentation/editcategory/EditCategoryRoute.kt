@@ -2,7 +2,11 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation
 
 object EditCategoryRoute {
     const val categoryIdArg = "categoryId"
-    const val routePattern = "categories/{$categoryIdArg}/edit"
+    const val openedFromArg = "openedFrom"
+    const val routePattern = "categories/{$categoryIdArg}/edit?$openedFromArg={$openedFromArg}"
 
-    fun createRoute(categoryId: Long): String = "categories/$categoryId/edit"
+    fun createRoute(
+        categoryId: Long,
+        openedFrom: EditCategoryOpenedFrom = EditCategoryOpenedFrom.Categories
+    ): String = "categories/$categoryId/edit?openedFrom=${openedFrom.routeValue}"
 }

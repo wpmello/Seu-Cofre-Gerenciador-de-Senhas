@@ -60,7 +60,8 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 
 @Composable
 fun EditCategoryEntry(
-    onBackClick: () -> Unit,
+    onNavigateBackToOrigin: (EditCategoryOpenedFrom) -> Unit,
+    onNavigateToCategories: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EditCategoryViewModel = hiltViewModel()
 ) {
@@ -69,7 +70,8 @@ fun EditCategoryEntry(
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                EditCategoryEffect.NavigateBack -> onBackClick()
+                EditCategoryEffect.NavigateToCategories -> onNavigateToCategories()
+                is EditCategoryEffect.NavigateBackToOrigin -> onNavigateBackToOrigin(effect.openedFrom)
             }
         }
     }
@@ -77,7 +79,6 @@ fun EditCategoryEntry(
     EditCategoryScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
-        onBackClick = onBackClick,
         modifier = modifier
     )
 }
@@ -86,7 +87,6 @@ fun EditCategoryEntry(
 fun EditCategoryScreen(
     uiState: EditCategoryUiState,
     onAction: (EditCategoryAction) -> Unit,
-    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val selectedIconResId = uiState.availableIcons.firstOrNull { it.isSelected }?.iconResId
@@ -113,7 +113,7 @@ fun EditCategoryScreen(
                     modifier = Modifier
                         .size(24.dp)
                         .clip(CircleShape)
-                        .clickable(onClick = onBackClick),
+                        .clickable { onAction(EditCategoryAction.OnBackClick) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
