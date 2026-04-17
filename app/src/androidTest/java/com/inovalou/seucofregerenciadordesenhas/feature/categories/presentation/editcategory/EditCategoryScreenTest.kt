@@ -21,8 +21,7 @@ class EditCategoryScreenTest {
             SeuCofreGerenciadorDeSenhasTheme {
                 EditCategoryScreen(
                     uiState = editCategoryUiState(),
-                    onAction = {},
-                    onBackClick = {}
+                    onAction = {}
                 )
             }
         }
@@ -39,8 +38,7 @@ class EditCategoryScreenTest {
             SeuCofreGerenciadorDeSenhasTheme {
                 EditCategoryScreen(
                     uiState = editCategoryUiState(isIconPickerVisible = true),
-                    onAction = {},
-                    onBackClick = {}
+                    onAction = {}
                 )
             }
         }

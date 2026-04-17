@@ -59,6 +59,34 @@ class EditCategoryViewModelTest {
     }
 
     @Test
+    fun givenScreenOpenedFromCategories_whenBackIsClicked_thenNavigatesBackToCategoriesOrigin() = runTest {
+        val viewModel = buildViewModel(openedFrom = EditCategoryOpenedFrom.Categories)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditCategoryAction.OnBackClick)
+
+        assertEquals(
+            EditCategoryEffect.NavigateBackToOrigin(EditCategoryOpenedFrom.Categories),
+            effect.await()
+        )
+    }
+
+    @Test
+    fun givenScreenOpenedFromAllCategories_whenBackIsClicked_thenNavigatesBackToAllCategoriesOrigin() = runTest {
+        val viewModel = buildViewModel(openedFrom = EditCategoryOpenedFrom.AllCategories)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditCategoryAction.OnBackClick)
+
+        assertEquals(
+            EditCategoryEffect.NavigateBackToOrigin(EditCategoryOpenedFrom.AllCategories),
+            effect.await()
+        )
+    }
+
+    @Test
     fun givenIconPickerOpened_whenIconSelected_thenUpdatesSelectedIconAndClosesDialog() = runTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
@@ -99,7 +127,7 @@ class EditCategoryViewModelTest {
         assertEquals(9L, fakeUpdateUseCase.lastCategoryId)
         assertEquals("Corporativo", fakeUpdateUseCase.lastName)
         assertEquals("ic_directory", fakeUpdateUseCase.lastIconKey)
-        assertEquals(EditCategoryEffect.NavigateBack, effect.await())
+        assertEquals(EditCategoryEffect.NavigateToCategories, effect.await())
     }
 
     @Test
@@ -129,7 +157,7 @@ class EditCategoryViewModelTest {
         advanceUntilIdle()
 
         assertEquals(9L, fakeDeleteUseCase.deletedCategoryId)
-        assertEquals(EditCategoryEffect.NavigateBack, effect.await())
+        assertEquals(EditCategoryEffect.NavigateToCategories, effect.await())
     }
 
     @Test
@@ -181,11 +209,15 @@ class EditCategoryViewModelTest {
             iconKey = "ic_work_bag_add_category",
             itemCount = 4
         ),
+        openedFrom: EditCategoryOpenedFrom = EditCategoryOpenedFrom.Categories,
         updateCategoryUseCase: FakeUpdateCategoryUseCase = FakeUpdateCategoryUseCase(),
         deleteCategoryUseCase: FakeDeleteCategoryUseCase = FakeDeleteCategoryUseCase()
     ): EditCategoryViewModel = EditCategoryViewModel(
         savedStateHandle = SavedStateHandle(
-            mapOf(EditCategoryRoute.categoryIdArg to 9L)
+            mapOf(
+                EditCategoryRoute.categoryIdArg to 9L,
+                EditCategoryRoute.openedFromArg to openedFrom.routeValue
+            )
         ),
         getCategoryByIdUseCase = GetCategoryByIdUseCase(FakeCategoryLookupRepository(category)),
         updateCategoryUseCase = UpdateCategoryUseCase(updateCategoryUseCase),
