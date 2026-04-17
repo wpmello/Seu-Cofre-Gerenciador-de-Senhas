@@ -9,3 +9,10 @@ fun CategoryEntity.toDomain(): Category = Category(
     iconKey = iconKey,
     itemCount = itemCount
 )
+
+fun Category.toEntity(): CategoryEntity = CategoryEntity(
+    id = id,
+    name = name,
+    iconKey = iconKey,
+    itemCount = itemCount
+)

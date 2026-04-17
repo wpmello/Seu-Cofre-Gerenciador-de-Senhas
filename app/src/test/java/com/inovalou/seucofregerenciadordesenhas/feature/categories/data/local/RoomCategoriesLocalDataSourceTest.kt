@@ -41,6 +41,52 @@ class RoomCategoriesLocalDataSourceTest {
     }
 
     @Test
+    fun givenPersistedCategoryId_whenGettingCategory_thenDelegatesToDao() = runTest {
+        val expected = CategoryEntity(
+            id = 7L,
+            name = "Trabalho",
+            iconKey = "ic_work_bag_add_category",
+            itemCount = 4
+        )
+        val dataSource = RoomCategoriesLocalDataSource(
+            categoryDao = FakeCategoryDao(
+                categoriesFlow = flowOf(emptyList()),
+                categoryById = expected
+            )
+        )
+
+        val category = dataSource.getCategoryById(7L)
+
+        assertEquals(expected, category)
+    }
+
+    @Test
+    fun givenCategory_whenUpdating_thenDelegatesToDao() = runTest {
+        val category = CategoryEntity(
+            id = 9L,
+            name = "Atualizada",
+            iconKey = "ic_star",
+            itemCount = 1
+        )
+        val dao = FakeCategoryDao(flowOf(emptyList()))
+        val dataSource = RoomCategoriesLocalDataSource(dao)
+
+        dataSource.updateCategory(category)
+
+        assertEquals(category, dao.updatedCategory)
+    }
+
+    @Test
+    fun givenCategoryId_whenDeleting_thenDelegatesToDao() = runTest {
+        val dao = FakeCategoryDao(flowOf(emptyList()))
+        val dataSource = RoomCategoriesLocalDataSource(dao)
+
+        dataSource.deleteCategoryById(12L)
+
+        assertEquals(12L, dao.deletedCategoryId)
+    }
+
+    @Test
     fun givenDaoFailure_whenObservingCategories_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("database unavailable")
         val dataSource = RoomCategoriesLocalDataSource(
@@ -63,14 +109,27 @@ class RoomCategoriesLocalDataSourceTest {
     }
 
     private class FakeCategoryDao(
-        private val categoriesFlow: Flow<List<CategoryEntity>>
+        private val categoriesFlow: Flow<List<CategoryEntity>>,
+        private val categoryById: CategoryEntity? = null
     ) : CategoryDao {
 
         var insertedCategory: CategoryEntity? = null
+        var updatedCategory: CategoryEntity? = null
+        var deletedCategoryId: Long? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
             insertedCategory = category
             return 99L
+        }
+
+        override suspend fun getCategoryById(categoryId: Long): CategoryEntity? = categoryById
+
+        override suspend fun updateCategory(category: CategoryEntity) {
+            updatedCategory = category
+        }
+
+        override suspend fun deleteCategoryById(categoryId: Long) {
+            deletedCategoryId = categoryId
         }
 
         override fun observeCategories(): Flow<List<CategoryEntity>> = categoriesFlow

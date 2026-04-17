@@ -56,6 +56,12 @@ class ObserveCategoriesUseCaseTest {
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
+        override suspend fun getCategoryById(categoryId: Long): Category? = null
+
+        override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
         override fun observeCategories(): Flow<List<Category>> = categoriesFlow
     }
 }
