@@ -96,6 +96,27 @@ Mesmo nesses casos, a base continua sendo a branch de integração alvo, salvo i
 
 ## Workflow obrigatório antes de criar commits finais
 
+### Regra de encerramento explícito
+
+Existe uma diferença obrigatória entre:
+
+- pedido para apenas criar commits
+- pedido para criar commits **e encerrar o desenvolvimento**
+
+Quando o usuário pedir algo equivalente a:
+
+- `faça os commits e feche o desenvolvimento`
+- `faça os commits, é o final da feature`
+- `faça os commits e finalize`
+
+o agente deve tratar isso como **encerramento explícito da entrega**.
+
+Quando o usuário pedir apenas algo equivalente a:
+
+- `faça os commits`
+
+o agente **não** deve assumir encerramento da entrega e **não** deve gerar automaticamente texto de descrição de pull request.
+
 ### Etapa 1 — Entender o contexto da tarefa
 
 O agente deve identificar:
@@ -143,6 +164,27 @@ O agente deve verificar:
 - se ela não carrega commits de outra branch por acidente;
 - se o PR resultante terá somente os arquivos esperados.
 
+### Etapa 6 — Gerar texto para descrição do PR apenas no encerramento explícito
+
+Somente quando o usuário tiver indicado que é o encerramento da entrega, o agente deve:
+
+1. analisar o que realmente entrou na branch e nos commits finais;
+2. resumir o objetivo da entrega;
+3. listar mudanças principais em linguagem de revisão;
+4. destacar testes/validações executados;
+5. registrar riscos, limitações ou TODOs relevantes, se existirem;
+6. entregar um texto pronto para o usuário colar na descrição do pull request.
+
+Esse texto deve ser baseado no que realmente foi implementado, não em intenção genérica.
+
+### Regra de não ativação
+
+Se o usuário não disser explicitamente que está fechando o desenvolvimento:
+
+- não gerar automaticamente texto de PR;
+- não inferir que o momento de abrir PR chegou;
+- limitar a resposta ao trabalho de branches e commits pedido.
+
 ## Procedimento de correção quando a base estiver errada
 
 Se uma branch foi criada sobre base errada, corrigir sem perder conteúdo:
@@ -185,4 +227,5 @@ Usar esta regra mental:
 - múltiplas naturezas de mudança -> múltiplos commits;
 - múltiplas entregas independentes -> múltiplas branches;
 - cada branch nasce da branch de merge alvo;
-- se a base estiver errada, recriar com backup e `cherry-pick`.
+- se a base estiver errada, recriar com backup e `cherry-pick`;
+- texto de descrição de PR só é gerado quando o usuário explicitar o encerramento da entrega.

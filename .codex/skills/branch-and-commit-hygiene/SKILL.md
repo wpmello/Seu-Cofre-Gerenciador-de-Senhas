@@ -12,6 +12,27 @@ Use this skill at the end of implementation work when the user asks to:
 - reorganize branches that were created on the wrong base;
 - decide whether one task should stay in one branch or be split into multiple branches.
 
+## Explicit end-of-development trigger
+
+This skill must distinguish between:
+
+- a request to only create commits;
+- a request to create commits and explicitly close the delivery.
+
+Treat phrases such as:
+
+- `faça os commits e feche o desenvolvimento`
+- `é o final da feature`
+- `faça os commits e finalize`
+
+as an explicit end-of-development trigger.
+
+If the user only says something equivalent to:
+
+- `faça os commits`
+
+do **not** generate pull request description text automatically.
+
 ## Required project context
 
 Read:
@@ -85,6 +106,20 @@ Good examples:
 - `docs: capture splash ui implementation guidance`
 - `chore: stabilize android build environment`
 
+### 5.1. Decide whether PR description output is required
+
+If and only if the user explicitly indicated end of development:
+
+- inspect the final staged/committed delivery;
+- derive a concise PR description draft from the actual changes;
+- include outcome, main change areas, validations, and notable risks/TODOs when relevant;
+- present that text to the user after the commit/branch work is complete.
+
+If end of development was **not** explicitly requested:
+
+- do not generate PR description text;
+- do not infer that the user is preparing a PR right now.
+
 ### 6. Repair wrong branch ancestry safely
 If branches were created on the wrong base:
 
@@ -102,6 +137,7 @@ Verify:
 - each branch merge-base matches the intended target base;
 - backup refs exist before any rewrite;
 - the user is told if force-push will be required after local history rewrite.
+- PR description text is only produced when explicit end-of-development wording was present.
 
 ## Do not do
 
