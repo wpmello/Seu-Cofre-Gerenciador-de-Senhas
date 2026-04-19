@@ -42,9 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryOpenedFrom
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
@@ -54,6 +54,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 @Composable
 fun AllCategoriesEntry(
     onBackClick: () -> Unit,
+    onAddCategoryClick: () -> Unit,
     onEditCategoryClick: (Long, EditCategoryOpenedFrom) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AllCategoriesViewModel = hiltViewModel()
@@ -74,6 +75,7 @@ fun AllCategoriesEntry(
         uiState = uiState.value,
         onAction = viewModel::onAction,
         onBackClick = onBackClick,
+        onAddCategoryClick = onAddCategoryClick,
         modifier = modifier
     )
 }
@@ -83,103 +85,117 @@ fun AllCategoriesScreen(
     uiState: AllCategoriesUiState,
     onAction: (AllCategoriesAction) -> Unit,
     onBackClick: () -> Unit,
+    onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MidnightBlue
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MidnightBlue)
-                .testTag("all_categories_screen"),
-            contentPadding = PaddingValues(
-                start = 24.dp,
-                top = 20.dp,
-                end = 24.dp,
-                bottom = 32.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                .testTag("all_categories_screen")
         ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                AllCategoriesTopBar(onBackClick = onBackClick)
-            }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 24.dp,
+                    top = 20.dp,
+                    end = 24.dp,
+                    bottom = 120.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    AllCategoriesTopBar(onBackClick = onBackClick)
+                }
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                AllCategoriesSearchField(
-                    query = uiState.query,
-                    onQueryChanged = { onAction(AllCategoriesAction.OnSearchQueryChanged(it)) }
-                )
-            }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    AllCategoriesSearchField(
+                        query = uiState.query,
+                        onQueryChanged = { onAction(AllCategoriesAction.OnSearchQueryChanged(it)) }
+                    )
+                }
 
-            when (val contentState = uiState.contentState) {
-                AllCategoriesContentState.Loading -> {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 48.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.testTag("all_categories_loading"),
-                                color = ElectricBlue
+                when (val contentState = uiState.contentState) {
+                    AllCategoriesContentState.Loading -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 48.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.testTag("all_categories_loading"),
+                                    color = ElectricBlue
+                                )
+                            }
+                        }
+                    }
+
+                    AllCategoriesContentState.Content -> {
+                        items(
+                            items = uiState.filteredCategories,
+                            key = { category -> category.id }
+                        ) { category ->
+                            CategoryGridCard(
+                                category = category,
+                                onClick = {
+                                    onAction(AllCategoriesAction.OnCategoryClick(category.id))
+                                }
+                            )
+                        }
+                    }
+
+                    AllCategoriesContentState.EmptyCategories -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            AllCategoriesEmptyState(
+                                title = stringResource(R.string.all_categories_empty_title),
+                                message = stringResource(R.string.all_categories_empty_message),
+                                modifier = Modifier.testTag("all_categories_empty")
+                            )
+                        }
+                    }
+
+                    AllCategoriesContentState.EmptySearchResult -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            AllCategoriesEmptyState(
+                                title = stringResource(R.string.all_categories_search_empty_title),
+                                message = stringResource(R.string.all_categories_search_empty_message),
+                                modifier = Modifier.testTag("all_categories_search_empty")
+                            )
+                        }
+                    }
+
+                    is AllCategoriesContentState.Error -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                text = stringResource(contentState.messageResId),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                                    .testTag("all_categories_error"),
+                                color = MistText,
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     }
                 }
-
-                AllCategoriesContentState.Content -> {
-                    items(
-                        items = uiState.filteredCategories,
-                        key = { category -> category.id }
-                    ) { category ->
-                        CategoryGridCard(
-                            category = category,
-                            onClick = {
-                                onAction(AllCategoriesAction.OnCategoryClick(category.id))
-                            }
-                        )
-                    }
-                }
-
-                AllCategoriesContentState.EmptyCategories -> {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        AllCategoriesEmptyState(
-                            title = stringResource(R.string.all_categories_empty_title),
-                            message = stringResource(R.string.all_categories_empty_message),
-                            modifier = Modifier.testTag("all_categories_empty")
-                        )
-                    }
-                }
-
-                AllCategoriesContentState.EmptySearchResult -> {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        AllCategoriesEmptyState(
-                            title = stringResource(R.string.all_categories_search_empty_title),
-                            message = stringResource(R.string.all_categories_search_empty_message),
-                            modifier = Modifier.testTag("all_categories_search_empty")
-                        )
-                    }
-                }
-
-                is AllCategoriesContentState.Error -> {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Text(
-                            text = stringResource(contentState.messageResId),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp)
-                                .testTag("all_categories_error"),
-                            color = MistText,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
             }
+
+            CategoryCreateFab(
+                contentDescription = stringResource(R.string.categories_create_fab),
+                onClick = onAddCategoryClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 24.dp)
+                    .testTag("all_categories_create_fab")
+            )
         }
     }
 }

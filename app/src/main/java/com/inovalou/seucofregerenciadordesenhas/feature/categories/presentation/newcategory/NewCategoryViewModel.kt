@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
@@ -22,12 +23,16 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class NewCategoryViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val createCategoryUseCase: CreateCategoryUseCase,
     private val categoryIconCatalog: CategoryIconCatalog
 ) : ViewModel() {
 
     private val iconOptions = categoryIconCatalog.all()
     private val defaultIconKey = iconOptions.firstOrNull()?.iconKey
+    private val openedFrom = NewCategoryOpenedFrom.fromRouteValue(
+        savedStateHandle[NewCategoryDestination.openedFromArg]
+    )
 
     private val _uiState = MutableStateFlow(
         NewCategoryUiState(
@@ -48,9 +53,16 @@ class NewCategoryViewModel @Inject constructor(
 
     fun onAction(action: NewCategoryAction) {
         when (action) {
+            NewCategoryAction.OnBackClick -> navigateBackToOrigin()
             is NewCategoryAction.OnNameChanged -> onNameChanged(action.name)
             is NewCategoryAction.OnIconSelected -> onIconSelected(action.iconKey)
             NewCategoryAction.OnCreateCategoryClick -> createCategory()
+        }
+    }
+
+    private fun navigateBackToOrigin() {
+        viewModelScope.launch {
+            _effects.emit(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
         }
     }
 
@@ -94,7 +106,7 @@ class NewCategoryViewModel @Inject constructor(
             )) {
                 CreateCategoryResult.Success -> {
                     _uiState.update { state -> state.copy(isSaving = false) }
-                    _effects.emit(NewCategoryEffect.NavigateBack)
+                    _effects.emit(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
                 }
 
                 CreateCategoryResult.Failure -> {

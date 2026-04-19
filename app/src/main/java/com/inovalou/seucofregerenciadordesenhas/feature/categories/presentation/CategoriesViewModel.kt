@@ -48,7 +48,7 @@ class CategoriesViewModel @Inject constructor(
             CategoriesContentUiState.Empty
         } else {
             CategoriesContentUiState.Content(
-                categories = categories.map { category ->
+                categories = categories.take(4).map { category ->
                     CategoryCardUiModel(
                         id = category.id,
                         name = category.name,

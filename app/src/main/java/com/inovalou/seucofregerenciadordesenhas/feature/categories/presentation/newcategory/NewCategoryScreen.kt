@@ -52,7 +52,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 
 @Composable
 fun NewCategoryRoute(
-    onBackClick: () -> Unit,
+    onNavigateBackToOrigin: (NewCategoryOpenedFrom) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewCategoryViewModel = hiltViewModel()
 ) {
@@ -61,7 +61,9 @@ fun NewCategoryRoute(
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                NewCategoryEffect.NavigateBack -> onBackClick()
+                is NewCategoryEffect.NavigateBackToOrigin -> {
+                    onNavigateBackToOrigin(effect.openedFrom)
+                }
             }
         }
     }
@@ -69,7 +71,6 @@ fun NewCategoryRoute(
     NewCategoryScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
-        onBackClick = onBackClick,
         modifier = modifier
     )
 }
@@ -78,7 +79,6 @@ fun NewCategoryRoute(
 fun NewCategoryScreen(
     uiState: NewCategoryUiState,
     onAction: (NewCategoryAction) -> Unit,
-    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -101,7 +101,7 @@ fun NewCategoryScreen(
                     modifier = Modifier
                         .size(24.dp)
                         .clip(CircleShape)
-                        .clickable(onClick = onBackClick),
+                        .clickable { onAction(NewCategoryAction.OnBackClick) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -225,8 +225,7 @@ private fun NewCategoryScreenPreview() {
                 ),
                 selectedIconKey = "ic_directory"
             ),
-            onAction = {},
-            onBackClick = {}
+            onAction = {}
         )
     }
 }
