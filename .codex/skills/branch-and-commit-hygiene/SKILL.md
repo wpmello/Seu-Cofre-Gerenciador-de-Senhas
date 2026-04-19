@@ -24,6 +24,8 @@ Treat phrases such as:
 - `faça os commits e feche o desenvolvimento`
 - `é o final da feature`
 - `faça os commits e finalize`
+- `pode encerrar o desenvolvimento`
+- `pode fechar a entrega`
 
 as an explicit end-of-development trigger.
 
@@ -111,14 +113,42 @@ Good examples:
 If and only if the user explicitly indicated end of development:
 
 - inspect the final staged/committed delivery;
-- derive a concise PR description draft from the actual changes;
-- include outcome, main change areas, validations, and notable risks/TODOs when relevant;
+- derive a PR description draft from the actual changes;
+- use the project's standard PR template;
+- include outcome, main change areas, architectural decisions, validations, and notable risks/TODOs when relevant;
 - present that text to the user after the commit/branch work is complete.
 
 If end of development was **not** explicitly requested:
 
 - do not generate PR description text;
 - do not infer that the user is preparing a PR right now.
+
+### 5.2. Standard PR description template
+
+When PR description output is required, use this base structure in Markdown:
+
+```md
+# Objetivo
+
+# O que mudou
+
+# Decisões arquiteturais
+
+# Arquivos principais
+
+# Testes adicionados/ajustados
+
+# Validação executada
+
+# Observações
+```
+
+Rules:
+- keep these headings by default;
+- fill them only with content grounded in the final delivery;
+- list only validations that were actually executed;
+- mention leftover risks, limitations, or non-committed local context in `# Observações` when relevant;
+- add extra headings only when they materially improve review quality, such as `# Riscos`, `# TODOs`, `# Impactos`, or `# Migração`.
 
 ### 6. Repair wrong branch ancestry safely
 If branches were created on the wrong base:
@@ -138,6 +168,7 @@ Verify:
 - backup refs exist before any rewrite;
 - the user is told if force-push will be required after local history rewrite.
 - PR description text is only produced when explicit end-of-development wording was present.
+- when PR description text is produced, it follows the standard project template unless the user explicitly asked for another format.
 
 ## Do not do
 
