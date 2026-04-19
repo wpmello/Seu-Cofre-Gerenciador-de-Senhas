@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory
 
+import androidx.lifecycle.SavedStateHandle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
@@ -28,6 +29,7 @@ class NewCategoryViewModelTest {
     @Test
     fun givenInitialState_whenViewModelIsCreated_thenFirstIconStartsSelected() {
         val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
             createCategoryUseCase = CreateCategoryUseCase(FakeCategoryRepository()),
             categoryIconCatalog = FakeCategoryIconCatalog()
         )
@@ -40,6 +42,7 @@ class NewCategoryViewModelTest {
     @Test
     fun givenBlankName_whenSubmitting_thenExposesNameValidationError() = runTest {
         val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
             createCategoryUseCase = CreateCategoryUseCase(FakeCategoryRepository()),
             categoryIconCatalog = FakeCategoryIconCatalog()
         )
@@ -55,6 +58,7 @@ class NewCategoryViewModelTest {
     @Test
     fun givenNoAvailableIcons_whenSubmitting_thenExposesIconValidationError() = runTest {
         val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
             createCategoryUseCase = CreateCategoryUseCase(FakeCategoryRepository()),
             categoryIconCatalog = EmptyCategoryIconCatalog()
         )
@@ -68,9 +72,10 @@ class NewCategoryViewModelTest {
     }
 
     @Test
-    fun givenValidInput_whenSubmitting_thenEmitsNavigateBackEffect() = runTest {
+    fun givenValidInput_whenSubmitting_thenEmitsNavigateBackToCategoriesOrigin() = runTest {
         val repository = FakeCategoryRepository()
         val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
             createCategoryUseCase = CreateCategoryUseCase(repository),
             categoryIconCatalog = FakeCategoryIconCatalog()
         )
@@ -82,14 +87,60 @@ class NewCategoryViewModelTest {
 
         advanceUntilIdle()
 
-        assertEquals(NewCategoryEffect.NavigateBack, emittedEffect.await())
+        assertEquals(
+            NewCategoryEffect.NavigateBackToOrigin(NewCategoryOpenedFrom.Categories),
+            emittedEffect.await()
+        )
         assertEquals("Trabalho", repository.createdName)
         assertEquals("ic_work_bag_add_category", repository.createdIconKey)
     }
 
     @Test
+    fun givenScreenOpenedFromAllCategories_whenSubmitting_thenEmitsNavigateBackToAllCategoriesOrigin() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(NewCategoryDestination.openedFromArg to NewCategoryOpenedFrom.AllCategories.routeValue)
+            ),
+            createCategoryUseCase = CreateCategoryUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        val emittedEffect = async { viewModel.effects.first() }
+
+        viewModel.onAction(NewCategoryAction.OnNameChanged("Privado"))
+        viewModel.onAction(NewCategoryAction.OnCreateCategoryClick)
+
+        advanceUntilIdle()
+
+        assertEquals(
+            NewCategoryEffect.NavigateBackToOrigin(NewCategoryOpenedFrom.AllCategories),
+            emittedEffect.await()
+        )
+    }
+
+    @Test
+    fun givenScreenOpenedFromAllCategories_whenBackIsClicked_thenEmitsNavigateBackToAllCategoriesOrigin() = runTest {
+        val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(NewCategoryDestination.openedFromArg to NewCategoryOpenedFrom.AllCategories.routeValue)
+            ),
+            createCategoryUseCase = CreateCategoryUseCase(FakeCategoryRepository()),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        val emittedEffect = async { viewModel.effects.first() }
+
+        viewModel.onAction(NewCategoryAction.OnBackClick)
+
+        assertEquals(
+            NewCategoryEffect.NavigateBackToOrigin(NewCategoryOpenedFrom.AllCategories),
+            emittedEffect.await()
+        )
+    }
+
+    @Test
     fun givenRepositoryFailure_whenSubmitting_thenExposesSubmitError() = runTest {
         val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
             createCategoryUseCase = CreateCategoryUseCase(
                 FakeCategoryRepository(shouldFailOnCreate = true)
             ),

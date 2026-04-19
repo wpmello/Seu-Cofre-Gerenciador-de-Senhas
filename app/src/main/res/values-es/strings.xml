@@ -26,7 +26,7 @@
     <string name="categories_view_all">Ver todas</string>
     <string name="categories_current_category_name">Trabajo</string>
     <string name="categories_current_badge">ACTUAL</string>
-    <string name="categories_add_new">NUEVA\nCATEGORÍA</string>
+    <string name="categories_create_fab">Crear categoría</string>
     <string name="categories_load_error">No se pudieron cargar las categorías.</string>
     <string name="new_category_back">Volver</string>
     <string name="new_category_title">Nueva categoría</string>

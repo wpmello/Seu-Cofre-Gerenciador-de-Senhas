@@ -4,8 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,10 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
@@ -66,7 +64,6 @@ private val HeroGradient = Brush.linearGradient(
 private val HighlightedCategoryGradient = Brush.linearGradient(
     colors = listOf(ElectricBlue, Color(0xFF0F6DF3))
 )
-private val AddCategoryBorderColor = GhostOutline.copy(alpha = 0.7f)
 private val EncryptedGreen = Color(0xFF3FFF8B)
 
 @Composable
@@ -102,96 +99,103 @@ fun CategoriesScreen(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MidnightBlue)
-                .testTag("categories_screen"),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                start = 24.dp,
-                top = 16.dp,
-                end = 24.dp,
-                bottom = 140.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                .testTag("categories_screen")
         ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                CategoriesHeader(
-                    onSearchClick = { onAction(CategoriesAction.OnSearchClick) }
-                )
-            }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 24.dp,
+                    top = 16.dp,
+                    end = 24.dp,
+                    bottom = 140.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    CategoriesHeader(
+                        onSearchClick = { onAction(CategoriesAction.OnSearchClick) }
+                    )
+                }
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                SecuritySummaryCard(
-                    summary = uiState.securitySummary,
-                    encryptedIndicator = uiState.encryptedIndicator
-                )
-            }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SecuritySummaryCard(
+                        summary = uiState.securitySummary,
+                        encryptedIndicator = uiState.encryptedIndicator
+                    )
+                }
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                CategoriesSectionHeader(
-                    onViewAllClick = onViewAllClick
-                )
-            }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    CategoriesSectionHeader(
+                        onViewAllClick = onViewAllClick
+                    )
+                }
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                HighlightedCategoryCard(
-                    currentCategory = uiState.currentCategory
-                )
-            }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    HighlightedCategoryCard(
+                        currentCategory = uiState.currentCategory
+                    )
+                }
 
-            when (val categoriesState = uiState.categoriesState) {
-                CategoriesContentUiState.Loading -> {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = ElectricBlue,
-                                modifier = Modifier.testTag("categories_loading")
+                when (val categoriesState = uiState.categoriesState) {
+                    CategoriesContentUiState.Loading -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = ElectricBlue,
+                                    modifier = Modifier.testTag("categories_loading")
+                                )
+                            }
+                        }
+                    }
+
+                    CategoriesContentUiState.Empty -> Unit
+
+                    is CategoriesContentUiState.Content -> {
+                        items(
+                            items = categoriesState.categories,
+                            key = { category -> category.id }
+                        ) { category ->
+                            CategoryGridCard(
+                                category = category,
+                                onClick = { onCategoryClick(category.id) }
+                            )
+                        }
+                    }
+
+                    is CategoriesContentUiState.Error -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                text = stringResource(categoriesState.messageResId),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                                    .testTag("categories_error"),
+                                color = MistText
                             )
                         }
                     }
                 }
-
-                CategoriesContentUiState.Empty -> Unit
-
-                is CategoriesContentUiState.Content -> {
-                    items(
-                        items = categoriesState.categories,
-                        key = { category -> category.id }
-                    ) { category ->
-                        CategoryGridCard(
-                            category = category,
-                            onClick = { onCategoryClick(category.id) }
-                        )
-                    }
-                }
-
-                is CategoriesContentUiState.Error -> {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Text(
-                            text = stringResource(categoriesState.messageResId),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp)
-                                .testTag("categories_error"),
-                            color = MistText
-                        )
-                    }
-                }
             }
 
-            item {
-                AddCategoryCard(
-                    onClick = onAddCategoryClick
-                )
-            }
+            CategoryCreateFab(
+                contentDescription = stringResource(R.string.categories_create_fab),
+                onClick = onAddCategoryClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 24.dp)
+                    .testTag("categories_create_fab")
+            )
         }
     }
 }
@@ -456,57 +460,6 @@ private fun HighlightedCategoryCard(
             color = Color.White.copy(alpha = 0.8f),
             fontSize = 14.sp,
             lineHeight = 20.sp
-        )
-    }
-}
-
-@Composable
-private fun AddCategoryCard(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(160.dp)
-            .background(
-                color = DeepNavy.copy(alpha = 0.6f),
-                shape = RoundedCornerShape(24.dp)
-            )
-            .clip(RoundedCornerShape(24.dp))
-            .clickable(onClick = onClick)
-            .padding(20.dp)
-            .testTag("add_category_card"),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    color = MidnightBlue.copy(alpha = 0.8f),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = null,
-                tint = GhostOutline,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(R.string.categories_add_new),
-            color = GhostOutline,
-            fontSize = 10.sp,
-            lineHeight = 12.5.sp,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.sp
         )
     }
 }

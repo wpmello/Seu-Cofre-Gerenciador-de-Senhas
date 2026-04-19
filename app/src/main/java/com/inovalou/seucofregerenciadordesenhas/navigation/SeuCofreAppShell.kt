@@ -22,6 +22,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryEntry
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryDestination
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
 
@@ -70,7 +72,11 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         navController.navigate(AllCategoriesRoute.route)
                     },
                     onAddCategoryClick = {
-                        navController.navigate("categories/new")
+                        navController.navigate(
+                            NewCategoryDestination.createRoute(
+                                openedFrom = NewCategoryOpenedFrom.Categories
+                            )
+                        )
                     }
                 )
             }
@@ -89,12 +95,43 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                                 openedFrom = openedFrom
                             )
                         )
+                    },
+                    onAddCategoryClick = {
+                        navController.navigate(
+                            NewCategoryDestination.createRoute(
+                                openedFrom = NewCategoryOpenedFrom.AllCategories
+                            )
+                        )
                     }
                 )
             }
-            composable("categories/new") {
+            composable(
+                route = NewCategoryDestination.routePattern,
+                arguments = listOf(
+                    navArgument(NewCategoryDestination.openedFromArg) {
+                        type = NavType.StringType
+                        defaultValue = NewCategoryOpenedFrom.Categories.routeValue
+                    }
+                )
+            ) {
                 NewCategoryRoute(
-                    onBackClick = { navController.popBackStack() }
+                    onNavigateBackToOrigin = { openedFrom ->
+                        when (openedFrom) {
+                            NewCategoryOpenedFrom.Categories -> {
+                                navController.popBackStack(
+                                    AppBottomDestination.Categories.route,
+                                    inclusive = false
+                                )
+                            }
+
+                            NewCategoryOpenedFrom.AllCategories -> {
+                                navController.popBackStack(
+                                    AllCategoriesRoute.route,
+                                    inclusive = false
+                                )
+                            }
+                        }
+                    }
                 )
             }
             composable(

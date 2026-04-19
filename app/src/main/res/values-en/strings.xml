@@ -26,7 +26,7 @@
     <string name="categories_view_all">View all</string>
     <string name="categories_current_category_name">Work</string>
     <string name="categories_current_badge">CURRENT</string>
-    <string name="categories_add_new">NEW\nCATEGORY</string>
+    <string name="categories_create_fab">Create category</string>
     <string name="categories_load_error">Could not load categories.</string>
     <string name="new_category_back">Go back</string>
     <string name="new_category_title">New category</string>

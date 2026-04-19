@@ -66,6 +66,35 @@ class CategoriesViewModelTest {
     }
 
     @Test
+    fun givenMoreThanFourCategories_whenObservingState_thenKeepsOnlyFourPreviewCards() = runTest {
+        val repository = FakeCategoryRepository(
+            listOf(
+                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
+                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15),
+                Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12),
+                Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21),
+                Category(id = 5, name = "Privado", iconKey = "ic_directory", itemCount = 3)
+            )
+        )
+        val viewModel = CategoriesViewModel(
+            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        advanceUntilIdle()
+
+        val categoriesState = viewModel.uiState.value.categoriesState
+        assertTrue(categoriesState is CategoriesContentUiState.Content)
+        categoriesState as CategoriesContentUiState.Content
+        assertEquals(4, categoriesState.categories.size)
+        assertEquals(
+            listOf("Trabalho", "Educação", "Saúde", "Viagens"),
+            categoriesState.categories.map { it.name }
+        )
+    }
+
+    @Test
     fun givenUnknownIconKey_whenObservingState_thenUsesSafeFallbackIcon() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
