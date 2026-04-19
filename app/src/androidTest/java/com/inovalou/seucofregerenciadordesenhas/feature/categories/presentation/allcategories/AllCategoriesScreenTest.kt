@@ -31,13 +31,15 @@ class AllCategoriesScreenTest {
                         contentState = AllCategoriesContentState.Content
                     ),
                     onAction = {},
-                    onBackClick = {}
+                    onBackClick = {},
+                    onAddCategoryClick = {}
                 )
             }
         }
 
         composeRule.onNodeWithTag("all_categories_screen").assertIsDisplayed()
         composeRule.onNodeWithTag("all_categories_search_input").assertIsDisplayed()
+        composeRule.onNodeWithTag("all_categories_create_fab").assertIsDisplayed()
     }
 
     @Test
@@ -50,7 +52,8 @@ class AllCategoriesScreenTest {
                         contentState = AllCategoriesContentState.EmptySearchResult
                     ),
                     onAction = {},
-                    onBackClick = {}
+                    onBackClick = {},
+                    onAddCategoryClick = {}
                 )
             }
         }
