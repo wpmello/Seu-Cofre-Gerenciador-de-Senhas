@@ -241,6 +241,34 @@ Criar branches curtas, específicas e revisáveis com prefixo por tipo:
 * Antes de abrir PR ou criar branches adicionais, o agente deve verificar se a base correta é a branch de integração alvo ou outra branch explicitamente informada pelo usuário.
 * Ao detectar que branches foram criadas sobre base errada, corrigir com segurança: criar backups, recriar cada branch na base correta, reaplicar somente os commits relevantes e validar o novo grafo antes de prosseguir.
 
+### Fechamento de desenvolvimento e descrição de pull request
+
+* Quando o usuário pedir explicitamente para **fechar o desenvolvimento**, **finalizar a feature** ou equivalente, o agente deve tratar isso como gatilho para:
+  * organizar a entrega em commits lógicos;
+  * verificar a branch final e sua base;
+  * gerar automaticamente um rascunho de descrição de pull request.
+* Quando o usuário pedir apenas para **fazer commits**, o agente **não** deve presumir encerramento da entrega e **não** deve gerar descrição de PR automaticamente.
+* A descrição de PR deve ser baseada no que realmente entrou na branch/commits finais, não em intenção genérica.
+* A descrição de PR deve usar, por padrão, o seguinte modelo em Markdown:
+  * `# Objetivo`
+  * `# O que mudou`
+  * `# Decisões arquiteturais`
+  * `# Arquivos principais`
+  * `# Testes adicionados/ajustados`
+  * `# Validação executada`
+  * `# Observações`
+* O agente pode adicionar outras seções somente quando trouxerem valor real à revisão, como:
+  * `# Riscos`
+  * `# TODOs`
+  * `# Impactos`
+  * `# Migração`
+* Ao gerar a descrição, o agente deve preferir linguagem direta de revisão:
+  * objetivo da entrega;
+  * principais mudanças funcionais e estruturais;
+  * decisões arquiteturais relevantes;
+  * validações executadas;
+  * riscos, limitações ou mudanças locais fora do escopo, quando existirem.
+
 ## Estratégia de desenvolvimento
 
 ### Regra geral

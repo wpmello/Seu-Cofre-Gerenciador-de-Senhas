@@ -177,6 +177,46 @@ Somente quando o usuário tiver indicado que é o encerramento da entrega, o age
 
 Esse texto deve ser baseado no que realmente foi implementado, não em intenção genérica.
 
+### Template obrigatório da descrição de PR
+
+Salvo instrução explícita do usuário em contrário, a descrição de PR gerada no encerramento da entrega deve usar este formato em Markdown:
+
+```md
+# Objetivo
+
+# O que mudou
+
+# Decisões arquiteturais
+
+# Arquivos principais
+
+# Testes adicionados/ajustados
+
+# Validação executada
+
+# Observações
+```
+
+### Regras para esse template
+
+- usar exatamente esses títulos como base;
+- preencher apenas com informação derivada do trabalho realmente entregue;
+- preferir bullets curtos e verificáveis;
+- listar validações realmente executadas, não validações presumidas;
+- mencionar arquivos principais por área de mudança, sem transformar a descrição em changelog exaustivo;
+- registrar em `# Observações` qualquer risco, limitação, dependência externa, dirty worktree remanescente ou contexto que afete a revisão.
+
+### Seções adicionais permitidas
+
+O agente pode incluir seções extras apenas quando agregarem valor concreto à revisão, por exemplo:
+
+- `# Riscos`
+- `# TODOs`
+- `# Impactos`
+- `# Migração`
+
+Essas seções adicionais não substituem o template base; elas apenas complementam quando necessário.
+
 ### Regra de não ativação
 
 Se o usuário não disser explicitamente que está fechando o desenvolvimento:
@@ -228,4 +268,5 @@ Usar esta regra mental:
 - múltiplas entregas independentes -> múltiplas branches;
 - cada branch nasce da branch de merge alvo;
 - se a base estiver errada, recriar com backup e `cherry-pick`;
-- texto de descrição de PR só é gerado quando o usuário explicitar o encerramento da entrega.
+- texto de descrição de PR só é gerado quando o usuário explicitar o encerramento da entrega;
+- quando gerado, o texto deve seguir o template padrão do projeto.
