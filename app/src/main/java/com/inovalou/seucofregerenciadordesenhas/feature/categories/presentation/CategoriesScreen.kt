@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
@@ -55,7 +55,6 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 
 private val HeroGradient = Brush.linearGradient(
@@ -213,55 +212,11 @@ private fun CategoriesHeader(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(SlateBlue, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.AccountCircle,
-                    contentDescription = null,
-                    tint = SoftWhite,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.app_brand_name),
-                color = ElectricBlue,
-                fontSize = 24.sp,
-                lineHeight = 32.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = (-0.6).sp
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onSearchClick)
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_search),
-                contentDescription = stringResource(R.string.categories_search),
-                tint = Color.Unspecified,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
+    VaultTopBar(
+        searchContentDescriptionResId = R.string.categories_search,
+        onSearchClick = onSearchClick,
+        modifier = modifier.fillMaxWidth()
+    )
 }
 
 @Composable
