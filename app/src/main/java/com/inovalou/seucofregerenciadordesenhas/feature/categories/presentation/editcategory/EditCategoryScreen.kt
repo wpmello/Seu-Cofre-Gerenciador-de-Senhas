@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryPrimaryActionButton
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
@@ -104,33 +104,12 @@ fun EditCategoryScreen(
                 .testTag("edit_category_screen"),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .clickable { onAction(EditCategoryAction.OnBackClick) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.edit_category_back),
-                        tint = ElectricBlue
-                    )
-                }
-
-                Text(
-                    text = stringResource(R.string.edit_category_title),
-                    color = SoftWhite,
-                    fontSize = 28.sp,
-                    lineHeight = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            VaultBackHeader(
+                title = stringResource(R.string.edit_category_title),
+                navigationContentDescription = stringResource(R.string.edit_category_back),
+                onBackClick = { onAction(EditCategoryAction.OnBackClick) },
+                testTag = "edit_category_header"
+            )
 
             when (val contentState = uiState.contentState) {
                 EditCategoryContentState.Loading -> {

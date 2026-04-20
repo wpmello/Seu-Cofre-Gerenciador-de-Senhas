@@ -9,7 +9,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.Pas
 
 @Database(
     entities = [CategoryEntity::class, PasswordEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class SeuCofreDatabase : RoomDatabase() {

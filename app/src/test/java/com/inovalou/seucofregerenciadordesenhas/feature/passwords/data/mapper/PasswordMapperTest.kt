@@ -13,7 +13,11 @@ class PasswordMapperTest {
             id = 8L,
             title = "GitHub",
             login = "joao@empresa.com",
-            iconKey = "ic_cloud"
+            category = "Work",
+            encryptedPassword = "encrypted",
+            passwordIv = "iv-value",
+            passwordCipherVersion = 1,
+            iconKey = ""
         )
 
         assertEquals(
@@ -21,29 +25,9 @@ class PasswordMapperTest {
                 id = 8L,
                 title = "GitHub",
                 login = "joao@empresa.com",
-                iconKey = "ic_cloud"
+                category = "Work"
             ),
             entity.toDomain()
-        )
-    }
-
-    @Test
-    fun givenPasswordSummary_whenMappingToEntity_thenReturnsEntity() {
-        val summary = PasswordSummary(
-            id = 12L,
-            title = "Workspace",
-            login = "work@empresa.com",
-            iconKey = "ic_directory"
-        )
-
-        assertEquals(
-            PasswordEntity(
-                id = 12L,
-                title = "Workspace",
-                login = "work@empresa.com",
-                iconKey = "ic_directory"
-            ),
-            summary.toEntity()
         )
     }
 }

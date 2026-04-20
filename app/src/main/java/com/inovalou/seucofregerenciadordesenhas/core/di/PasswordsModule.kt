@@ -1,5 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.core.di
 
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.AndroidKeystorePasswordCipher
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.RoomPasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.repository.PasswordRepositoryImpl
@@ -13,6 +15,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class PasswordsModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindPasswordCipher(
+        passwordCipher: AndroidKeystorePasswordCipher
+    ): PasswordCipher
 
     @Binds
     abstract fun bindPasswordsLocalDataSource(

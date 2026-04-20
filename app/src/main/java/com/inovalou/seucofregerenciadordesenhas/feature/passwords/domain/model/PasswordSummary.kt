@@ -4,5 +4,5 @@ data class PasswordSummary(
     val id: Long,
     val title: String,
     val login: String,
-    val iconKey: String
+    val category: String
 )

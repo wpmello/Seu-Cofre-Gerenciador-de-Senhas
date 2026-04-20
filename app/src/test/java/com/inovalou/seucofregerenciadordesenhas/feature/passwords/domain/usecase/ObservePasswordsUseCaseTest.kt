@@ -14,11 +14,22 @@ class ObservePasswordsUseCaseTest {
     @Test
     fun givenRepositoryStream_whenInvoked_thenReturnsObservedPasswords() = runTest {
         val expected = listOf(
-            PasswordSummary(id = 3L, title = "Instagram", login = "@joao_viajante", iconKey = "ic_user_profile")
+            PasswordSummary(
+                id = 3L,
+                title = "Instagram",
+                login = "@joao_viajante",
+                category = "Social"
+            )
         )
         val useCase = ObservePasswordsUseCase(
             repository = object : PasswordRepository {
                 override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(expected)
+
+                override suspend fun getPasswordCount(): Int = expected.size
+
+                override suspend fun createPassword(
+                    password: com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+                ): Long = 0L
             }
         )
 

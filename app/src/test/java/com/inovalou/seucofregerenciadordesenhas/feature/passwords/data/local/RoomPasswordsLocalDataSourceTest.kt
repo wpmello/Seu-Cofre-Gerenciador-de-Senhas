@@ -14,14 +14,61 @@ class RoomPasswordsLocalDataSourceTest {
     @Test
     fun givenDaoFlow_whenObservingPasswords_thenDelegatesToDao() = runTest {
         val expected = listOf(
-            PasswordEntity(id = 1L, title = "Amazon Prime", login = "compras@email.com", iconKey = "ic_home"),
-            PasswordEntity(id = 2L, title = "GitHub", login = "dev@empresa.com", iconKey = "ic_cloud")
+            PasswordEntity(
+                id = 1L,
+                title = "Amazon Prime",
+                login = "compras@email.com",
+                category = "Shopping",
+                encryptedPassword = "cipher-1",
+                passwordIv = "iv-1",
+                passwordCipherVersion = 1,
+                iconKey = ""
+            ),
+            PasswordEntity(
+                id = 2L,
+                title = "GitHub",
+                login = "dev@empresa.com",
+                category = "Work",
+                encryptedPassword = "cipher-2",
+                passwordIv = "iv-2",
+                passwordCipherVersion = 1,
+                iconKey = ""
+            )
         )
         val dataSource = RoomPasswordsLocalDataSource(passwordDao = FakePasswordDao(flowOf(expected)))
 
         val observed = dataSource.observePasswords().first()
 
         assertEquals(expected, observed)
+    }
+
+    @Test
+    fun givenEntity_whenCreatingPassword_thenDelegatesInsertToDao() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()))
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+        val entity = PasswordEntity(
+            title = "GitHub",
+            login = "dev@empresa.com",
+            category = "Work",
+            encryptedPassword = "cipher",
+            passwordIv = "iv",
+            passwordCipherVersion = 1,
+            iconKey = ""
+        )
+
+        val insertedId = dataSource.createPassword(entity)
+
+        assertEquals(7L, insertedId)
+        assertEquals(entity, dao.insertedEntity)
+    }
+
+    @Test
+    fun givenDaoCount_whenRequestingPasswordCount_thenDelegatesToDao() = runTest {
+        val dataSource = RoomPasswordsLocalDataSource(
+            passwordDao = FakePasswordDao(flowOf(emptyList()), passwordCount = 4)
+        )
+
+        assertEquals(4, dataSource.getPasswordCount())
     }
 
     @Test
@@ -47,9 +94,19 @@ class RoomPasswordsLocalDataSourceTest {
     }
 
     private class FakePasswordDao(
-        private val passwordsFlow: Flow<List<PasswordEntity>>
+        private val passwordsFlow: Flow<List<PasswordEntity>>,
+        private val passwordCount: Int = 0
     ) : PasswordDao {
 
+        var insertedEntity: PasswordEntity? = null
+
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
+
+        override suspend fun insert(password: PasswordEntity): Long {
+            insertedEntity = password
+            return 7L
+        }
+
+        override suspend fun countPasswords(): Int = passwordCount
     }
 }

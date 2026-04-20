@@ -51,6 +51,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 @Composable
 fun PasswordsRoute(
     onOpenPassword: (Long) -> Unit,
+    onAddPassword: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PasswordsViewModel = hiltViewModel()
 ) {
@@ -60,6 +61,7 @@ fun PasswordsRoute(
         viewModel.effects.collect { effect ->
             when (effect) {
                 is PasswordsEffect.OpenPasswordDetails -> onOpenPassword(effect.passwordId)
+                PasswordsEffect.NavigateToNewPassword -> onAddPassword()
             }
         }
     }
@@ -67,7 +69,6 @@ fun PasswordsRoute(
     PasswordsScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
-        onFabClick = {},
         modifier = modifier
     )
 }
@@ -76,7 +77,6 @@ fun PasswordsRoute(
 fun PasswordsScreen(
     uiState: PasswordsUiState,
     onAction: (PasswordsAction) -> Unit,
-    onFabClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -193,7 +193,7 @@ fun PasswordsScreen(
 
             VaultGradientFab(
                 contentDescription = stringResource(R.string.passwords_create_fab),
-                onClick = onFabClick,
+                onClick = { onAction(PasswordsAction.OnAddPasswordClick) },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 24.dp, bottom = 24.dp)
@@ -267,11 +267,12 @@ private fun PasswordListItem(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(password.iconResId),
-                    contentDescription = null,
-                    tint = SoftWhite,
-                    modifier = Modifier.size(20.dp)
+                Text(
+                    text = password.initials,
+                    color = SoftWhite,
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
 
@@ -283,13 +284,15 @@ private fun PasswordListItem(
                     lineHeight = 24.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(
-                    text = password.login,
-                    color = MistText,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if (password.supportingText.isNotBlank()) {
+                    Text(
+                        text = password.supportingText,
+                        color = MistText,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 
