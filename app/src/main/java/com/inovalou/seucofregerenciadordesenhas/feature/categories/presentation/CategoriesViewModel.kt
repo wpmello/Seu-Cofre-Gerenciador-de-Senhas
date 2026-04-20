@@ -44,6 +44,7 @@ class CategoriesViewModel @Inject constructor(
     }
 
     private fun toUiState(categories: List<Category>): CategoriesUiState {
+        val shouldShowBottomViewAllButton = categories.size > 4
         val categoriesState = if (categories.isEmpty()) {
             CategoriesContentUiState.Empty
         } else {
@@ -60,6 +61,9 @@ class CategoriesViewModel @Inject constructor(
             )
         }
 
-        return CategoriesUiState(categoriesState = categoriesState)
+        return CategoriesUiState(
+            categoriesState = categoriesState,
+            shouldShowBottomViewAllButton = shouldShowBottomViewAllButton
+        )
     }
 }
