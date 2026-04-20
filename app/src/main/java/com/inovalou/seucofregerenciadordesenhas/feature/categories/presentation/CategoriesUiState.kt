@@ -7,7 +7,8 @@ data class CategoriesUiState(
     val securitySummary: SecuritySummaryUiModel = SecuritySummaryUiModel(),
     val encryptedIndicator: EncryptedIndicatorUiModel = EncryptedIndicatorUiModel(),
     val currentCategory: HighlightedCategoryUiModel = HighlightedCategoryUiModel(),
-    val categoriesState: CategoriesContentUiState = CategoriesContentUiState.Loading
+    val categoriesState: CategoriesContentUiState = CategoriesContentUiState.Loading,
+    val shouldShowBottomViewAllButton: Boolean = false
 )
 
 data class SecuritySummaryUiModel(

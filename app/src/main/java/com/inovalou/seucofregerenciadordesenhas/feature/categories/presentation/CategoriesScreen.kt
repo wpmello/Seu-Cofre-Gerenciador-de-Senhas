@@ -171,6 +171,14 @@ fun CategoriesScreen(
                                 onClick = { onCategoryClick(category.id) }
                             )
                         }
+
+                        if (uiState.shouldShowBottomViewAllButton) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                CategoriesBottomViewAllButton(
+                                    onClick = onViewAllClick
+                                )
+                            }
+                        }
                     }
 
                     is CategoriesContentUiState.Error -> {
@@ -379,25 +387,55 @@ private fun CategoriesSectionHeader(
             fontWeight = FontWeight.Bold
         )
 
-        Row(
-            modifier = Modifier.clickable(onClick = onViewAllClick),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.categories_view_all),
-                color = Color(0xFF0F6DF3),
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                contentDescription = null,
-                tint = Color(0xFF0F6DF3),
-                modifier = Modifier.size(10.dp)
-            )
-        }
+        CategoriesViewAllButton(
+            onClick = onViewAllClick
+        )
+    }
+}
+
+@Composable
+private fun CategoriesBottomViewAllButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CategoriesViewAllButton(
+            onClick = onClick,
+            modifier = Modifier
+                .testTag("categories_bottom_view_all")
+                .padding(horizontal = 18.dp, vertical = 10.dp)
+        )
+    }
+}
+
+@Composable
+private fun CategoriesViewAllButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.categories_view_all),
+            color = Color(0xFF0F6DF3),
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+            contentDescription = null,
+            tint = Color(0xFF0F6DF3),
+            modifier = Modifier.size(10.dp)
+        )
     }
 }
 
