@@ -1,7 +1,10 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.repository
 
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.EncryptedPasswordPayload
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,18 +21,49 @@ class PasswordRepositoryImplTest {
     fun givenLocalEntities_whenObservingPasswords_thenMapsEntitiesToDomainModels() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(
             listOf(
-                PasswordEntity(id = 1L, title = "Netflix", login = "joao@email.com", iconKey = "ic_home"),
-                PasswordEntity(id = 2L, title = "GitHub", login = "jsilva_dev", iconKey = "ic_cloud")
+                PasswordEntity(
+                    id = 1L,
+                    title = "Netflix",
+                    login = "joao@email.com",
+                    category = "Streaming",
+                    encryptedPassword = "cipher-1",
+                    passwordIv = "iv-1",
+                    passwordCipherVersion = 1,
+                    iconKey = ""
+                ),
+                PasswordEntity(
+                    id = 2L,
+                    title = "GitHub",
+                    login = "jsilva_dev",
+                    category = "Work",
+                    encryptedPassword = "cipher-2",
+                    passwordIv = "iv-2",
+                    passwordCipherVersion = 1,
+                    iconKey = ""
+                )
             )
         )
-        val repository = PasswordRepositoryImpl(localDataSource)
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = FakePasswordCipher()
+        )
 
         val observed = repository.observePasswords().first()
 
         assertEquals(
             listOf(
-                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", iconKey = "ic_home"),
-                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", iconKey = "ic_cloud")
+                PasswordSummary(
+                    id = 1L,
+                    title = "Netflix",
+                    login = "joao@email.com",
+                    category = "Streaming"
+                ),
+                PasswordSummary(
+                    id = 2L,
+                    title = "GitHub",
+                    login = "jsilva_dev",
+                    category = "Work"
+                )
             ),
             observed
         )
@@ -38,11 +72,23 @@ class PasswordRepositoryImplTest {
     @Test
     fun givenLocalUpdates_whenObservingPasswords_thenEmitsMappedUpdatesReactively() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(emptyList())
-        val repository = PasswordRepositoryImpl(localDataSource)
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = FakePasswordCipher()
+        )
 
         localDataSource.emit(
             listOf(
-                PasswordEntity(id = 8L, title = "Spotify", login = "premium_family_admin", iconKey = "ic_favorite")
+                PasswordEntity(
+                    id = 8L,
+                    title = "Spotify",
+                    login = "premium_family_admin",
+                    category = "Music",
+                    encryptedPassword = "cipher",
+                    passwordIv = "iv",
+                    passwordCipherVersion = 1,
+                    iconKey = ""
+                )
             )
         )
 
@@ -54,11 +100,74 @@ class PasswordRepositoryImplTest {
                     id = 8L,
                     title = "Spotify",
                     login = "premium_family_admin",
-                    iconKey = "ic_favorite"
+                    category = "Music"
                 )
             ),
             observed
         )
+    }
+
+    @Test
+    fun givenNewPassword_whenCreating_thenEncryptsBeforePersisting() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(emptyList())
+        val passwordCipher = FakePasswordCipher()
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = passwordCipher
+        )
+
+        repository.createPassword(
+            NewPassword(
+                title = "GitHub",
+                login = "dev@empresa.com",
+                category = "Work",
+                password = "plain-secret"
+            )
+        )
+
+        assertEquals("enc::plain-secret", localDataSource.insertedPassword?.encryptedPassword)
+        assertEquals("iv::plain-secret", localDataSource.insertedPassword?.passwordIv)
+        assertEquals("plain-secret", passwordCipher.lastEncryptedPlainText)
+    }
+
+    @Test
+    fun givenCipherFailure_whenCreating_thenPropagatesErrorWithoutPersistingPlainText() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(emptyList())
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = object : PasswordCipher {
+                override fun encrypt(plainText: String): EncryptedPasswordPayload {
+                    error("cipher failure")
+                }
+            }
+        )
+
+        val thrown = try {
+            repository.createPassword(
+                NewPassword(
+                    title = "GitHub",
+                    login = "",
+                    category = "",
+                    password = "plain-secret"
+                )
+            )
+            null
+        } catch (error: IllegalStateException) {
+            error
+        }
+
+        assertTrue(thrown is IllegalStateException)
+        assertEquals(null, localDataSource.insertedPassword)
+    }
+
+    @Test
+    fun givenCountRequest_whenQueryingRepository_thenDelegatesToLocalDataSource() = runTest {
+        val repository = PasswordRepositoryImpl(
+            localDataSource = FakePasswordsLocalDataSource(emptyList(), passwordCount = 5),
+            passwordCipher = FakePasswordCipher()
+        )
+
+        assertEquals(5, repository.getPasswordCount())
     }
 
     @Test
@@ -69,7 +178,13 @@ class PasswordRepositoryImplTest {
                 override fun observePasswords(): Flow<List<PasswordEntity>> = flow {
                     throw expected
                 }
+
+                override suspend fun createPassword(password: PasswordEntity): Long = 0L
+
+                override suspend fun getPasswordCount(): Int = 0
             }
+            ,
+            passwordCipher = FakePasswordCipher()
         )
 
         val thrown = try {
@@ -84,15 +199,35 @@ class PasswordRepositoryImplTest {
     }
 
     private class FakePasswordsLocalDataSource(
-        initialPasswords: List<PasswordEntity>
+        initialPasswords: List<PasswordEntity>,
+        private val passwordCount: Int = 0
     ) : PasswordsLocalDataSource {
 
         private val passwordsFlow = MutableStateFlow(initialPasswords)
-
+        var insertedPassword: PasswordEntity? = null
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
+
+        override suspend fun createPassword(password: PasswordEntity): Long {
+            insertedPassword = password
+            return 1L
+        }
+
+        override suspend fun getPasswordCount(): Int = passwordCount
 
         fun emit(passwords: List<PasswordEntity>) {
             passwordsFlow.value = passwords
+        }
+    }
+
+    private class FakePasswordCipher : PasswordCipher {
+        var lastEncryptedPlainText: String? = null
+
+        override fun encrypt(plainText: String): EncryptedPasswordPayload = EncryptedPasswordPayload(
+            cipherText = "enc::$plainText",
+            iv = "iv::$plainText",
+            version = 1
+        ).also {
+            lastEncryptedPlainText = plainText
         }
     }
 }

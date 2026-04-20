@@ -47,6 +47,42 @@ class PasswordDatabaseMigrationTest {
         cursor.close()
     }
 
+    @Test
+    fun migrate3To4_addsEncryptedPasswordColumns() {
+        migrationTestHelper.createDatabase(TEST_DB, 3).apply {
+            execSQL(
+                "INSERT INTO passwords(id, title, login, icon_key) VALUES (1, 'Netflix', 'joao@email.com', 'ic_home')"
+            )
+            close()
+        }
+
+        val migratedDb = migrationTestHelper.runMigrationsAndValidate(
+            TEST_DB,
+            4,
+            true,
+            SeuCofreDatabaseMigrations.MIGRATION_3_4
+        )
+
+        val cursor = migratedDb.query(
+            """
+            SELECT title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
+            FROM passwords
+            WHERE id = 1
+            """.trimIndent()
+        )
+        cursor.moveToFirst()
+
+        assertEquals("Netflix", cursor.getString(0))
+        assertEquals("joao@email.com", cursor.getString(1))
+        assertEquals("", cursor.getString(2))
+        assertEquals("", cursor.getString(3))
+        assertEquals("", cursor.getString(4))
+        assertEquals(1, cursor.getInt(5))
+        assertEquals("ic_home", cursor.getString(6))
+
+        cursor.close()
+    }
+
     private companion object {
         const val TEST_DB = "password-migration-test"
     }

@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -28,25 +27,22 @@ class PasswordsScreenTest {
                             PasswordListItemUiModel(
                                 id = 1L,
                                 title = "Netflix",
-                                login = "joao@email.com",
-                                iconKey = "ic_home",
-                                iconResId = R.drawable.ic_home
+                                supportingText = "joao@email.com",
+                                initials = "N"
                             )
                         ),
                         filteredPasswords = listOf(
                             PasswordListItemUiModel(
                                 id = 1L,
                                 title = "Netflix",
-                                login = "joao@email.com",
-                                iconKey = "ic_home",
-                                iconResId = R.drawable.ic_home
+                                supportingText = "joao@email.com",
+                                initials = "N"
                             )
                         ),
                         totalPasswords = 1,
                         contentState = PasswordsContentState.Content
                     ),
-                    onAction = {},
-                    onFabClick = {}
+                    onAction = {}
                 )
             }
         }
@@ -66,8 +62,7 @@ class PasswordsScreenTest {
                     uiState = PasswordsUiState(
                         contentState = PasswordsContentState.EmptyPasswords
                     ),
-                    onAction = {},
-                    onFabClick = {}
+                    onAction = {}
                 )
             }
         }
@@ -86,8 +81,7 @@ class PasswordsScreenTest {
                         query = "xyz",
                         contentState = PasswordsContentState.EmptySearchResult
                     ),
-                    onAction = {},
-                    onFabClick = {}
+                    onAction = {}
                 )
             }
         }
@@ -107,9 +101,8 @@ class PasswordsScreenTest {
                             PasswordListItemUiModel(
                                 id = 11L,
                                 title = "GitHub",
-                                login = "jsilva_dev",
-                                iconKey = "ic_cloud",
-                                iconResId = R.drawable.ic_cloud
+                                supportingText = "jsilva_dev",
+                                initials = "G"
                             )
                         ),
                         totalPasswords = 1,
@@ -119,8 +112,7 @@ class PasswordsScreenTest {
                         if (action == PasswordsAction.OnPasswordClick(11L)) {
                             wasClicked = true
                         }
-                    },
-                    onFabClick = {}
+                    }
                 )
             }
         }

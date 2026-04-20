@@ -2,8 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
-import com.inovalou.seucofregerenciadordesenhas.core.ui.icon.VaultIconCatalog
-import com.inovalou.seucofregerenciadordesenhas.core.ui.icon.VaultIconOption
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
@@ -52,8 +51,8 @@ class PasswordsViewModelTest {
     fun givenPersistedPasswords_whenObservingState_thenShowsFullListFromRepository() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", iconKey = "ic_home"),
-                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", iconKey = "ic_cloud")
+                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", category = "Streaming"),
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", category = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -65,6 +64,7 @@ class PasswordsViewModelTest {
         assertEquals(2, state.allPasswords.size)
         assertEquals(2, state.filteredPasswords.size)
         assertEquals("Netflix", state.filteredPasswords.first().title)
+        assertEquals("N", state.filteredPasswords.first().initials)
         assertEquals(2, state.totalPasswords)
     }
 
@@ -72,9 +72,9 @@ class PasswordsViewModelTest {
     fun givenSearchQueryMatchesPasswords_whenQueryChanges_thenFiltersListByTitleOrLoginIgnoringCase() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", iconKey = "ic_home"),
-                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", iconKey = "ic_cloud"),
-                PasswordSummary(id = 3L, title = "Workspace", login = "work@empresa.com", iconKey = "ic_directory")
+                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", category = "Streaming"),
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", category = "Work"),
+                PasswordSummary(id = 3L, title = "Workspace", login = "work@empresa.com", category = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -92,8 +92,8 @@ class PasswordsViewModelTest {
     fun givenSearchQueryCleared_whenQueryBecomesBlank_thenRestoresFullList() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Social", login = "@social", iconKey = "ic_global"),
-                PasswordSummary(id = 2L, title = "Privado", login = "user@email.com", iconKey = "ic_padlock")
+                PasswordSummary(id = 1L, title = "Social", login = "@social", category = "Social"),
+                PasswordSummary(id = 2L, title = "Privado", login = "user@email.com", category = "Private")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -113,7 +113,7 @@ class PasswordsViewModelTest {
     fun givenSearchQueryHasNoMatches_whenQueryChanges_thenShowsSearchEmptyState() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Spotify", login = "premium_family_admin", iconKey = "ic_favorite")
+                PasswordSummary(id = 1L, title = "Spotify", login = "premium_family_admin", category = "Music")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -128,17 +128,17 @@ class PasswordsViewModelTest {
     }
 
     @Test
-    fun givenUnknownIconKey_whenObservingState_thenUsesSafeFallbackIcon() = runTest {
+    fun givenTitleWithMultipleWords_whenObservingState_thenExposesInitialsForListAvatar() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 7L, title = "Legado", login = "legacy@login", iconKey = "ic_unknown_legacy")
+                PasswordSummary(id = 7L, title = "Google Drive", login = "legacy@login", category = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
         advanceUntilIdle()
 
-        assertEquals(R.drawable.ic_directory, viewModel.uiState.value.filteredPasswords.single().iconResId)
+        assertEquals("GD", viewModel.uiState.value.filteredPasswords.single().initials)
     }
 
     @Test
@@ -160,10 +160,13 @@ class PasswordsViewModelTest {
             override fun observePasswords(): Flow<List<PasswordSummary>> = flow {
                 throw IllegalStateException("repository failure")
             }
+
+            override suspend fun getPasswordCount(): Int = 0
+
+            override suspend fun createPassword(password: NewPassword): Long = 0L
         }
         val viewModel = PasswordsViewModel(
-            observePasswordsUseCase = ObservePasswordsUseCase(repository),
-            iconCatalog = FakeVaultIconCatalog()
+            observePasswordsUseCase = ObservePasswordsUseCase(repository)
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -172,13 +175,38 @@ class PasswordsViewModelTest {
         assertTrue(viewModel.uiState.value.contentState is PasswordsContentState.Error)
     }
 
+    @Test
+    fun givenRepositoryEmitsNewPassword_whenObserved_thenScreenStateReflectsInsertedCredential() = runTest {
+        val repository = FakePasswordRepository(emptyList())
+        val viewModel = PasswordsViewModel(
+            observePasswordsUseCase = ObservePasswordsUseCase(repository)
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        repository.emit(
+            listOf(
+                PasswordSummary(
+                    id = 8L,
+                    title = "App 1",
+                    login = "user@email.com",
+                    category = "Work"
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.contentState is PasswordsContentState.Content)
+        assertEquals(listOf("App 1"), state.filteredPasswords.map { it.title })
+    }
+
     private fun buildViewModel(
         passwords: List<PasswordSummary> = listOf(
-            PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", iconKey = "ic_home")
+            PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", category = "Streaming")
         )
     ): PasswordsViewModel = PasswordsViewModel(
-        observePasswordsUseCase = ObservePasswordsUseCase(FakePasswordRepository(passwords)),
-        iconCatalog = FakeVaultIconCatalog()
+        observePasswordsUseCase = ObservePasswordsUseCase(FakePasswordRepository(passwords))
     )
 
     private class FakePasswordRepository(
@@ -188,24 +216,13 @@ class PasswordsViewModelTest {
         private val passwordsFlow = MutableStateFlow(passwords)
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = passwordsFlow
-    }
 
-    private class FakeVaultIconCatalog : VaultIconCatalog {
-        private val icons = listOf(
-            VaultIconOption("ic_directory", R.drawable.ic_directory),
-            VaultIconOption("ic_home", R.drawable.ic_home),
-            VaultIconOption("ic_cloud", R.drawable.ic_cloud),
-            VaultIconOption("ic_global", R.drawable.ic_global),
-            VaultIconOption("ic_padlock", R.drawable.ic_padlock),
-            VaultIconOption("ic_favorite", R.drawable.ic_favorite),
-            VaultIconOption("ic_user_profile", R.drawable.ic_user_profile)
-        )
+        override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 
-        override fun all(): List<VaultIconOption> = icons
+        override suspend fun createPassword(password: NewPassword): Long = 0L
 
-        override fun resolve(iconKey: String): VaultIconOption =
-            icons.firstOrNull { icon -> icon.iconKey == iconKey } ?: icons.first()
-
-        override fun default(): VaultIconOption = icons.first()
+        fun emit(passwords: List<PasswordSummary>) {
+            passwordsFlow.value = passwords
+        }
     }
 }

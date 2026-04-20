@@ -44,19 +44,32 @@ class PasswordDaoTest {
     @Test
     fun givenPersistedPasswords_whenObserving_thenReturnsTitleOrderedListIgnoringCase() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO passwords(id, title, login, icon_key) VALUES (1, 'zeta', 'z@email.com', 'ic_star')"
+            """
+            INSERT INTO passwords(
+                id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (1, 'zeta', 'z@email.com', 'Misc', 'cipher-z', 'iv-z', 1, '')
+            """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO passwords(id, title, login, icon_key) VALUES (2, 'Alpha', 'a@email.com', 'ic_directory')"
+            """
+            INSERT INTO passwords(
+                id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (2, 'Alpha', 'a@email.com', 'Work', 'cipher-a', 'iv-a', 1, '')
+            """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO passwords(id, title, login, icon_key) VALUES (3, 'bravo', 'b@email.com', 'ic_padlock')"
+            """
+            INSERT INTO passwords(
+                id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (3, 'bravo', 'b@email.com', 'Private', 'cipher-b', 'iv-b', 1, '')
+            """.trimIndent()
         )
 
         val passwords = passwordDao.observePasswords().first()
 
         assertEquals(listOf("Alpha", "bravo", "zeta"), passwords.map { it.title })
         assertEquals(listOf("a@email.com", "b@email.com", "z@email.com"), passwords.map { it.login })
-        assertEquals(listOf("ic_directory", "ic_padlock", "ic_star"), passwords.map { it.iconKey })
+        assertEquals(listOf("Work", "Private", "Misc"), passwords.map { it.category })
+        assertEquals(listOf("cipher-a", "cipher-b", "cipher-z"), passwords.map { it.encryptedPassword })
     }
 }
