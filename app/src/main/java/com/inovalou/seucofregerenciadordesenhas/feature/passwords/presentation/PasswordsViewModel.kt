@@ -3,7 +3,6 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
-import com.inovalou.seucofregerenciadordesenhas.core.ui.icon.VaultIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,8 +20,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PasswordsViewModel @Inject constructor(
-    observePasswordsUseCase: ObservePasswordsUseCase,
-    private val iconCatalog: VaultIconCatalog
+    observePasswordsUseCase: ObservePasswordsUseCase
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
@@ -31,10 +29,7 @@ class PasswordsViewModel @Inject constructor(
         observePasswordsUseCase(),
         searchQuery
     ) { passwords, query ->
-        passwords.toUiState(
-            query = query,
-            iconCatalog = iconCatalog
-        )
+        passwords.toUiState(query = query)
     }
         .catch {
             emit(
@@ -67,21 +62,25 @@ class PasswordsViewModel @Inject constructor(
                     )
                 }
             }
+
+            PasswordsAction.OnAddPasswordClick -> {
+                viewModelScope.launch {
+                    _effects.emit(PasswordsEffect.NavigateToNewPassword)
+                }
+            }
         }
     }
 }
 
 private fun List<PasswordSummary>.toUiState(
-    query: String,
-    iconCatalog: VaultIconCatalog
+    query: String
 ): PasswordsUiState {
     val allPasswords = map { password ->
         PasswordListItemUiModel(
             id = password.id,
             title = password.title,
-            login = password.login,
-            iconKey = password.iconKey,
-            iconResId = iconCatalog.resolve(password.iconKey).drawableResId
+            supportingText = password.login.ifBlank { password.category },
+            initials = password.title.toInitials()
         )
     }
     val normalizedQuery = query.trim()
@@ -90,7 +89,7 @@ private fun List<PasswordSummary>.toUiState(
     } else {
         allPasswords.filter { password ->
             password.title.contains(normalizedQuery, ignoreCase = true) ||
-                password.login.contains(normalizedQuery, ignoreCase = true)
+                password.supportingText.contains(normalizedQuery, ignoreCase = true)
         }
     }
 
@@ -107,4 +106,23 @@ private fun List<PasswordSummary>.toUiState(
         totalPasswords = allPasswords.size,
         contentState = contentState
     )
+}
+
+private fun String.toInitials(): String {
+    val parts = trim()
+        .split(Regex("\\s+"))
+        .filter { it.isNotBlank() }
+
+    if (parts.isEmpty()) {
+        return "A"
+    }
+
+    if (parts.size == 1) {
+        return parts.first().take(1).uppercase()
+    }
+
+    return buildString {
+        append(parts.first().take(1))
+        append(parts.last().take(1))
+    }.uppercase()
 }

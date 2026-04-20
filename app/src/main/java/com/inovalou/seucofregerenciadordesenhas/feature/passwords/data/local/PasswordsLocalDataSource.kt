@@ -6,6 +6,10 @@ import javax.inject.Inject
 interface PasswordsLocalDataSource {
 
     fun observePasswords(): Flow<List<PasswordEntity>>
+
+    suspend fun createPassword(password: PasswordEntity): Long
+
+    suspend fun getPasswordCount(): Int
 }
 
 class RoomPasswordsLocalDataSource @Inject constructor(
@@ -13,4 +17,8 @@ class RoomPasswordsLocalDataSource @Inject constructor(
 ) : PasswordsLocalDataSource {
 
     override fun observePasswords(): Flow<List<PasswordEntity>> = passwordDao.observePasswords()
+
+    override suspend fun createPassword(password: PasswordEntity): Long = passwordDao.insert(password)
+
+    override suspend fun getPasswordCount(): Int = passwordDao.countPasswords()
 }

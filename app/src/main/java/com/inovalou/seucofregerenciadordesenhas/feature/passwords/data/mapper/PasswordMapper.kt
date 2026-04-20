@@ -7,12 +7,5 @@ fun PasswordEntity.toDomain(): PasswordSummary = PasswordSummary(
     id = id,
     title = title,
     login = login,
-    iconKey = iconKey
-)
-
-fun PasswordSummary.toEntity(): PasswordEntity = PasswordEntity(
-    id = id,
-    title = title,
-    login = login,
-    iconKey = iconKey
+    category = category
 )

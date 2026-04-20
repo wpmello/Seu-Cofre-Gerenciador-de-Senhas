@@ -30,4 +30,33 @@ object SeuCofreDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN category TEXT NOT NULL DEFAULT ''
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN encrypted_password TEXT NOT NULL DEFAULT ''
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN password_iv TEXT NOT NULL DEFAULT ''
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN password_cipher_version INTEGER NOT NULL DEFAULT 1
+                """.trimIndent()
+            )
+        }
+    }
 }

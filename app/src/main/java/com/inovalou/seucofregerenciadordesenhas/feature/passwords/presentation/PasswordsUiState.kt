@@ -14,9 +14,8 @@ data class PasswordsUiState(
 data class PasswordListItemUiModel(
     val id: Long,
     val title: String,
-    val login: String,
-    val iconKey: String,
-    val iconResId: Int
+    val supportingText: String,
+    val initials: String
 )
 
 sealed interface PasswordsContentState {
@@ -29,4 +28,5 @@ sealed interface PasswordsContentState {
 
 sealed interface PasswordsEffect {
     data class OpenPasswordDetails(val passwordId: Long) : PasswordsEffect
+    data object NavigateToNewPassword : PasswordsEffect
 }
