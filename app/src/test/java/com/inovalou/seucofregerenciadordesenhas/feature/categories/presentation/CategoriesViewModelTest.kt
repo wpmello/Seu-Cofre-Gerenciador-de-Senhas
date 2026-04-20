@@ -92,6 +92,29 @@ class CategoriesViewModelTest {
             listOf("Trabalho", "Educação", "Saúde", "Viagens"),
             categoriesState.categories.map { it.name }
         )
+        assertTrue(viewModel.uiState.value.shouldShowBottomViewAllButton)
+    }
+
+    @Test
+    fun givenFourOrFewerCategories_whenObservingState_thenHidesBottomViewAllButton() = runTest {
+        val repository = FakeCategoryRepository(
+            listOf(
+                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
+                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15),
+                Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12),
+                Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21)
+            )
+        )
+        val viewModel = CategoriesViewModel(
+            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.categoriesState is CategoriesContentUiState.Content)
+        assertTrue(!viewModel.uiState.value.shouldShowBottomViewAllButton)
     }
 
     @Test
