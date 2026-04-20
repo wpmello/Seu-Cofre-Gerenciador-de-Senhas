@@ -67,6 +67,14 @@
     <string name="all_categories_empty_message">Create a category to organize your credentials in the vault.</string>
     <string name="all_categories_search_empty_title">No categories found</string>
     <string name="all_categories_search_empty_message">Try searching with a different category name.</string>
+    <string name="passwords_title">Passwords</string>
+    <string name="passwords_search_placeholder">Search passwords or sites...</string>
+    <string name="passwords_empty_title">No passwords created</string>
+    <string name="passwords_empty_message">Saved credentials in the vault will appear here.</string>
+    <string name="passwords_search_empty_title">No passwords found</string>
+    <string name="passwords_search_empty_message">Try another app, site or login search.</string>
+    <string name="passwords_load_error">Could not load passwords.</string>
+    <string name="passwords_create_fab">Add password</string>
     <string name="bottom_nav_vault">VAULT</string>
     <string name="bottom_nav_passwords">PASSWORDS</string>
     <string name="bottom_nav_categories">CATEGORIES</string>
@@ -81,5 +89,9 @@
     <plurals name="categories_items_count">
         <item quantity="one">%d Item</item>
         <item quantity="other">%d Items</item>
+    </plurals>
+    <plurals name="passwords_subtitle">
+        <item quantity="one">Manage your %d secure credential</item>
+        <item quantity="other">Manage your %d secure credentials</item>
     </plurals>
 </resources>

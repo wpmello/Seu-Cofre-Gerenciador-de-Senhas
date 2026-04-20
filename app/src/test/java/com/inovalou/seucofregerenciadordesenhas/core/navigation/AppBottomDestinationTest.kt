@@ -15,6 +15,14 @@ class AppBottomDestinationTest {
     }
 
     @Test
+    fun givenPasswordsRoute_whenResolvingDestination_thenReturnsPasswordsTab() {
+        assertEquals(
+            AppBottomDestination.Passwords,
+            appBottomDestinationForRoute("passwords")
+        )
+    }
+
+    @Test
     fun givenUnknownRoute_whenResolvingDestination_thenReturnsNull() {
         assertNull(appBottomDestinationForRoute("unknown"))
     }

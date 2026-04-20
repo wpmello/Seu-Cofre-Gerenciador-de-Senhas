@@ -67,6 +67,14 @@
     <string name="all_categories_empty_message">Crea una categoría para organizar tus credenciales en el cofre.</string>
     <string name="all_categories_search_empty_title">No se encontraron categorías</string>
     <string name="all_categories_search_empty_message">Prueba buscar con otro nombre de categoría.</string>
+    <string name="passwords_title">Claves</string>
+    <string name="passwords_search_placeholder">Buscar claves o sitios...</string>
+    <string name="passwords_empty_title">No hay claves guardadas</string>
+    <string name="passwords_empty_message">Las credenciales guardadas en el cofre aparecerán aquí.</string>
+    <string name="passwords_search_empty_title">No se encontraron claves</string>
+    <string name="passwords_search_empty_message">Prueba con otra búsqueda de app, sitio o acceso.</string>
+    <string name="passwords_load_error">No se pudieron cargar las claves.</string>
+    <string name="passwords_create_fab">Agregar clave</string>
     <string name="bottom_nav_vault">COFRE</string>
     <string name="bottom_nav_passwords">CLAVES</string>
     <string name="bottom_nav_categories">CATEGORÍAS</string>
@@ -81,5 +89,9 @@
     <plurals name="categories_items_count">
         <item quantity="one">%d Item</item>
         <item quantity="other">%d Items</item>
+    </plurals>
+    <plurals name="passwords_subtitle">
+        <item quantity="one">Administra tu %d credencial segura</item>
+        <item quantity="other">Administra tus %d credenciales seguras</item>
     </plurals>
 </resources>
