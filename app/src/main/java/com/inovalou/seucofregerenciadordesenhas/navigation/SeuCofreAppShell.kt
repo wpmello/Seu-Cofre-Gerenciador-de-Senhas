@@ -26,6 +26,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.PasswordsRoute
 
 @Composable
 fun SeuCofreAppShell(modifier: Modifier = Modifier) {
@@ -61,7 +62,9 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 PlaceholderTabScreen(titleResId = R.string.placeholder_vault)
             }
             composable(AppBottomDestination.Passwords.route) {
-                PlaceholderTabScreen(titleResId = R.string.placeholder_passwords)
+                PasswordsRoute(
+                    onOpenPassword = {}
+                )
             }
             composable(AppBottomDestination.Categories.route) {
                 CategoriesRoute(

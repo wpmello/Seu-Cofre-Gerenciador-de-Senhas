@@ -24,24 +24,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryOpenedFrom
@@ -49,7 +45,6 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 
 @Composable
 fun AllCategoriesEntry(
@@ -241,38 +236,12 @@ private fun AllCategoriesSearchField(
     onQueryChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    TextField(
+    VaultSearchField(
         value = query,
         onValueChange = onQueryChanged,
+        placeholderResId = R.string.all_categories_search_placeholder,
+        testTag = "all_categories_search_input",
         modifier = modifier
-            .fillMaxWidth()
-            .testTag("all_categories_search_input"),
-        singleLine = true,
-        leadingIcon = {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_search),
-                contentDescription = stringResource(R.string.all_categories_search_placeholder),
-                tint = MistText
-            )
-        },
-        placeholder = {
-            Text(
-                text = stringResource(R.string.all_categories_search_placeholder),
-                color = MistText
-            )
-        },
-        shape = RoundedCornerShape(16.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = SurfaceBright.copy(alpha = 0.72f),
-            unfocusedContainerColor = SurfaceBright.copy(alpha = 0.72f),
-            disabledContainerColor = SurfaceBright.copy(alpha = 0.72f),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            focusedTextColor = SoftWhite,
-            unfocusedTextColor = SoftWhite,
-            cursorColor = ElectricBlue
-        )
     )
 }
 

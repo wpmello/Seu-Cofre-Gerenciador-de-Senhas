@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.inovalou.seucofregerenciadordesenhas.core.database.SeuCofreDatabase
 import com.inovalou.seucofregerenciadordesenhas.core.database.SeuCofreDatabaseMigrations
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoryDao
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,10 +27,16 @@ object DatabaseModule {
         "seu_cofre.db"
     )
         .addMigrations(SeuCofreDatabaseMigrations.MIGRATION_1_2)
+        .addMigrations(SeuCofreDatabaseMigrations.MIGRATION_2_3)
         .build()
 
     @Provides
     fun provideCategoryDao(
         database: SeuCofreDatabase
     ): CategoryDao = database.categoryDao()
+
+    @Provides
+    fun providePasswordDao(
+        database: SeuCofreDatabase
+    ): PasswordDao = database.passwordDao()
 }
