@@ -3,7 +3,6 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,9 +22,6 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +31,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -53,12 +47,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 
@@ -91,8 +85,6 @@ fun NewPasswordScreen(
     onAction: (NewPasswordAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val gradient = Brush.linearGradient(colors = listOf(ElectricBlue, NeonPink))
-
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MidnightBlue
@@ -181,44 +173,14 @@ fun NewPasswordScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Button(
+            VaultPrimaryPersistenceButton(
+                text = stringResource(R.string.new_password_save_button),
+                isLoading = uiState.isSaving,
                 onClick = { onAction(NewPasswordAction.OnSaveClick) },
-                enabled = !uiState.isSaving,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(68.dp)
                     .testTag("new_password_save_button"),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent
-                ),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(gradient, RoundedCornerShape(999.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (uiState.isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MidnightBlue,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.new_password_save_button),
-                            color = SoftWhite,
-                            fontSize = 18.sp,
-                            lineHeight = 28.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-0.45).sp
-                        )
-                    }
-                }
-            }
+            )
         }
     }
 }

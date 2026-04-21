@@ -47,8 +47,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
-import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryPrimaryActionButton
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryValidationText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
@@ -151,7 +151,7 @@ fun EditCategoryScreen(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        CategoryPrimaryActionButton(
+                        VaultPrimaryPersistenceButton(
                             text = stringResource(R.string.edit_category_save_button),
                             isLoading = uiState.isSaving,
                             onClick = { onAction(EditCategoryAction.OnSaveClick) },
