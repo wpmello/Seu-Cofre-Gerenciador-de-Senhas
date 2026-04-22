@@ -6,11 +6,13 @@ import javax.inject.Inject
 
 class UpdatePasswordUseCase @Inject constructor(
     private val passwordRepository: PasswordRepository,
+    private val generatePasswordTitleUseCase: GeneratePasswordTitleUseCase,
     private val timeProvider: TimeProvider
 ) {
 
     suspend operator fun invoke(
         passwordId: Long,
+        title: String,
         login: String,
         password: String
     ): UpdatePasswordResult {
@@ -32,6 +34,7 @@ class UpdatePasswordUseCase @Inject constructor(
         return try {
             passwordRepository.updatePassword(
                 currentPassword.copy(
+                    title = generatePasswordTitleUseCase(title),
                     login = login.trim(),
                     password = password,
                     updatedAt = timeProvider.currentTimeMillis()

@@ -9,6 +9,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Rule
@@ -32,6 +34,8 @@ class EditPasswordScreenTest {
 
         composeRule.onNodeWithTag("edit_password_screen").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_header").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_title_input").assertIsDisplayed()
+        composeRule.onNodeWithText("SP").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_email_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_password_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_save_button").assertIsDisplayed()
@@ -60,6 +64,29 @@ class EditPasswordScreenTest {
         composeRule.onNodeWithTag("edit_password_visibility_toggle").performClick()
 
         composeRule.onNodeWithTag("edit_password_password_input").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenTitleEditor_whenStateIsControlled_thenUpdatesVisibleTitleAndInitials() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                var uiState by remember { mutableStateOf(editPasswordUiState()) }
+                EditPasswordScreen(
+                    uiState = uiState,
+                    onAction = { action ->
+                        if (action is EditPasswordAction.OnTitleChanged) {
+                            uiState = uiState.copy(title = action.title)
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_title_input").performTextClearance()
+        composeRule.onNodeWithTag("edit_password_title_input").performTextInput("Netflix")
+
+        composeRule.onNodeWithText("Netflix").assertIsDisplayed()
+        composeRule.onNodeWithText("NE").assertIsDisplayed()
     }
 
     private fun editPasswordUiState() = EditPasswordUiState(

@@ -9,6 +9,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GetPasswordDetailsUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordValidation
@@ -45,6 +46,16 @@ class EditPasswordViewModelTest {
         assertEquals("plain-secret", state.password)
         assertEquals(1_700_000_000_000L, state.createdAt)
         assertEquals(1_710_000_000_000L, state.updatedAt)
+    }
+
+    @Test
+    fun givenTitleChange_whenHandled_thenUpdatesEditableTitleState() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
+
+        assertEquals("Spotify Family", viewModel.uiState.value.title)
     }
 
     @Test
@@ -131,12 +142,14 @@ class EditPasswordViewModelTest {
         advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("  Spotify Family  "))
         viewModel.onAction(EditPasswordAction.OnEmailChanged("  updated@vault.com  "))
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
         viewModel.onAction(EditPasswordAction.OnSaveClick)
         advanceUntilIdle()
 
         assertEquals(8L, updateUseCase.lastPasswordId)
+        assertEquals("Spotify Family", updateUseCase.lastTitle)
         assertEquals("updated@vault.com", updateUseCase.lastLogin)
         assertEquals("new-secret", updateUseCase.lastPassword)
         assertEquals(EditPasswordEffect.NavigateBack, effect.await())
@@ -204,6 +217,7 @@ class EditPasswordViewModelTest {
         ),
         updatePasswordUseCase = UpdatePasswordUseCase(
             passwordRepository = updatePasswordUseCase,
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(updatePasswordUseCase),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
     )
@@ -254,6 +268,7 @@ class EditPasswordViewModelTest {
     ) : PasswordRepository {
 
         var lastPasswordId: Long? = null
+        var lastTitle: String? = null
         var lastLogin: String? = null
         var lastPassword: String? = null
 
@@ -270,6 +285,7 @@ class EditPasswordViewModelTest {
 
         override suspend fun updatePassword(password: PasswordDetails) {
             lastPasswordId = password.id
+            lastTitle = password.title
             lastLogin = password.login
             lastPassword = password.password
             if (result is UpdatePasswordResult.Failure) {

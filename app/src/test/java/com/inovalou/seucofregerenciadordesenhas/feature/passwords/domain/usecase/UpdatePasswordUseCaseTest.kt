@@ -20,11 +20,13 @@ class UpdatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordDetails = persistedPassword())
         val useCase = UpdatePasswordUseCase(
             passwordRepository = repository,
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
 
         val result = useCase(
             passwordId = 8L,
+            title = "Spotify",
             login = "editado@vault.com",
             password = "   "
         )
@@ -39,14 +41,21 @@ class UpdatePasswordUseCaseTest {
 
     @Test
     fun givenMissingPassword_whenInvoked_thenReturnsNotFound() = runTest {
+        val repository = FakePasswordRepository(passwordDetails = null)
         val useCase = UpdatePasswordUseCase(
-            passwordRepository = FakePasswordRepository(passwordDetails = null),
+            passwordRepository = repository,
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
 
         assertEquals(
             UpdatePasswordResult.NotFound,
-            useCase(passwordId = 44L, login = "", password = "new-secret")
+            useCase(
+                passwordId = 44L,
+                title = "Spotify",
+                login = "",
+                password = "new-secret"
+            )
         )
     }
 
@@ -55,11 +64,13 @@ class UpdatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordDetails = persistedPassword())
         val useCase = UpdatePasswordUseCase(
             passwordRepository = repository,
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
 
         val result = useCase(
             passwordId = 8L,
+            title = "  Spotify Family  ",
             login = "  novo@email.com  ",
             password = "new-secret"
         )
@@ -67,6 +78,7 @@ class UpdatePasswordUseCaseTest {
         assertEquals(UpdatePasswordResult.Success, result)
         assertEquals(
             persistedPassword().copy(
+                title = "Spotify Family",
                 login = "novo@email.com",
                 password = "new-secret",
                 updatedAt = 1_750_000_000_000L
@@ -82,13 +94,41 @@ class UpdatePasswordUseCaseTest {
                 passwordDetails = persistedPassword(),
                 shouldFailOnUpdate = true
             ),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(
+                FakePasswordRepository(passwordDetails = persistedPassword())
+            ),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
 
         assertEquals(
             UpdatePasswordResult.Failure,
-            useCase(passwordId = 8L, login = "mail", password = "new-secret")
+            useCase(
+                passwordId = 8L,
+                title = "Spotify",
+                login = "mail",
+                password = "new-secret"
+            )
         )
+    }
+
+    @Test
+    fun givenBlankTitle_whenInvoked_thenUsesGeneratedFallbackTitle() = runTest {
+        val repository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val useCase = UpdatePasswordUseCase(
+            passwordRepository = repository,
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_750_000_000_000L)
+        )
+
+        val result = useCase(
+            passwordId = 8L,
+            title = "   ",
+            login = "novo@email.com",
+            password = "new-secret"
+        )
+
+        assertEquals(UpdatePasswordResult.Success, result)
+        assertEquals("App 1", repository.updatedPassword?.title)
     }
 
     private fun persistedPassword() = PasswordDetails(
