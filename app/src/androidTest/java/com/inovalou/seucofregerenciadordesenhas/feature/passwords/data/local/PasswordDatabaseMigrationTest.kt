@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.core.database.SeuCofreDatabase
 import com.inovalou.seucofregerenciadordesenhas.core.database.SeuCofreDatabaseMigrations
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -120,6 +121,45 @@ class PasswordDatabaseMigrationTest {
         assertEquals("iv", cursor.getString(5))
         assertEquals(1, cursor.getInt(6))
         assertEquals("ic_home", cursor.getString(7))
+
+        cursor.close()
+    }
+
+    @Test
+    fun migrate6To7_addsCreatedAtAndUpdatedAtAndBackfillsLegacyPasswords() {
+        migrationTestHelper.createDatabase(TEST_DB, 6).apply {
+            execSQL(
+                """
+                INSERT INTO passwords(
+                    id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+                ) VALUES (1, 'Netflix', 'joao@email.com', 'Legacy', NULL, 'cipher', 'iv', 1, 'ic_home')
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val migratedDb = migrationTestHelper.runMigrationsAndValidate(
+            TEST_DB,
+            7,
+            true,
+            SeuCofreDatabaseMigrations.MIGRATION_6_7
+        )
+
+        val cursor = migratedDb.query(
+            """
+            SELECT created_at, updated_at
+            FROM passwords
+            WHERE id = 1
+            """.trimIndent()
+        )
+        cursor.moveToFirst()
+
+        val createdAt = cursor.getLong(0)
+        val updatedAt = cursor.getLong(1)
+
+        assertTrue(createdAt > 0L)
+        assertTrue(updatedAt > 0L)
+        assertEquals(createdAt, updatedAt)
 
         cursor.close()
     }

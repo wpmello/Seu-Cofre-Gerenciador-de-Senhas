@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
@@ -8,7 +9,8 @@ import javax.inject.Inject
 class CreatePasswordUseCase @Inject constructor(
     private val passwordRepository: PasswordRepository,
     private val categoryRepository: CategoryRepository,
-    private val generatePasswordTitleUseCase: GeneratePasswordTitleUseCase
+    private val generatePasswordTitleUseCase: GeneratePasswordTitleUseCase,
+    private val timeProvider: TimeProvider
 ) {
 
     suspend operator fun invoke(
@@ -40,13 +42,16 @@ class CreatePasswordUseCase @Inject constructor(
         }
 
         return try {
+            val now = timeProvider.currentTimeMillis()
             passwordRepository.createPassword(
                 NewPassword(
                     title = generatePasswordTitleUseCase(title),
                     login = login.trim(),
                     categoryId = persistedCategory?.id,
                     categoryName = persistedCategory?.name ?: categoryName?.trim()?.takeIf { it.isNotBlank() },
-                    password = password
+                    password = password,
+                    createdAt = now,
+                    updatedAt = now
                 )
             )
             persistedCategory?.id?.let { categoryRepository.touchCategory(it) }

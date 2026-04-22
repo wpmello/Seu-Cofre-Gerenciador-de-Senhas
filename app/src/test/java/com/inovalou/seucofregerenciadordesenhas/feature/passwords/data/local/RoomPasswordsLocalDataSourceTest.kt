@@ -23,7 +23,9 @@ class RoomPasswordsLocalDataSourceTest {
                 encryptedPassword = "cipher-1",
                 passwordIv = "iv-1",
                 passwordCipherVersion = 1,
-                iconKey = ""
+                iconKey = "",
+                createdAt = 1L,
+                updatedAt = 2L
             ),
             PasswordEntity(
                 id = 2L,
@@ -34,7 +36,9 @@ class RoomPasswordsLocalDataSourceTest {
                 encryptedPassword = "cipher-2",
                 passwordIv = "iv-2",
                 passwordCipherVersion = 1,
-                iconKey = ""
+                iconKey = "",
+                createdAt = 3L,
+                updatedAt = 4L
             )
         )
         val dataSource = RoomPasswordsLocalDataSource(passwordDao = FakePasswordDao(flowOf(expected)))
@@ -56,7 +60,9 @@ class RoomPasswordsLocalDataSourceTest {
             encryptedPassword = "cipher",
             passwordIv = "iv",
             passwordCipherVersion = 1,
-            iconKey = ""
+            iconKey = "",
+            createdAt = 10L,
+            updatedAt = 20L
         )
 
         val insertedId = dataSource.createPassword(entity)
@@ -77,7 +83,9 @@ class RoomPasswordsLocalDataSourceTest {
                 encryptedPassword = "cipher",
                 passwordIv = "iv",
                 passwordCipherVersion = 1,
-                iconKey = ""
+                iconKey = "",
+                createdAt = 30L,
+                updatedAt = 40L
             )
         )
         val dao = FakePasswordDao(
@@ -99,6 +107,53 @@ class RoomPasswordsLocalDataSourceTest {
         )
 
         assertEquals(4, dataSource.getPasswordCount())
+    }
+
+    @Test
+    fun givenPasswordId_whenQueryingDetails_thenDelegatesLookupToDao() = runTest {
+        val expected = PasswordEntity(
+            id = 11L,
+            title = "Spotify",
+            login = "premium@vault.com",
+            category = "Music",
+            categoryId = 5L,
+            encryptedPassword = "cipher",
+            passwordIv = "iv",
+            passwordCipherVersion = 1,
+            iconKey = "sp",
+            createdAt = 100L,
+            updatedAt = 200L
+        )
+        val dao = FakePasswordDao(flowOf(emptyList()), passwordById = expected)
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val observed = dataSource.getPasswordById(11L)
+
+        assertEquals(11L, dao.lastRequestedPasswordId)
+        assertEquals(expected, observed)
+    }
+
+    @Test
+    fun givenUpdatedPassword_whenPersisting_thenDelegatesUpdateToDao() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()))
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+        val entity = PasswordEntity(
+            id = 12L,
+            title = "Spotify",
+            login = "updated@vault.com",
+            category = "Music",
+            categoryId = 5L,
+            encryptedPassword = "cipher",
+            passwordIv = "iv",
+            passwordCipherVersion = 2,
+            iconKey = "sp",
+            createdAt = 100L,
+            updatedAt = 400L
+        )
+
+        dataSource.updatePassword(entity)
+
+        assertEquals(entity, dao.updatedEntity)
     }
 
     @Test
@@ -126,11 +181,14 @@ class RoomPasswordsLocalDataSourceTest {
     private class FakePasswordDao(
         private val passwordsFlow: Flow<List<PasswordEntity>>,
         private val passwordsByCategoryFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
-        private val passwordCount: Int = 0
+        private val passwordCount: Int = 0,
+        private val passwordById: PasswordEntity? = null
     ) : PasswordDao {
 
         var insertedEntity: PasswordEntity? = null
+        var updatedEntity: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
+        var lastRequestedPasswordId: Long? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
@@ -142,6 +200,15 @@ class RoomPasswordsLocalDataSourceTest {
         override suspend fun insert(password: PasswordEntity): Long {
             insertedEntity = password
             return 7L
+        }
+
+        override suspend fun getPasswordById(passwordId: Long): PasswordEntity? {
+            lastRequestedPasswordId = passwordId
+            return passwordById
+        }
+
+        override suspend fun update(password: PasswordEntity) {
+            updatedEntity = password
         }
 
         override suspend fun countPasswords(): Int = passwordCount

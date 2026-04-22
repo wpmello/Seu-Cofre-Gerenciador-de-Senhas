@@ -2,10 +2,12 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordUseCase
@@ -303,7 +305,8 @@ class NewPasswordViewModelTest {
         createPasswordUseCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = categoryRepository,
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         ),
         observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository)
     )
@@ -328,6 +331,10 @@ class NewPasswordViewModelTest {
             createdPassword = password
             return 1L
         }
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
     }
 
     private class FakeCategoryRepository(
@@ -352,5 +359,11 @@ class NewPasswordViewModelTest {
         fun emit(categories: List<Category>) {
             categoriesFlow.value = categories
         }
+    }
+
+    private class FixedTimeProvider(
+        private val currentTimeMillis: Long
+    ) : TimeProvider {
+        override fun currentTimeMillis(): Long = currentTimeMillis
     }
 }

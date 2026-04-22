@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import kotlinx.coroutines.flow.Flow
@@ -50,5 +51,9 @@ class GeneratePasswordTitleUseCaseTest {
         override suspend fun getPasswordCount(): Int = passwordCount
 
         override suspend fun createPassword(password: NewPassword): Long = 0L
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
     }
 }

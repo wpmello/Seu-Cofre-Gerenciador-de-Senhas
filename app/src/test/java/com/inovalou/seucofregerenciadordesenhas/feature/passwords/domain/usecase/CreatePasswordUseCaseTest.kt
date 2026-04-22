@@ -1,8 +1,10 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +24,8 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = FakeCategoryRepository(listOf(Category(8L, "Streaming", "ic_tv", 0, 50L))),
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -47,7 +50,8 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = FakeCategoryRepository(listOf(Category(4L, "Trabalho", "ic_work", 0, 50L))),
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -65,7 +69,9 @@ class CreatePasswordUseCaseTest {
                 login = "joao@email.com",
                 categoryId = 4L,
                 categoryName = "Trabalho",
-                password = " senha super secreta "
+                password = " senha super secreta ",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_700_000_000_000L
             ),
             repository.createdPassword
         )
@@ -80,7 +86,8 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = categoryRepository,
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -101,7 +108,8 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = FakeCategoryRepository(listOf(Category(2L, "Geral", "ic_app", 0, 50L))),
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -124,7 +132,8 @@ class CreatePasswordUseCaseTest {
             categoryRepository = FakeCategoryRepository(
                 listOf(Category(3L, "Trabalho", "ic_work", 0, 50L))
             ),
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -149,7 +158,8 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = FakeCategoryRepository(emptyList()),
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -174,7 +184,8 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = FakeCategoryRepository(listOf(Category(1L, "Pessoal", "ic_home", 0, 50L))),
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val result = useCase(
@@ -209,6 +220,10 @@ class CreatePasswordUseCaseTest {
             createdPassword = password
             return 1L
         }
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
     }
 
     private class FakeCategoryRepository(
@@ -232,5 +247,11 @@ class CreatePasswordUseCaseTest {
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
         override fun observeCategories(): Flow<List<Category>> = categoriesFlow
+    }
+
+    private class FixedTimeProvider(
+        private val currentTimeMillis: Long
+    ) : TimeProvider {
+        override fun currentTimeMillis(): Long = currentTimeMillis
     }
 }

@@ -39,5 +39,8 @@ Rejeitada porque a plataforma já cobre o caso com APIs oficiais, e a feature pr
 ## Impactos
 
 - Room recebeu migration `3 -> 4` para os campos criptografados;
+- o fluxo de detalhe/edição descriptografa a senha apenas no ponto de leitura da tela de edição e recriptografa antes de persistir qualquer alteração;
+- Room recebeu migration `6 -> 7` para os campos `created_at` e `updated_at`, com backfill de registros legados no momento da migração;
 - `PasswordRepository` passou a concentrar a orquestração de criptografia + persistência;
-- a tela `Nova Senha` salva credenciais reais e a `PasswordsScreen` reflete o novo item via `Flow`.
+- a tela `Nova Senha` salva credenciais reais com timestamps locais de criação/modificação e a `PasswordsScreen` reflete o novo item via `Flow`;
+- a tela `EditPasswordScreen` lê detalhes da credencial pelo repositório, permite editar apenas `email` e `senha`, e atualiza `updatedAt` sem persistir texto puro.

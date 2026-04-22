@@ -11,6 +11,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecas
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.UpdateCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
@@ -370,7 +372,10 @@ class EditCategoryViewModelTest {
 
         override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 
-        override suspend fun createPassword(password: com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword): Long =
-            1L
+        override suspend fun createPassword(password: NewPassword): Long = 1L
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
     }
 }

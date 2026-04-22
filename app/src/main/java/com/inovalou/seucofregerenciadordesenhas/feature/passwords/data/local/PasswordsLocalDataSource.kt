@@ -11,6 +11,10 @@ interface PasswordsLocalDataSource {
 
     suspend fun createPassword(password: PasswordEntity): Long
 
+    suspend fun getPasswordById(passwordId: Long): PasswordEntity?
+
+    suspend fun updatePassword(password: PasswordEntity)
+
     suspend fun getPasswordCount(): Int
 }
 
@@ -24,6 +28,13 @@ class RoomPasswordsLocalDataSource @Inject constructor(
         passwordDao.observePasswordsByCategoryId(categoryId)
 
     override suspend fun createPassword(password: PasswordEntity): Long = passwordDao.insert(password)
+
+    override suspend fun getPasswordById(passwordId: Long): PasswordEntity? =
+        passwordDao.getPasswordById(passwordId)
+
+    override suspend fun updatePassword(password: PasswordEntity) {
+        passwordDao.update(password)
+    }
 
     override suspend fun getPasswordCount(): Int = passwordDao.countPasswords()
 }
