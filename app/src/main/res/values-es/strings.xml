@@ -98,6 +98,7 @@
     <string name="new_password_save_error">No se pudo guardar la clave.</string>
     <string name="edit_password_back">Volver</string>
     <string name="edit_password_title">Editar clave</string>
+    <string name="edit_password_app_name_placeholder">Nombre de la app</string>
     <string name="edit_password_email_label">CORREO</string>
     <string name="edit_password_password_label">CLAVE</string>
     <string name="edit_password_show_password">Mostrar clave</string>

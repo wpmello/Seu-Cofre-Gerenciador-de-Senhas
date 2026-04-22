@@ -41,6 +41,7 @@ class EditPasswordViewModel @Inject constructor(
     fun onAction(action: EditPasswordAction) {
         when (action) {
             EditPasswordAction.OnBackClick -> navigateBack()
+            is EditPasswordAction.OnTitleChanged -> updateTitle(action.title)
             is EditPasswordAction.OnEmailChanged -> updateEmail(action.email)
             is EditPasswordAction.OnPasswordChanged -> updatePassword(action.password)
             EditPasswordAction.OnTogglePasswordVisibility -> togglePasswordVisibility()
@@ -105,6 +106,15 @@ class EditPasswordViewModel @Inject constructor(
         }
     }
 
+    private fun updateTitle(title: String) {
+        _uiState.update {
+            it.copy(
+                title = title,
+                submitErrorResId = null
+            )
+        }
+    }
+
     private fun updatePassword(password: String) {
         _uiState.update {
             it.copy(
@@ -160,6 +170,7 @@ class EditPasswordViewModel @Inject constructor(
             when (
                 val result = updatePasswordUseCase(
                     passwordId = resolvedPasswordId,
+                    title = _uiState.value.title,
                     login = _uiState.value.email,
                     password = _uiState.value.password
                 )

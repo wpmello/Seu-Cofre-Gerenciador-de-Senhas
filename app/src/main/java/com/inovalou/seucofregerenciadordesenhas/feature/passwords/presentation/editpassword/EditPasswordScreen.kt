@@ -21,10 +21,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Shield
@@ -55,6 +57,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -162,6 +165,7 @@ fun EditPasswordScreen(
                         password = uiState.password,
                         isPasswordVisible = uiState.isPasswordVisible,
                         passwordErrorResId = uiState.passwordErrorResId,
+                        onTitleChanged = { onAction(EditPasswordAction.OnTitleChanged(it)) },
                         onEmailChanged = { onAction(EditPasswordAction.OnEmailChanged(it)) },
                         onPasswordChanged = { onAction(EditPasswordAction.OnPasswordChanged(it)) },
                         onCopyEmail = { onAction(EditPasswordAction.OnCopyEmailClick) },
@@ -278,6 +282,7 @@ private fun PasswordIdentityCard(
     password: String,
     isPasswordVisible: Boolean,
     passwordErrorResId: Int?,
+    onTitleChanged: (String) -> Unit,
     onEmailChanged: (String) -> Unit,
     onPasswordChanged: (String) -> Unit,
     onCopyEmail: () -> Unit,
@@ -316,13 +321,56 @@ private fun PasswordIdentityCard(
                     )
                 }
 
-                Text(
-                    text = title,
-                    color = SoftWhite,
-                    fontSize = 30.sp,
-                    lineHeight = 36.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    BasicTextField(
+                        value = title,
+                        onValueChange = onTitleChanged,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 18.dp)
+                            .testTag("edit_password_title_input"),
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.headlineMedium.copy(
+                            color = SoftWhite,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center
+                        ),
+                        cursorBrush = Brush.verticalGradient(
+                            colors = listOf(ElectricBlue, ElectricBlue)
+                        ),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (title.isBlank()) {
+                                    Text(
+                                        text = stringResource(
+                                            R.string.edit_password_app_name_placeholder
+                                        ),
+                                        color = MistText.copy(alpha = 0.72f),
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
+                    )
+
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = MistText.copy(alpha = 0.72f),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(14.dp)
+                    )
+                }
             }
 
             CredentialField(
