@@ -44,13 +44,13 @@ class CategoryDaoTest {
     @Test
     fun givenPersistedCategories_whenObserving_thenReturnsNameOrderedListIgnoringCase() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (1, 'zeta', 'ic_star', 0)"
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (1, 'zeta', 'ic_star', 0, 10)"
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (2, 'Alpha', 'ic_directory', 0)"
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (2, 'Alpha', 'ic_directory', 0, 20)"
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (3, 'bravo', 'ic_padlock', 0)"
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (3, 'bravo', 'ic_padlock', 0, 30)"
         )
         database.openHelper.writableDatabase.execSQL(
             """
@@ -84,7 +84,7 @@ class CategoryDaoTest {
     @Test
     fun givenPersistedCategoryId_whenGettingById_thenReturnsMatchingCategory() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (9, 'Pessoal', 'ic_directory', 0)"
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (9, 'Pessoal', 'ic_directory', 0, 90)"
         )
         database.openHelper.writableDatabase.execSQL(
             """
@@ -100,12 +100,13 @@ class CategoryDaoTest {
         assertEquals("Pessoal", category?.name)
         assertEquals("ic_directory", category?.iconKey)
         assertEquals(1, category?.itemCount)
+        assertEquals(90L, category?.lastModifiedAt)
     }
 
     @Test
     fun givenPersistedCategory_whenUpdating_thenPersistsNewNameAndIconKey() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (11, 'Trabalho', 'ic_work_bag', 3)"
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (11, 'Trabalho', 'ic_work_bag', 3, 110)"
         )
 
         categoryDao.updateCategory(
@@ -113,7 +114,8 @@ class CategoryDaoTest {
                 id = 11L,
                 name = "Corporativo",
                 iconKey = "ic_directory",
-                itemCount = 3
+                itemCount = 3,
+                lastModifiedAt = 120L
             )
         )
 
@@ -122,12 +124,13 @@ class CategoryDaoTest {
         assertEquals("Corporativo", updated?.name)
         assertEquals("ic_directory", updated?.iconKey)
         assertEquals(3, updated?.itemCount)
+        assertEquals(120L, updated?.lastModifiedAt)
     }
 
     @Test
     fun givenPersistedCategory_whenDeleting_thenRemovesItFromDatabase() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (15, 'Viagens', 'ic_global', 1)"
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (15, 'Viagens', 'ic_global', 1, 150)"
         )
 
         categoryDao.deleteCategoryById(15L)

@@ -13,7 +13,8 @@ class CategoryMapperTest {
             id = 7L,
             name = "Trabalho",
             iconKey = "ic_work_bag_add_category",
-            itemCount = 42
+            itemCount = 42,
+            lastModifiedAt = 123L
         )
 
         val category = entity.toDomain()
@@ -22,6 +23,7 @@ class CategoryMapperTest {
         assertEquals("Trabalho", category.name)
         assertEquals("ic_work_bag_add_category", category.iconKey)
         assertEquals(42, category.itemCount)
+        assertEquals(123L, category.lastModifiedAt)
     }
 
     @Test
@@ -30,7 +32,8 @@ class CategoryMapperTest {
             id = 8L,
             name = "Pessoal",
             iconKey = "ic_user_profile",
-            itemCount = 3
+            itemCount = 3,
+            lastModifiedAt = 456L
         )
 
         val entity = category.toEntity()
@@ -39,5 +42,6 @@ class CategoryMapperTest {
         assertEquals("Pessoal", entity.name)
         assertEquals("ic_user_profile", entity.iconKey)
         assertEquals(3, entity.itemCount)
+        assertEquals(456L, entity.lastModifiedAt)
     }
 }

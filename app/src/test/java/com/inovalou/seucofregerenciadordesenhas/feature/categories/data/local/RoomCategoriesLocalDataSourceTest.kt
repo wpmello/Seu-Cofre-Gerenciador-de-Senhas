@@ -14,8 +14,8 @@ class RoomCategoriesLocalDataSourceTest {
     @Test
     fun givenDaoFlow_whenObservingCategories_thenDelegatesToDao() = runTest {
         val expected = listOf(
-            CategoryEntity(id = 1L, name = "Educação", iconKey = "ic_home_2", itemCount = 15),
-            CategoryEntity(id = 2L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42)
+            CategoryEntity(id = 1L, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 10L),
+            CategoryEntity(id = 2L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 20L)
         )
         val dataSource = RoomCategoriesLocalDataSource(categoryDao = FakeCategoryDao(flowOf(expected)))
 
@@ -29,7 +29,8 @@ class RoomCategoriesLocalDataSourceTest {
         val category = CategoryEntity(
             name = "Pessoal",
             iconKey = "ic_user_profile",
-            itemCount = 0
+            itemCount = 0,
+            lastModifiedAt = 30L
         )
         val dao = FakeCategoryDao(flowOf(emptyList()))
         val dataSource = RoomCategoriesLocalDataSource(dao)
@@ -46,7 +47,8 @@ class RoomCategoriesLocalDataSourceTest {
             id = 7L,
             name = "Trabalho",
             iconKey = "ic_work_bag_add_category",
-            itemCount = 4
+            itemCount = 4,
+            lastModifiedAt = 40L
         )
         val dataSource = RoomCategoriesLocalDataSource(
             categoryDao = FakeCategoryDao(
@@ -66,7 +68,8 @@ class RoomCategoriesLocalDataSourceTest {
             id = 9L,
             name = "Atualizada",
             iconKey = "ic_star",
-            itemCount = 1
+            itemCount = 1,
+            lastModifiedAt = 50L
         )
         val dao = FakeCategoryDao(flowOf(emptyList()))
         val dataSource = RoomCategoriesLocalDataSource(dao)
@@ -84,6 +87,17 @@ class RoomCategoriesLocalDataSourceTest {
         dataSource.deleteCategoryById(12L)
 
         assertEquals(12L, dao.deletedCategoryId)
+    }
+
+    @Test
+    fun givenCategoryIdAndTimestamp_whenTouchingCategory_thenDelegatesToDao() = runTest {
+        val dao = FakeCategoryDao(flowOf(emptyList()))
+        val dataSource = RoomCategoriesLocalDataSource(dao)
+
+        dataSource.updateCategoryLastModifiedAt(categoryId = 13L, lastModifiedAt = 77L)
+
+        assertEquals(13L, dao.touchedCategoryId)
+        assertEquals(77L, dao.touchedLastModifiedAt)
     }
 
     @Test
@@ -115,6 +129,8 @@ class RoomCategoriesLocalDataSourceTest {
 
         var insertedCategory: CategoryEntity? = null
         var updatedCategory: CategoryEntity? = null
+        var touchedCategoryId: Long? = null
+        var touchedLastModifiedAt: Long? = null
         var deletedCategoryId: Long? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
@@ -126,6 +142,11 @@ class RoomCategoriesLocalDataSourceTest {
 
         override suspend fun updateCategory(category: CategoryEntity) {
             updatedCategory = category
+        }
+
+        override suspend fun updateCategoryLastModifiedAt(categoryId: Long, lastModifiedAt: Long) {
+            touchedCategoryId = categoryId
+            touchedLastModifiedAt = lastModifiedAt
         }
 
         override suspend fun deleteCategoryById(categoryId: Long) {

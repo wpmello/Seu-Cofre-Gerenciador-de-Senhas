@@ -138,7 +138,8 @@ fun CategoriesScreen(
                 uiState.currentCategory?.let { currentCategory ->
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         HighlightedCategoryCard(
-                            currentCategory = currentCategory
+                            currentCategory = currentCategory,
+                            onClick = { onCategoryClick(currentCategory.id) }
                         )
                     }
                 }
@@ -399,15 +400,19 @@ private fun CategoriesViewAllButton(
 @Composable
 private fun HighlightedCategoryCard(
     currentCategory: HighlightedCategoryUiModel,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(onClick = onClick)
             .background(
                 brush = HighlightedCategoryGradient,
                 shape = RoundedCornerShape(24.dp)
             )
+            .testTag("highlighted_category_card")
             .padding(20.dp)
     ) {
         Row(
@@ -465,6 +470,11 @@ private fun CategoriesScreenPreview() {
     SeuCofreGerenciadorDeSenhasTheme {
         CategoriesScreen(
             uiState = CategoriesUiState(
+                currentCategory = HighlightedCategoryUiModel(
+                    id = 4L,
+                    name = "Viagens",
+                    itemCount = 21
+                ),
                 categoriesState = CategoriesContentUiState.Content(
                     categories = listOf(
                         CategoryCardUiModel(id = 1, name = "Entretenimento", iconKey = "ic_favorite", iconResId = R.drawable.ic_favorite, itemCount = 28),

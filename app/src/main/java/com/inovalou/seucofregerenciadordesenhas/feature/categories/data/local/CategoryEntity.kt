@@ -13,5 +13,7 @@ data class CategoryEntity(
     @ColumnInfo(name = "icon_key")
     val iconKey: String,
     @ColumnInfo(name = "item_count")
-    val itemCount: Int
+    val itemCount: Int,
+    @ColumnInfo(name = "last_modified_at")
+    val lastModifiedAt: Long
 )

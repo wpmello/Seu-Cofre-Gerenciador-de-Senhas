@@ -49,6 +49,7 @@ class CreatePasswordUseCase @Inject constructor(
                     password = password
                 )
             )
+            persistedCategory?.id?.let { categoryRepository.touchCategory(it) }
             CreatePasswordResult.Success
         } catch (_: Exception) {
             CreatePasswordResult.Failure

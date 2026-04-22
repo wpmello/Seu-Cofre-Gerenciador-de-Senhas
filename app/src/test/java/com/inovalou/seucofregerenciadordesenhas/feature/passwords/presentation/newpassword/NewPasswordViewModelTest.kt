@@ -100,8 +100,8 @@ class NewPasswordViewModelTest {
         val viewModel = buildViewModel(
             categoryRepository = FakeCategoryRepository(
                 listOf(
-                    Category(id = 1L, name = "Trabalho", iconKey = "ic_work", itemCount = 2),
-                    Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 1)
+                    Category(id = 1L, name = "Trabalho", iconKey = "ic_work", itemCount = 2, lastModifiedAt = 0L),
+                    Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 1, lastModifiedAt = 0L)
                 )
             )
         )
@@ -119,7 +119,7 @@ class NewPasswordViewModelTest {
     fun givenCategorySelected_whenHandled_thenUpdatesFieldAndClosesDialog() = runTest {
         val viewModel = buildViewModel(
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(id = 9L, name = "Work", iconKey = "ic_work", itemCount = 1))
+                listOf(Category(id = 9L, name = "Work", iconKey = "ic_work", itemCount = 1, lastModifiedAt = 0L))
             )
         )
         advanceUntilIdle()
@@ -136,8 +136,8 @@ class NewPasswordViewModelTest {
     fun givenSelectedCategory_whenDialogIsReopened_thenKeepsMatchingOptionSelected() = runTest {
         val categoryRepository = FakeCategoryRepository(
                 listOf(
-                    Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 1),
-                    Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2)
+                    Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 1, lastModifiedAt = 0L),
+                    Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2, lastModifiedAt = 0L)
                 )
             )
         val viewModel = buildViewModel(categoryRepository = categoryRepository)
@@ -155,7 +155,7 @@ class NewPasswordViewModelTest {
     @Test
     fun givenSelectedCategoryRemovedFromDatabase_whenCategoriesRefresh_thenClearsSelection() = runTest {
         val categoryRepository = FakeCategoryRepository(
-            listOf(Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2))
+            listOf(Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2, lastModifiedAt = 0L))
         )
         val viewModel = buildViewModel(categoryRepository = categoryRepository)
         advanceUntilIdle()
@@ -178,7 +178,7 @@ class NewPasswordViewModelTest {
         val viewModel = buildViewModel(
             repository = repository,
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 0))
+                listOf(Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 0, lastModifiedAt = 0L))
             )
         )
         advanceUntilIdle()
@@ -204,7 +204,7 @@ class NewPasswordViewModelTest {
         val viewModel = buildViewModel(
             repository = repository,
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(id = 7L, name = "Work", iconKey = "ic_work", itemCount = 0))
+                listOf(Category(id = 7L, name = "Work", iconKey = "ic_work", itemCount = 0, lastModifiedAt = 0L))
             )
         )
         advanceUntilIdle()
@@ -225,7 +225,7 @@ class NewPasswordViewModelTest {
         val viewModel = buildViewModel(
             repository = repository,
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(id = 5L, name = "Dev", iconKey = "ic_work", itemCount = 0))
+                listOf(Category(id = 5L, name = "Dev", iconKey = "ic_work", itemCount = 0, lastModifiedAt = 0L))
             )
         )
         advanceUntilIdle()
@@ -245,7 +245,7 @@ class NewPasswordViewModelTest {
         val viewModel = buildViewModel(
             repository = FakePasswordRepository(shouldFailOnCreate = true),
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 0))
+                listOf(Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 0, lastModifiedAt = 0L))
             )
         )
         advanceUntilIdle()
@@ -273,7 +273,7 @@ class NewPasswordViewModelTest {
     fun givenFieldChanged_whenHandled_thenClearsPreviousErrors() = runTest {
         val viewModel = buildViewModel(
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 0))
+                listOf(Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 0, lastModifiedAt = 0L))
             )
         )
 
@@ -342,6 +342,8 @@ class NewPasswordViewModelTest {
             categoriesFlow.value.firstOrNull { it.id == categoryId }
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 

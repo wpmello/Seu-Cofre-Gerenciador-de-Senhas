@@ -23,6 +23,7 @@ data class EncryptedIndicatorUiModel(
 )
 
 data class HighlightedCategoryUiModel(
+    val id: Long,
     val name: String,
     val itemCount: Int = 42,
     @StringRes val badgeResId: Int = R.string.categories_current_badge

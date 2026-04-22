@@ -1,9 +1,10 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.data.repository
 
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoriesLocalDataSource
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoryEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.mapper.toDomain
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.mapper.toEntity
-import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoryEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +12,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
-    private val localDataSource: CategoriesLocalDataSource
+    private val localDataSource: CategoriesLocalDataSource,
+    private val timeProvider: TimeProvider
 ) : CategoryRepository {
 
     override suspend fun createCategory(
@@ -21,7 +23,8 @@ class CategoryRepositoryImpl @Inject constructor(
         CategoryEntity(
             name = name,
             iconKey = iconKey,
-            itemCount = 0
+            itemCount = 0,
+            lastModifiedAt = timeProvider.currentTimeMillis()
         )
     )
 
@@ -29,7 +32,16 @@ class CategoryRepositoryImpl @Inject constructor(
         localDataSource.getCategoryById(categoryId)?.toDomain()
 
     override suspend fun updateCategory(category: Category) {
-        localDataSource.updateCategory(category.toEntity())
+        localDataSource.updateCategory(
+            category.copy(lastModifiedAt = timeProvider.currentTimeMillis()).toEntity()
+        )
+    }
+
+    override suspend fun touchCategory(categoryId: Long) {
+        localDataSource.updateCategoryLastModifiedAt(
+            categoryId = categoryId,
+            lastModifiedAt = timeProvider.currentTimeMillis()
+        )
     }
 
     override suspend fun deleteCategoryById(categoryId: Long) {

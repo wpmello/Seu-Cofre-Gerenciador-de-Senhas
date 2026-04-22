@@ -47,6 +47,38 @@ class CategoryDatabaseMigrationTest {
         cursor.close()
     }
 
+    @Test
+    fun migrate5To6_addsLastModifiedAtColumnWithDefaultValue() {
+        migrationTestHelper.createDatabase(TEST_DB, 5).apply {
+            execSQL(
+                """
+                INSERT INTO categories(id, name, icon_key, item_count)
+                VALUES (1, 'Legacy', 'ic_directory', 4)
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val migratedDb = migrationTestHelper.runMigrationsAndValidate(
+            TEST_DB,
+            6,
+            true,
+            SeuCofreDatabaseMigrations.MIGRATION_5_6
+        )
+
+        val cursor = migratedDb.query(
+            "SELECT name, icon_key, item_count, last_modified_at FROM categories WHERE id = 1"
+        )
+        cursor.moveToFirst()
+
+        assertEquals("Legacy", cursor.getString(0))
+        assertEquals("ic_directory", cursor.getString(1))
+        assertEquals(4, cursor.getInt(2))
+        assertEquals(0L, cursor.getLong(3))
+
+        cursor.close()
+    }
+
     private companion object {
         const val TEST_DB = "category-migration-test"
     }

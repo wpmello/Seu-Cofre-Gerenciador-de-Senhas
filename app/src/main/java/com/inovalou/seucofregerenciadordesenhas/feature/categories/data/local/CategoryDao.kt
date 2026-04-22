@@ -19,7 +19,8 @@ interface CategoryDao {
             categories.id,
             categories.name,
             categories.icon_key,
-            COUNT(passwords.id) AS item_count
+            COUNT(passwords.id) AS item_count,
+            categories.last_modified_at
         FROM categories
         LEFT JOIN passwords ON passwords.category_id = categories.id
         WHERE categories.id = :categoryId
@@ -32,6 +33,15 @@ interface CategoryDao {
     @Update
     suspend fun updateCategory(category: CategoryEntity)
 
+    @Query(
+        """
+        UPDATE categories
+        SET last_modified_at = :lastModifiedAt
+        WHERE id = :categoryId
+        """
+    )
+    suspend fun updateCategoryLastModifiedAt(categoryId: Long, lastModifiedAt: Long)
+
     @Query("DELETE FROM categories WHERE id = :categoryId")
     suspend fun deleteCategoryById(categoryId: Long)
 
@@ -41,7 +51,8 @@ interface CategoryDao {
             categories.id,
             categories.name,
             categories.icon_key,
-            COUNT(passwords.id) AS item_count
+            COUNT(passwords.id) AS item_count,
+            categories.last_modified_at
         FROM categories
         LEFT JOIN passwords ON passwords.category_id = categories.id
         GROUP BY categories.id
