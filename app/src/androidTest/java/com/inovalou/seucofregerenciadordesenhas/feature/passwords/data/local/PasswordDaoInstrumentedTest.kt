@@ -32,11 +32,15 @@ class PasswordDaoInstrumentedTest {
 
     @Test
     fun givenInsertedPassword_whenObservingAndCounting_thenPersistsEncryptedFields() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (10, 'Work', 'ic_directory', 0)"
+        )
         passwordDao.insert(
             PasswordEntity(
                 title = "GitHub",
                 login = "dev@empresa.com",
                 category = "Work",
+                categoryId = 10L,
                 encryptedPassword = "cipher-text",
                 passwordIv = "iv-text",
                 passwordCipherVersion = 1,
@@ -50,5 +54,6 @@ class PasswordDaoInstrumentedTest {
         assertEquals("GitHub", stored.title)
         assertEquals("cipher-text", stored.encryptedPassword)
         assertEquals("iv-text", stored.passwordIv)
+        assertEquals(10L, stored.categoryId)
     }
 }

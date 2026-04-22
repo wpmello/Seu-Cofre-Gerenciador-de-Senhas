@@ -6,7 +6,7 @@ import com.inovalou.seucofregerenciadordesenhas.R
 data class CategoriesUiState(
     val securitySummary: SecuritySummaryUiModel = SecuritySummaryUiModel(),
     val encryptedIndicator: EncryptedIndicatorUiModel = EncryptedIndicatorUiModel(),
-    val currentCategory: HighlightedCategoryUiModel = HighlightedCategoryUiModel(),
+    val currentCategory: HighlightedCategoryUiModel? = null,
     val categoriesState: CategoriesContentUiState = CategoriesContentUiState.Loading,
     val shouldShowBottomViewAllButton: Boolean = false
 )
@@ -14,7 +14,7 @@ data class CategoriesUiState(
 data class SecuritySummaryUiModel(
     @StringRes val titleResId: Int = R.string.categories_security_status,
     @StringRes val statusResId: Int = R.string.categories_security_excellent,
-    val totalItems: Int = 124
+    val totalItems: Int = 0
 )
 
 data class EncryptedIndicatorUiModel(
@@ -23,7 +23,7 @@ data class EncryptedIndicatorUiModel(
 )
 
 data class HighlightedCategoryUiModel(
-    @StringRes val nameResId: Int = R.string.categories_current_category_name,
+    val name: String,
     val itemCount: Int = 42,
     @StringRes val badgeResId: Int = R.string.categories_current_badge
 )

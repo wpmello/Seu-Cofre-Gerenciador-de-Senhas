@@ -20,6 +20,11 @@ class PasswordRepositoryImpl @Inject constructor(
             entities.map { entity -> entity.toDomain() }
         }
 
+    override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+        localDataSource.observePasswordsByCategoryId(categoryId).map { entities ->
+            entities.map { entity -> entity.toDomain() }
+        }
+
     override suspend fun getPasswordCount(): Int = localDataSource.getPasswordCount()
 
     override suspend fun createPassword(password: NewPassword): Long {
@@ -28,7 +33,8 @@ class PasswordRepositoryImpl @Inject constructor(
             com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity(
                 title = password.title,
                 login = password.login,
-                category = password.category,
+                category = password.categoryName.orEmpty(),
+                categoryId = password.categoryId,
                 encryptedPassword = encryptedPassword.cipherText,
                 passwordIv = encryptedPassword.iv,
                 passwordCipherVersion = encryptedPassword.version,

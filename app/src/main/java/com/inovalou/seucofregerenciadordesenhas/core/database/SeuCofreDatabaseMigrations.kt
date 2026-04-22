@@ -59,4 +59,56 @@ object SeuCofreDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS passwords_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    title TEXT NOT NULL,
+                    login TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    category_id INTEGER,
+                    encrypted_password TEXT NOT NULL,
+                    password_iv TEXT NOT NULL,
+                    password_cipher_version INTEGER NOT NULL,
+                    icon_key TEXT NOT NULL,
+                    FOREIGN KEY(category_id) REFERENCES categories(id) ON UPDATE NO ACTION ON DELETE SET NULL
+                )
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                INSERT INTO passwords_new(
+                    id,
+                    title,
+                    login,
+                    category,
+                    category_id,
+                    encrypted_password,
+                    password_iv,
+                    password_cipher_version,
+                    icon_key
+                )
+                SELECT
+                    id,
+                    title,
+                    login,
+                    category,
+                    NULL,
+                    encrypted_password,
+                    password_iv,
+                    password_cipher_version,
+                    icon_key
+                FROM passwords
+                """.trimIndent()
+            )
+            database.execSQL("DROP TABLE passwords")
+            database.execSQL("ALTER TABLE passwords_new RENAME TO passwords")
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_passwords_category_id ON passwords(category_id)"
+            )
+        }
+    }
 }

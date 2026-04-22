@@ -26,6 +26,7 @@ class PasswordRepositoryImplTest {
                     title = "Netflix",
                     login = "joao@email.com",
                     category = "Streaming",
+                    categoryId = 3L,
                     encryptedPassword = "cipher-1",
                     passwordIv = "iv-1",
                     passwordCipherVersion = 1,
@@ -36,6 +37,7 @@ class PasswordRepositoryImplTest {
                     title = "GitHub",
                     login = "jsilva_dev",
                     category = "Work",
+                    categoryId = null,
                     encryptedPassword = "cipher-2",
                     passwordIv = "iv-2",
                     passwordCipherVersion = 1,
@@ -56,13 +58,15 @@ class PasswordRepositoryImplTest {
                     id = 1L,
                     title = "Netflix",
                     login = "joao@email.com",
-                    category = "Streaming"
+                    categoryId = 3L,
+                    categoryName = "Streaming"
                 ),
                 PasswordSummary(
                     id = 2L,
                     title = "GitHub",
                     login = "jsilva_dev",
-                    category = "Work"
+                    categoryId = null,
+                    categoryName = "Work"
                 )
             ),
             observed
@@ -84,6 +88,7 @@ class PasswordRepositoryImplTest {
                     title = "Spotify",
                     login = "premium_family_admin",
                     category = "Music",
+                    categoryId = 12L,
                     encryptedPassword = "cipher",
                     passwordIv = "iv",
                     passwordCipherVersion = 1,
@@ -100,7 +105,8 @@ class PasswordRepositoryImplTest {
                     id = 8L,
                     title = "Spotify",
                     login = "premium_family_admin",
-                    category = "Music"
+                    categoryId = 12L,
+                    categoryName = "Music"
                 )
             ),
             observed
@@ -120,13 +126,16 @@ class PasswordRepositoryImplTest {
             NewPassword(
                 title = "GitHub",
                 login = "dev@empresa.com",
-                category = "Work",
+                categoryId = 11L,
+                categoryName = "Work",
                 password = "plain-secret"
             )
         )
 
         assertEquals("enc::plain-secret", localDataSource.insertedPassword?.encryptedPassword)
         assertEquals("iv::plain-secret", localDataSource.insertedPassword?.passwordIv)
+        assertEquals(11L, localDataSource.insertedPassword?.categoryId)
+        assertEquals("Work", localDataSource.insertedPassword?.category)
         assertEquals("plain-secret", passwordCipher.lastEncryptedPlainText)
     }
 
@@ -147,7 +156,8 @@ class PasswordRepositoryImplTest {
                 NewPassword(
                     title = "GitHub",
                     login = "",
-                    category = "",
+                    categoryId = null,
+                    categoryName = null,
                     password = "plain-secret"
                 )
             )
@@ -171,6 +181,37 @@ class PasswordRepositoryImplTest {
     }
 
     @Test
+    fun givenCategoryId_whenObservingPasswordsByCategory_thenDelegatesReactiveFilterToLocalDataSource() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(emptyList())
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = FakePasswordCipher()
+        )
+        localDataSource.emitByCategory(
+            listOf(
+                PasswordEntity(
+                    id = 21L,
+                    title = "Notion",
+                    login = "time@team.com",
+                    category = "Work",
+                    categoryId = 7L,
+                    encryptedPassword = "cipher",
+                    passwordIv = "iv",
+                    passwordCipherVersion = 1,
+                    iconKey = ""
+                )
+            )
+        )
+
+        val observed = repository.observePasswordsByCategoryId(7L).first()
+
+        assertEquals(7L, localDataSource.lastObservedCategoryId)
+        assertEquals("Notion", observed.single().title)
+        assertEquals(7L, observed.single().categoryId)
+        assertEquals("Work", observed.single().categoryName)
+    }
+
+    @Test
     fun givenLocalDataSourceFailure_whenObservingPasswords_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("local source failure")
         val repository = PasswordRepositoryImpl(
@@ -178,6 +219,9 @@ class PasswordRepositoryImplTest {
                 override fun observePasswords(): Flow<List<PasswordEntity>> = flow {
                     throw expected
                 }
+
+                override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> =
+                    flow { emit(emptyList()) }
 
                 override suspend fun createPassword(password: PasswordEntity): Long = 0L
 
@@ -204,8 +248,15 @@ class PasswordRepositoryImplTest {
     ) : PasswordsLocalDataSource {
 
         private val passwordsFlow = MutableStateFlow(initialPasswords)
+        private val passwordsByCategoryFlow = MutableStateFlow<List<PasswordEntity>>(emptyList())
         var insertedPassword: PasswordEntity? = null
+        var lastObservedCategoryId: Long? = null
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> {
+            lastObservedCategoryId = categoryId
+            return passwordsByCategoryFlow
+        }
 
         override suspend fun createPassword(password: PasswordEntity): Long {
             insertedPassword = password
@@ -216,6 +267,10 @@ class PasswordRepositoryImplTest {
 
         fun emit(passwords: List<PasswordEntity>) {
             passwordsFlow.value = passwords
+        }
+
+        fun emitByCategory(passwords: List<PasswordEntity>) {
+            passwordsByCategoryFlow.value = passwords
         }
     }
 

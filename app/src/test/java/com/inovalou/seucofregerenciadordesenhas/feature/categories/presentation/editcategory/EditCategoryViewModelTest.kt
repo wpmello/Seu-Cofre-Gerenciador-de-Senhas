@@ -11,8 +11,13 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecas
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.UpdateCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -46,6 +51,51 @@ class EditCategoryViewModelTest {
         assertEquals("Trabalho", state.name)
         assertEquals("ic_work_bag_add_category", state.selectedIconKey)
         assertTrue(state.availableIcons.any { it.iconKey == "ic_work_bag_add_category" && it.isSelected })
+    }
+
+    @Test
+    fun givenAssociatedPasswords_whenViewModelLoads_thenExposesPasswordsSectionContent() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                PasswordSummary(
+                    id = 100L,
+                    title = "GitHub",
+                    login = "dev@empresa.com",
+                    categoryId = 9L,
+                    categoryName = "Trabalho"
+                )
+            )
+        )
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value.passwordsSectionState
+        assertTrue(state is CategoryPasswordsSectionUiState.Content)
+        state as CategoryPasswordsSectionUiState.Content
+        assertEquals("GitHub", state.passwords.single().title)
+        assertEquals("dev@empresa.com", state.passwords.single().supportingText)
+    }
+
+    @Test
+    fun givenAssociatedPasswordWithoutLogin_whenViewModelLoads_thenKeepsSupportingTextEmpty() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                PasswordSummary(
+                    id = 100L,
+                    title = "GitHub",
+                    login = "",
+                    categoryId = 9L,
+                    categoryName = "Trabalho"
+                )
+            )
+        )
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value.passwordsSectionState
+        assertTrue(state is CategoryPasswordsSectionUiState.Content)
+        state as CategoryPasswordsSectionUiState.Content
+        assertEquals("", state.passwords.single().supportingText)
     }
 
     @Test
@@ -209,6 +259,7 @@ class EditCategoryViewModelTest {
             iconKey = "ic_work_bag_add_category",
             itemCount = 4
         ),
+        passwords: List<PasswordSummary> = emptyList(),
         openedFrom: EditCategoryOpenedFrom = EditCategoryOpenedFrom.Categories,
         updateCategoryUseCase: FakeUpdateCategoryUseCase = FakeUpdateCategoryUseCase(),
         deleteCategoryUseCase: FakeDeleteCategoryUseCase = FakeDeleteCategoryUseCase()
@@ -220,6 +271,9 @@ class EditCategoryViewModelTest {
             )
         ),
         getCategoryByIdUseCase = GetCategoryByIdUseCase(FakeCategoryLookupRepository(category)),
+        observePasswordsByCategoryUseCase = ObservePasswordsByCategoryUseCase(
+            FakePasswordRepository(passwords)
+        ),
         updateCategoryUseCase = UpdateCategoryUseCase(updateCategoryUseCase),
         deleteCategoryUseCase = DeleteCategoryUseCase(deleteCategoryUseCase),
         categoryIconCatalog = FakeCategoryIconCatalog()
@@ -294,5 +348,22 @@ class EditCategoryViewModelTest {
             icons.firstOrNull { it.iconKey == iconKey } ?: icons.first()
 
         override fun default(): CategoryIconOption = icons.first()
+    }
+
+    private class FakePasswordRepository(
+        passwords: List<PasswordSummary>
+    ) : PasswordRepository {
+
+        private val passwordsFlow = MutableStateFlow(passwords)
+
+        override fun observePasswords(): Flow<List<PasswordSummary>> = passwordsFlow
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            passwordsFlow
+
+        override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
+
+        override suspend fun createPassword(password: com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword): Long =
+            1L
     }
 }

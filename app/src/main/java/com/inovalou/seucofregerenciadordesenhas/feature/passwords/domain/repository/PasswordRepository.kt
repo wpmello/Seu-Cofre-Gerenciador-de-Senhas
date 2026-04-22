@@ -8,6 +8,8 @@ interface PasswordRepository {
 
     fun observePasswords(): Flow<List<PasswordSummary>>
 
+    fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>>
+
     suspend fun getPasswordCount(): Int
 
     suspend fun createPassword(password: NewPassword): Long

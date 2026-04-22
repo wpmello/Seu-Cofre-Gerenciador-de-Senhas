@@ -7,5 +7,6 @@ fun PasswordEntity.toDomain(): PasswordSummary = PasswordSummary(
     id = id,
     title = title,
     login = login,
-    category = category
+    categoryId = categoryId,
+    categoryName = category.ifBlank { null }
 )

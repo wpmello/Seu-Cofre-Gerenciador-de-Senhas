@@ -51,8 +51,8 @@ class PasswordsViewModelTest {
     fun givenPersistedPasswords_whenObservingState_thenShowsFullListFromRepository() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", category = "Streaming"),
-                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", category = "Work")
+                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming"),
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", categoryId = 2L, categoryName = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -72,9 +72,9 @@ class PasswordsViewModelTest {
     fun givenSearchQueryMatchesPasswords_whenQueryChanges_thenFiltersListByTitleOrLoginIgnoringCase() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", category = "Streaming"),
-                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", category = "Work"),
-                PasswordSummary(id = 3L, title = "Workspace", login = "work@empresa.com", category = "Work")
+                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming"),
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", categoryId = 2L, categoryName = "Work"),
+                PasswordSummary(id = 3L, title = "Workspace", login = "work@empresa.com", categoryId = 2L, categoryName = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -92,8 +92,8 @@ class PasswordsViewModelTest {
     fun givenSearchQueryCleared_whenQueryBecomesBlank_thenRestoresFullList() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Social", login = "@social", category = "Social"),
-                PasswordSummary(id = 2L, title = "Privado", login = "user@email.com", category = "Private")
+                PasswordSummary(id = 1L, title = "Social", login = "@social", categoryId = 1L, categoryName = "Social"),
+                PasswordSummary(id = 2L, title = "Privado", login = "user@email.com", categoryId = null, categoryName = "Private")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -110,10 +110,30 @@ class PasswordsViewModelTest {
     }
 
     @Test
+    fun givenPasswordWithoutLoginAndWithCategory_whenObservingState_thenDoesNotUseCategoryAsSupportingText() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                PasswordSummary(
+                    id = 3L,
+                    title = "Banco",
+                    login = "",
+                    categoryId = 7L,
+                    categoryName = "Financeiro"
+                )
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        val password = viewModel.uiState.value.filteredPasswords.single()
+        assertEquals("", password.supportingText)
+    }
+
+    @Test
     fun givenSearchQueryHasNoMatches_whenQueryChanges_thenShowsSearchEmptyState() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Spotify", login = "premium_family_admin", category = "Music")
+                PasswordSummary(id = 1L, title = "Spotify", login = "premium_family_admin", categoryId = 3L, categoryName = "Music")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -131,7 +151,7 @@ class PasswordsViewModelTest {
     fun givenTitleWithMultipleWords_whenObservingState_thenExposesInitialsForListAvatar() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 7L, title = "Google Drive", login = "legacy@login", category = "Work")
+                PasswordSummary(id = 7L, title = "Google Drive", login = "legacy@login", categoryId = 2L, categoryName = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -160,6 +180,9 @@ class PasswordsViewModelTest {
             override fun observePasswords(): Flow<List<PasswordSummary>> = flow {
                 throw IllegalStateException("repository failure")
             }
+
+            override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+                flow { emit(emptyList()) }
 
             override suspend fun getPasswordCount(): Int = 0
 
@@ -190,7 +213,8 @@ class PasswordsViewModelTest {
                     id = 8L,
                     title = "App 1",
                     login = "user@email.com",
-                    category = "Work"
+                    categoryId = 2L,
+                    categoryName = "Work"
                 )
             )
         )
@@ -203,7 +227,7 @@ class PasswordsViewModelTest {
 
     private fun buildViewModel(
         passwords: List<PasswordSummary> = listOf(
-            PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", category = "Streaming")
+            PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming")
         )
     ): PasswordsViewModel = PasswordsViewModel(
         observePasswordsUseCase = ObservePasswordsUseCase(FakePasswordRepository(passwords))
@@ -216,6 +240,9 @@ class PasswordsViewModelTest {
         private val passwordsFlow = MutableStateFlow(passwords)
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = passwordsFlow
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            passwordsFlow
 
         override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 

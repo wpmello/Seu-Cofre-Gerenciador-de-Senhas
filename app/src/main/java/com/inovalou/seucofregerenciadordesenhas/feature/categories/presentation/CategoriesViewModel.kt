@@ -45,6 +45,7 @@ class CategoriesViewModel @Inject constructor(
 
     private fun toUiState(categories: List<Category>): CategoriesUiState {
         val shouldShowBottomViewAllButton = categories.size > 4
+        val totalItems = categories.sumOf { it.itemCount }
         val categoriesState = if (categories.isEmpty()) {
             CategoriesContentUiState.Empty
         } else {
@@ -62,6 +63,13 @@ class CategoriesViewModel @Inject constructor(
         }
 
         return CategoriesUiState(
+            securitySummary = SecuritySummaryUiModel(totalItems = totalItems),
+            currentCategory = categories.firstOrNull()?.let { category ->
+                HighlightedCategoryUiModel(
+                    name = category.name,
+                    itemCount = category.itemCount
+                )
+            },
             categoriesState = categoriesState,
             shouldShowBottomViewAllButton = shouldShowBottomViewAllButton
         )

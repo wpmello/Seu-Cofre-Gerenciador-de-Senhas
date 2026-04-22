@@ -84,11 +84,16 @@
     <string name="new_password_email_hint">Optional</string>
     <string name="new_password_category_label">CATEGORY</string>
     <string name="new_password_category_hint">Ex: Entertainment, Work...</string>
+    <string name="new_password_category_dialog_title">Choose a category</string>
+    <string name="new_password_category_dialog_loading">Loading categories…</string>
+    <string name="new_password_category_dialog_empty">There are no categories available yet.</string>
     <string name="new_password_password_label">PASSWORD</string>
     <string name="new_password_password_hint">Enter a secure password</string>
     <string name="new_password_show_password">Show password</string>
     <string name="new_password_hide_password">Hide password</string>
     <string name="new_password_save_button">Save Password</string>
+    <string name="new_password_category_error_missing">Select a category to continue.</string>
+    <string name="new_password_category_error_invalid">Select a valid category to continue.</string>
     <string name="new_password_password_error_blank">Enter a password to continue.</string>
     <string name="new_password_save_error">Could not save the password.</string>
     <string name="bottom_nav_vault">VAULT</string>

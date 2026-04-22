@@ -3,6 +3,9 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordPasswordError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordUseCase
@@ -19,7 +22,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class NewPasswordViewModel @Inject constructor(
-    private val createPasswordUseCase: CreatePasswordUseCase
+    private val createPasswordUseCase: CreatePasswordUseCase,
+    observeCategoriesUseCase: ObserveCategoriesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NewPasswordUiState())
@@ -28,12 +32,19 @@ class NewPasswordViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<NewPasswordEffect>()
     val effects: SharedFlow<NewPasswordEffect> = _effects.asSharedFlow()
 
+    init {
+        observeCategoriesUseCase()
+            .collectIntoUiState()
+    }
+
     fun onAction(action: NewPasswordAction) {
         when (action) {
             NewPasswordAction.OnBackClick -> navigateBack()
             is NewPasswordAction.OnTitleChanged -> updateState(title = action.title)
             is NewPasswordAction.OnLoginChanged -> updateState(login = action.login)
-            is NewPasswordAction.OnCategoryChanged -> updateState(category = action.category)
+            NewPasswordAction.OnCategoryFieldClick -> openCategoryDialog()
+            NewPasswordAction.OnCategoryDialogDismissed -> closeCategoryDialog()
+            is NewPasswordAction.OnCategorySelected -> selectCategory(action.categoryId)
             is NewPasswordAction.OnPasswordChanged -> updateState(password = action.password)
             NewPasswordAction.OnTogglePasswordVisibility -> togglePasswordVisibility()
             NewPasswordAction.OnSaveClick -> savePassword()
@@ -43,14 +54,12 @@ class NewPasswordViewModel @Inject constructor(
     private fun updateState(
         title: String = _uiState.value.title,
         login: String = _uiState.value.login,
-        category: String = _uiState.value.category,
         password: String = _uiState.value.password
     ) {
         _uiState.update { state ->
             state.copy(
                 title = title,
                 login = login,
-                category = category,
                 password = password,
                 passwordErrorResId = null,
                 submitErrorResId = null
@@ -69,6 +78,7 @@ class NewPasswordViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(
                     isSaving = true,
+                    categoryErrorResId = null,
                     passwordErrorResId = null,
                     submitErrorResId = null
                 )
@@ -78,7 +88,8 @@ class NewPasswordViewModel @Inject constructor(
                 val result = createPasswordUseCase(
                     title = _uiState.value.title,
                     login = _uiState.value.login,
-                    category = _uiState.value.category,
+                    categoryId = _uiState.value.selectedCategoryId,
+                    categoryName = _uiState.value.selectedCategoryName,
                     password = _uiState.value.password
                 )
             ) {
@@ -100,6 +111,7 @@ class NewPasswordViewModel @Inject constructor(
                     _uiState.update { state ->
                         state.copy(
                             isSaving = false,
+                            categoryErrorResId = result.validation.categoryError.toCategoryErrorResId(),
                             passwordErrorResId = result.validation.passwordError.toPasswordErrorResId()
                         )
                     }
@@ -113,9 +125,91 @@ class NewPasswordViewModel @Inject constructor(
             _effects.emit(NewPasswordEffect.NavigateBack)
         }
     }
+
+    private fun openCategoryDialog() {
+        _uiState.update { state ->
+            state.copy(isCategoryDialogVisible = true)
+        }
+    }
+
+    private fun closeCategoryDialog() {
+        _uiState.update { state ->
+            state.copy(isCategoryDialogVisible = false)
+        }
+    }
+
+    private fun selectCategory(categoryId: Long) {
+        val selectionState = _uiState.value.categorySelectionState
+        if (selectionState !is NewPasswordCategorySelectionUiState.Content) {
+            return
+        }
+
+        val selectedCategory = selectionState.categories.firstOrNull { it.id == categoryId } ?: return
+        _uiState.update { state ->
+            state.copy(
+                selectedCategoryId = selectedCategory.id,
+                selectedCategoryName = selectedCategory.name,
+                isCategoryDialogVisible = false,
+                categorySelectionState = selectionState.withSelection(selectedCategory.id),
+                categoryErrorResId = null,
+                submitErrorResId = null
+            )
+        }
+    }
+
+    private fun kotlinx.coroutines.flow.Flow<List<Category>>.collectIntoUiState() {
+        viewModelScope.launch {
+            collect { categories ->
+                _uiState.update { state ->
+                    val resolvedSelectedCategory = categories.firstOrNull {
+                        it.id == state.selectedCategoryId
+                    }
+                    state.copy(
+                        selectedCategoryId = resolvedSelectedCategory?.id,
+                        selectedCategoryName = resolvedSelectedCategory?.name,
+                        categorySelectionState = categories.toSelectionState(
+                            selectedCategoryId = resolvedSelectedCategory?.id
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun CreatePasswordCategoryError?.toCategoryErrorResId(): Int? = when (this) {
+    CreatePasswordCategoryError.Missing -> R.string.new_password_category_error_missing
+    CreatePasswordCategoryError.Invalid -> R.string.new_password_category_error_invalid
+    null -> null
 }
 
 private fun CreatePasswordPasswordError?.toPasswordErrorResId(): Int? = when (this) {
     CreatePasswordPasswordError.Blank -> R.string.new_password_password_error_blank
     null -> null
 }
+
+private fun List<Category>.toSelectionState(
+    selectedCategoryId: Long?
+): NewPasswordCategorySelectionUiState {
+    if (isEmpty()) {
+        return NewPasswordCategorySelectionUiState.Empty
+    }
+
+    return NewPasswordCategorySelectionUiState.Content(
+        categories = map { category ->
+            NewPasswordCategoryOptionUiModel(
+                id = category.id,
+                name = category.name,
+                isSelected = category.id == selectedCategoryId
+            )
+        }
+    )
+}
+
+private fun NewPasswordCategorySelectionUiState.Content.withSelection(
+    selectedCategoryId: Long
+): NewPasswordCategorySelectionUiState.Content = copy(
+    categories = categories.map { category ->
+        category.copy(isSelected = category.id == selectedCategoryId)
+    }
+)
