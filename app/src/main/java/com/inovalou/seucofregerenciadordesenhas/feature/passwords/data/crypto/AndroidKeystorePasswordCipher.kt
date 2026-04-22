@@ -5,6 +5,7 @@ import android.security.keystore.KeyProperties
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
 import java.util.Base64
+import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -25,6 +26,31 @@ class AndroidKeystorePasswordCipher @Inject constructor() : PasswordCipher {
             iv = Base64.getEncoder().encodeToString(cipher.iv),
             version = CURRENT_VERSION
         )
+    }
+
+    override fun decrypt(cipherText: String, iv: String, version: Int): String {
+        require(version == CURRENT_VERSION) {
+            "Unsupported password cipher version: $version"
+        }
+
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            getOrCreateSecretKey(),
+            javax.crypto.spec.GCMParameterSpec(
+                GCM_TAG_LENGTH_BITS,
+                Base64.getDecoder().decode(iv)
+            )
+        )
+
+        return try {
+            String(
+                cipher.doFinal(Base64.getDecoder().decode(cipherText)),
+                StandardCharsets.UTF_8
+            )
+        } catch (error: AEADBadTagException) {
+            throw IllegalStateException("Unable to decrypt stored password", error)
+        }
     }
 
     private fun getOrCreateSecretKey(): SecretKey {
@@ -58,5 +84,6 @@ class AndroidKeystorePasswordCipher @Inject constructor() : PasswordCipher {
         const val KEY_ALIAS = "seu_cofre_password_key"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
         const val CURRENT_VERSION = 1
+        const val GCM_TAG_LENGTH_BITS = 128
     }
 }

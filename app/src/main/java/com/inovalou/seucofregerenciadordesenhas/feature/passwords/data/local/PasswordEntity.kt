@@ -37,5 +37,9 @@ data class PasswordEntity(
     @ColumnInfo(name = "password_cipher_version")
     val passwordCipherVersion: Int,
     @ColumnInfo(name = "icon_key")
-    val iconKey: String
+    val iconKey: String,
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long,
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long
 )

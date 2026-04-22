@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,7 +19,9 @@ class PasswordMapperTest {
             encryptedPassword = "encrypted",
             passwordIv = "iv-value",
             passwordCipherVersion = 1,
-            iconKey = ""
+            iconKey = "",
+            createdAt = 1_710_000_000_000L,
+            updatedAt = 1_720_000_000_000L
         )
 
         assertEquals(
@@ -30,6 +33,38 @@ class PasswordMapperTest {
                 categoryName = "Work"
             ),
             entity.toDomain()
+        )
+    }
+
+    @Test
+    fun givenPasswordEntityAndPlainPassword_whenMappingToDetails_thenReturnsFullEditableDomainModel() {
+        val entity = PasswordEntity(
+            id = 12L,
+            title = "Spotify",
+            login = "premium@vault.com",
+            category = "Music",
+            categoryId = 4L,
+            encryptedPassword = "encrypted",
+            passwordIv = "iv-value",
+            passwordCipherVersion = 1,
+            iconKey = "sp",
+            createdAt = 1_700_000_000_000L,
+            updatedAt = 1_730_000_000_000L
+        )
+
+        assertEquals(
+            PasswordDetails(
+                id = 12L,
+                title = "Spotify",
+                login = "premium@vault.com",
+                password = "plain-secret",
+                categoryId = 4L,
+                categoryName = "Music",
+                iconKey = "sp",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_730_000_000_000L
+            ),
+            entity.toDetailsDomain(password = "plain-secret")
         )
     }
 }

@@ -1,10 +1,12 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.repository
 
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.EncryptedPasswordPayload
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +32,9 @@ class PasswordRepositoryImplTest {
                     encryptedPassword = "cipher-1",
                     passwordIv = "iv-1",
                     passwordCipherVersion = 1,
-                    iconKey = ""
+                    iconKey = "",
+                    createdAt = 100L,
+                    updatedAt = 200L
                 ),
                 PasswordEntity(
                     id = 2L,
@@ -41,13 +45,16 @@ class PasswordRepositoryImplTest {
                     encryptedPassword = "cipher-2",
                     passwordIv = "iv-2",
                     passwordCipherVersion = 1,
-                    iconKey = ""
+                    iconKey = "",
+                    createdAt = 300L,
+                    updatedAt = 400L
                 )
             )
         )
         val repository = PasswordRepositoryImpl(
             localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher()
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val observed = repository.observePasswords().first()
@@ -78,7 +85,8 @@ class PasswordRepositoryImplTest {
         val localDataSource = FakePasswordsLocalDataSource(emptyList())
         val repository = PasswordRepositoryImpl(
             localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher()
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         localDataSource.emit(
@@ -92,7 +100,9 @@ class PasswordRepositoryImplTest {
                     encryptedPassword = "cipher",
                     passwordIv = "iv",
                     passwordCipherVersion = 1,
-                    iconKey = ""
+                    iconKey = "",
+                    createdAt = 500L,
+                    updatedAt = 600L
                 )
             )
         )
@@ -119,7 +129,8 @@ class PasswordRepositoryImplTest {
         val passwordCipher = FakePasswordCipher()
         val repository = PasswordRepositoryImpl(
             localDataSource = localDataSource,
-            passwordCipher = passwordCipher
+            passwordCipher = passwordCipher,
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         repository.createPassword(
@@ -128,7 +139,9 @@ class PasswordRepositoryImplTest {
                 login = "dev@empresa.com",
                 categoryId = 11L,
                 categoryName = "Work",
-                password = "plain-secret"
+                password = "plain-secret",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_700_000_000_000L
             )
         )
 
@@ -136,6 +149,8 @@ class PasswordRepositoryImplTest {
         assertEquals("iv::plain-secret", localDataSource.insertedPassword?.passwordIv)
         assertEquals(11L, localDataSource.insertedPassword?.categoryId)
         assertEquals("Work", localDataSource.insertedPassword?.category)
+        assertEquals(1_700_000_000_000L, localDataSource.insertedPassword?.createdAt)
+        assertEquals(1_700_000_000_000L, localDataSource.insertedPassword?.updatedAt)
         assertEquals("plain-secret", passwordCipher.lastEncryptedPlainText)
     }
 
@@ -148,7 +163,12 @@ class PasswordRepositoryImplTest {
                 override fun encrypt(plainText: String): EncryptedPasswordPayload {
                     error("cipher failure")
                 }
-            }
+
+                override fun decrypt(cipherText: String, iv: String, version: Int): String {
+                    error("unused")
+                }
+            },
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val thrown = try {
@@ -158,7 +178,9 @@ class PasswordRepositoryImplTest {
                     login = "",
                     categoryId = null,
                     categoryName = null,
-                    password = "plain-secret"
+                    password = "plain-secret",
+                    createdAt = 1_700_000_000_000L,
+                    updatedAt = 1_700_000_000_000L
                 )
             )
             null
@@ -174,7 +196,8 @@ class PasswordRepositoryImplTest {
     fun givenCountRequest_whenQueryingRepository_thenDelegatesToLocalDataSource() = runTest {
         val repository = PasswordRepositoryImpl(
             localDataSource = FakePasswordsLocalDataSource(emptyList(), passwordCount = 5),
-            passwordCipher = FakePasswordCipher()
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         assertEquals(5, repository.getPasswordCount())
@@ -185,7 +208,8 @@ class PasswordRepositoryImplTest {
         val localDataSource = FakePasswordsLocalDataSource(emptyList())
         val repository = PasswordRepositoryImpl(
             localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher()
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
         localDataSource.emitByCategory(
             listOf(
@@ -198,7 +222,9 @@ class PasswordRepositoryImplTest {
                     encryptedPassword = "cipher",
                     passwordIv = "iv",
                     passwordCipherVersion = 1,
-                    iconKey = ""
+                    iconKey = "",
+                    createdAt = 700L,
+                    updatedAt = 800L
                 )
             )
         )
@@ -225,10 +251,14 @@ class PasswordRepositoryImplTest {
 
                 override suspend fun createPassword(password: PasswordEntity): Long = 0L
 
+                override suspend fun getPasswordById(passwordId: Long): PasswordEntity? = null
+
+                override suspend fun updatePassword(password: PasswordEntity) = Unit
+
                 override suspend fun getPasswordCount(): Int = 0
-            }
-            ,
-            passwordCipher = FakePasswordCipher()
+            },
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         )
 
         val thrown = try {
@@ -242,15 +272,89 @@ class PasswordRepositoryImplTest {
         assertEquals(expected.message, thrown?.message)
     }
 
+    @Test
+    fun givenPersistedEncryptedPassword_whenRequestingDetails_thenDecryptsAndMapsFullModel() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            passwordById = PasswordEntity(
+                id = 31L,
+                title = "Spotify",
+                login = "premium@vault.com",
+                category = "Music",
+                categoryId = 7L,
+                encryptedPassword = "cipher",
+                passwordIv = "iv",
+                passwordCipherVersion = 2,
+                iconKey = "sp",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_710_000_000_000L
+            )
+        )
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+        )
+
+        val result = repository.getPasswordDetails(31L)
+
+        assertEquals(
+            PasswordDetails(
+                id = 31L,
+                title = "Spotify",
+                login = "premium@vault.com",
+                password = "plain::cipher",
+                categoryId = 7L,
+                categoryName = "Music",
+                iconKey = "sp",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_710_000_000_000L
+            ),
+            result
+        )
+    }
+
+    @Test
+    fun givenUpdatedPassword_whenPersisting_thenReEncryptsAndPreservesCreatedAt() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
+        val repository = PasswordRepositoryImpl(
+            localDataSource = localDataSource,
+            passwordCipher = FakePasswordCipher(),
+            timeProvider = FixedTimeProvider(1_760_000_000_000L)
+        )
+
+        repository.updatePassword(
+            PasswordDetails(
+                id = 31L,
+                title = "Spotify",
+                login = "updated@vault.com",
+                password = "new-secret",
+                categoryId = 7L,
+                categoryName = "Music",
+                iconKey = "sp",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_760_000_000_000L
+            )
+        )
+
+        assertEquals("enc::new-secret", localDataSource.updatedPassword?.encryptedPassword)
+        assertEquals("iv::new-secret", localDataSource.updatedPassword?.passwordIv)
+        assertEquals(1_700_000_000_000L, localDataSource.updatedPassword?.createdAt)
+        assertEquals(1_760_000_000_000L, localDataSource.updatedPassword?.updatedAt)
+    }
+
     private class FakePasswordsLocalDataSource(
         initialPasswords: List<PasswordEntity>,
-        private val passwordCount: Int = 0
+        private val passwordCount: Int = 0,
+        private val passwordById: PasswordEntity? = null
     ) : PasswordsLocalDataSource {
 
         private val passwordsFlow = MutableStateFlow(initialPasswords)
         private val passwordsByCategoryFlow = MutableStateFlow<List<PasswordEntity>>(emptyList())
         var insertedPassword: PasswordEntity? = null
+        var updatedPassword: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
+
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> {
@@ -261,6 +365,12 @@ class PasswordRepositoryImplTest {
         override suspend fun createPassword(password: PasswordEntity): Long {
             insertedPassword = password
             return 1L
+        }
+
+        override suspend fun getPasswordById(passwordId: Long): PasswordEntity? = passwordById
+
+        override suspend fun updatePassword(password: PasswordEntity) {
+            updatedPassword = password
         }
 
         override suspend fun getPasswordCount(): Int = passwordCount
@@ -284,5 +394,15 @@ class PasswordRepositoryImplTest {
         ).also {
             lastEncryptedPlainText = plainText
         }
+
+        override fun decrypt(cipherText: String, iv: String, version: Int): String {
+            return "plain::$cipherText"
+        }
+    }
+
+    private class FixedTimeProvider(
+        private val currentTimeMillis: Long
+    ) : TimeProvider {
+        override fun currentTimeMillis(): Long = currentTimeMillis
     }
 }

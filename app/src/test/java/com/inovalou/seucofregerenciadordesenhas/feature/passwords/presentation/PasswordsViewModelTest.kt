@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
@@ -187,6 +188,10 @@ class PasswordsViewModelTest {
             override suspend fun getPasswordCount(): Int = 0
 
             override suspend fun createPassword(password: NewPassword): Long = 0L
+
+            override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+            override suspend fun updatePassword(password: PasswordDetails) = Unit
         }
         val viewModel = PasswordsViewModel(
             observePasswordsUseCase = ObservePasswordsUseCase(repository)
@@ -247,6 +252,10 @@ class PasswordsViewModelTest {
         override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 
         override suspend fun createPassword(password: NewPassword): Long = 0L
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
 
         fun emit(passwords: List<PasswordSummary>) {
             passwordsFlow.value = passwords
