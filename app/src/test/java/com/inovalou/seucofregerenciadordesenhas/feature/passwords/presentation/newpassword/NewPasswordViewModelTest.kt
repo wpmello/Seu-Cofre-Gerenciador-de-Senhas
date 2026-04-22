@@ -2,6 +2,9 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
@@ -10,6 +13,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -33,7 +37,8 @@ class NewPasswordViewModelTest {
 
         assertEquals("", viewModel.uiState.value.title)
         assertEquals("", viewModel.uiState.value.login)
-        assertEquals("", viewModel.uiState.value.category)
+        assertEquals(null, viewModel.uiState.value.selectedCategoryId)
+        assertEquals(null, viewModel.uiState.value.selectedCategoryName)
         assertEquals("", viewModel.uiState.value.password)
         assertFalse(viewModel.uiState.value.isPasswordVisible)
         assertFalse(viewModel.uiState.value.isSaving)
@@ -63,15 +68,124 @@ class NewPasswordViewModelTest {
             R.string.new_password_password_error_blank,
             viewModel.uiState.value.passwordErrorResId
         )
+        assertEquals(
+            R.string.new_password_category_error_missing,
+            viewModel.uiState.value.categoryErrorResId
+        )
+    }
+
+    @Test
+    fun givenCategoryFieldClicked_whenHandled_thenOpensSelectionDialog() = runTest {
+        val viewModel = buildViewModel()
+
+        viewModel.onAction(NewPasswordAction.OnCategoryFieldClick)
+
+        assertTrue(viewModel.uiState.value.isCategoryDialogVisible)
+    }
+
+    @Test
+    fun givenNoPersistedCategories_whenCategoriesAreObserved_thenExposesEmptyDialogState() = runTest {
+        val viewModel = buildViewModel(categoryRepository = FakeCategoryRepository(emptyList()))
+
+        advanceUntilIdle()
+
+        assertEquals(
+            NewPasswordCategorySelectionUiState.Empty,
+            viewModel.uiState.value.categorySelectionState
+        )
+    }
+
+    @Test
+    fun givenPersistedCategories_whenCategoriesAreObserved_thenExposesRealSelectionOptions() = runTest {
+        val viewModel = buildViewModel(
+            categoryRepository = FakeCategoryRepository(
+                listOf(
+                    Category(id = 1L, name = "Trabalho", iconKey = "ic_work", itemCount = 2),
+                    Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 1)
+                )
+            )
+        )
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value.categorySelectionState
+        assertTrue(state is NewPasswordCategorySelectionUiState.Content)
+        state as NewPasswordCategorySelectionUiState.Content
+        assertEquals(listOf("Trabalho", "Pessoal"), state.categories.map { it.name })
+        assertTrue(state.categories.none { it.isSelected })
+    }
+
+    @Test
+    fun givenCategorySelected_whenHandled_thenUpdatesFieldAndClosesDialog() = runTest {
+        val viewModel = buildViewModel(
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 9L, name = "Work", iconKey = "ic_work", itemCount = 1))
+            )
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategoryFieldClick)
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(categoryId = 9L))
+
+        assertFalse(viewModel.uiState.value.isCategoryDialogVisible)
+        assertEquals(9L, viewModel.uiState.value.selectedCategoryId)
+        assertEquals("Work", viewModel.uiState.value.selectedCategoryName)
+    }
+
+    @Test
+    fun givenSelectedCategory_whenDialogIsReopened_thenKeepsMatchingOptionSelected() = runTest {
+        val categoryRepository = FakeCategoryRepository(
+                listOf(
+                    Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 1),
+                    Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2)
+                )
+            )
+        val viewModel = buildViewModel(categoryRepository = categoryRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(categoryId = 8L))
+        viewModel.onAction(NewPasswordAction.OnCategoryFieldClick)
+
+        val state = viewModel.uiState.value.categorySelectionState
+        assertTrue(state is NewPasswordCategorySelectionUiState.Content)
+        state as NewPasswordCategorySelectionUiState.Content
+        assertEquals(8L, state.categories.single { it.isSelected }.id)
+    }
+
+    @Test
+    fun givenSelectedCategoryRemovedFromDatabase_whenCategoriesRefresh_thenClearsSelection() = runTest {
+        val categoryRepository = FakeCategoryRepository(
+            listOf(Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2))
+        )
+        val viewModel = buildViewModel(categoryRepository = categoryRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(categoryId = 8L))
+        categoryRepository.emit(emptyList())
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.selectedCategoryId)
+        assertNull(viewModel.uiState.value.selectedCategoryName)
+        assertEquals(
+            NewPasswordCategorySelectionUiState.Empty,
+            viewModel.uiState.value.categorySelectionState
+        )
     }
 
     @Test
     fun givenValidForm_whenSaving_thenEmitsNavigateBackAndPersistsPassword() = runTest {
         val repository = FakePasswordRepository(passwordCount = 0)
-        val viewModel = buildViewModel(repository)
+        val viewModel = buildViewModel(
+            repository = repository,
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 0))
+            )
+        )
+        advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
         viewModel.onAction(NewPasswordAction.OnLoginChanged("user@email.com"))
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(2L))
         viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
         viewModel.onAction(NewPasswordAction.OnSaveClick)
 
@@ -80,14 +194,44 @@ class NewPasswordViewModelTest {
         assertEquals(NewPasswordEffect.NavigateBack, effect.await())
         assertEquals("App 1", repository.createdPassword?.title)
         assertEquals("user@email.com", repository.createdPassword?.login)
+        assertEquals(2L, repository.createdPassword?.categoryId)
+        assertEquals("Pessoal", repository.createdPassword?.categoryName)
+    }
+
+    @Test
+    fun givenSelectedCategory_whenSaving_thenPersistsCategoryAssociation() = runTest {
+        val repository = FakePasswordRepository(passwordCount = 0)
+        val viewModel = buildViewModel(
+            repository = repository,
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 7L, name = "Work", iconKey = "ic_work", itemCount = 0))
+            )
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(categoryId = 7L))
+        viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
+        viewModel.onAction(NewPasswordAction.OnSaveClick)
+
+        advanceUntilIdle()
+
+        assertEquals(7L, repository.createdPassword?.categoryId)
+        assertEquals("Work", repository.createdPassword?.categoryName)
     }
 
     @Test
     fun givenExplicitTitle_whenSaving_thenKeepsUserValue() = runTest {
         val repository = FakePasswordRepository(passwordCount = 9)
-        val viewModel = buildViewModel(repository)
+        val viewModel = buildViewModel(
+            repository = repository,
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 5L, name = "Dev", iconKey = "ic_work", itemCount = 0))
+            )
+        )
+        advanceUntilIdle()
 
         viewModel.onAction(NewPasswordAction.OnTitleChanged("  GitHub  "))
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(5L))
         viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
         viewModel.onAction(NewPasswordAction.OnSaveClick)
 
@@ -99,9 +243,14 @@ class NewPasswordViewModelTest {
     @Test
     fun givenRepositoryFailure_whenSaving_thenShowsSubmitError() = runTest {
         val viewModel = buildViewModel(
-            repository = FakePasswordRepository(shouldFailOnCreate = true)
+            repository = FakePasswordRepository(shouldFailOnCreate = true),
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 0))
+            )
         )
+        advanceUntilIdle()
 
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(4L))
         viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
         viewModel.onAction(NewPasswordAction.OnSaveClick)
 
@@ -122,7 +271,11 @@ class NewPasswordViewModelTest {
 
     @Test
     fun givenFieldChanged_whenHandled_thenClearsPreviousErrors() = runTest {
-        val viewModel = buildViewModel()
+        val viewModel = buildViewModel(
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 4L, name = "Streaming", iconKey = "ic_tv", itemCount = 0))
+            )
+        )
 
         viewModel.onAction(NewPasswordAction.OnSaveClick)
         advanceUntilIdle()
@@ -130,20 +283,29 @@ class NewPasswordViewModelTest {
             R.string.new_password_password_error_blank,
             viewModel.uiState.value.passwordErrorResId
         )
+        assertEquals(
+            R.string.new_password_category_error_missing,
+            viewModel.uiState.value.categoryErrorResId
+        )
 
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(4L))
         viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
 
         assertNull(viewModel.uiState.value.passwordErrorResId)
+        assertNull(viewModel.uiState.value.categoryErrorResId)
         assertNull(viewModel.uiState.value.submitErrorResId)
     }
 
     private fun buildViewModel(
-        repository: FakePasswordRepository = FakePasswordRepository()
+        repository: FakePasswordRepository = FakePasswordRepository(),
+        categoryRepository: FakeCategoryRepository = FakeCategoryRepository(emptyList())
     ): NewPasswordViewModel = NewPasswordViewModel(
         createPasswordUseCase = CreatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = categoryRepository,
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
-        )
+        ),
+        observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository)
     )
 
     private class FakePasswordRepository(
@@ -155,6 +317,8 @@ class NewPasswordViewModelTest {
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> = emptyFlow()
+
         override suspend fun getPasswordCount(): Int = passwordCount
 
         override suspend fun createPassword(password: NewPassword): Long {
@@ -163,6 +327,28 @@ class NewPasswordViewModelTest {
             }
             createdPassword = password
             return 1L
+        }
+    }
+
+    private class FakeCategoryRepository(
+        categories: List<Category>
+    ) : CategoryRepository {
+
+        private val categoriesFlow = MutableStateFlow(categories)
+
+        override suspend fun createCategory(name: String, iconKey: String): Long = 1L
+
+        override suspend fun getCategoryById(categoryId: Long): Category? =
+            categoriesFlow.value.firstOrNull { it.id == categoryId }
+
+        override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
+        override fun observeCategories(): Flow<List<Category>> = categoriesFlow
+
+        fun emit(categories: List<Category>) {
+            categoriesFlow.value = categories
         }
     }
 }

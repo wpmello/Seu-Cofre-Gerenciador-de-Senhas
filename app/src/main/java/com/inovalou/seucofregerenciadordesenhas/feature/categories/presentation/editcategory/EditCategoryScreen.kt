@@ -47,6 +47,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListColumn
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
@@ -385,6 +387,27 @@ private fun CategoryPasswordsSection(
                     )
                 }
             }
+            is CategoryPasswordsSectionUiState.Content -> {
+                VaultPasswordListColumn(
+                    passwords = state.passwords.map { password ->
+                        password.toVaultPasswordListItemModel()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = DeepNavy,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .padding(20.dp)
+                )
+            }
         }
     }
 }
+
+private fun CategoryPasswordItemUiModel.toVaultPasswordListItemModel(): VaultPasswordListItemModel =
+    VaultPasswordListItemModel(
+        id = id,
+        title = title,
+        supportingText = supportingText
+    )

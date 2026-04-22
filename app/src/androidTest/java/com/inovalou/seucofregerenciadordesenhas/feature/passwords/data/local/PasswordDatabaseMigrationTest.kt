@@ -83,6 +83,47 @@ class PasswordDatabaseMigrationTest {
         cursor.close()
     }
 
+    @Test
+    fun migrate4To5_addsNullableCategoryReferenceWithoutBreakingLegacyPasswords() {
+        migrationTestHelper.createDatabase(TEST_DB, 4).apply {
+            execSQL(
+                """
+                INSERT INTO passwords(
+                    id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
+                ) VALUES (1, 'Netflix', 'joao@email.com', 'Legacy', 'cipher', 'iv', 1, 'ic_home')
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val migratedDb = migrationTestHelper.runMigrationsAndValidate(
+            TEST_DB,
+            5,
+            true,
+            SeuCofreDatabaseMigrations.MIGRATION_4_5
+        )
+
+        val cursor = migratedDb.query(
+            """
+            SELECT title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            FROM passwords
+            WHERE id = 1
+            """.trimIndent()
+        )
+        cursor.moveToFirst()
+
+        assertEquals("Netflix", cursor.getString(0))
+        assertEquals("joao@email.com", cursor.getString(1))
+        assertEquals("Legacy", cursor.getString(2))
+        assertEquals(true, cursor.isNull(3))
+        assertEquals("cipher", cursor.getString(4))
+        assertEquals("iv", cursor.getString(5))
+        assertEquals(1, cursor.getInt(6))
+        assertEquals("ic_home", cursor.getString(7))
+
+        cursor.close()
+    }
+
     private companion object {
         const val TEST_DB = "password-migration-test"
     }

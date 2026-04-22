@@ -1,23 +1,16 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,16 +29,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItem
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 
 @Composable
@@ -146,8 +139,8 @@ fun PasswordsScreen(
                             items = uiState.filteredPasswords,
                             key = { password -> password.id }
                         ) { password ->
-                            PasswordListItem(
-                                password = password,
+                            VaultPasswordListItem(
+                                password = password.toVaultListItemModel(),
                                 onClick = {
                                     onAction(PasswordsAction.OnPasswordClick(password.id))
                                 }
@@ -236,76 +229,6 @@ private fun PasswordsHero(
 }
 
 @Composable
-private fun PasswordListItem(
-    password: PasswordListItemUiModel,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                color = SlateBlue.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(16.dp)
-            .testTag("password_item_${password.id}"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = DeepNavy,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = password.initials,
-                    color = SoftWhite,
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = password.title,
-                    color = SoftWhite,
-                    fontSize = 16.sp,
-                    lineHeight = 24.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                if (password.supportingText.isNotBlank()) {
-                    Text(
-                        text = password.supportingText,
-                        color = MistText,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-            contentDescription = null,
-            tint = GhostOutline,
-            modifier = Modifier.size(16.dp)
-        )
-    }
-}
-
-@Composable
 private fun PasswordsEmptyState(
     title: String,
     message: String,
@@ -332,3 +255,11 @@ private fun PasswordsEmptyState(
         )
     }
 }
+
+private fun PasswordListItemUiModel.toVaultListItemModel(): VaultPasswordListItemModel =
+    VaultPasswordListItemModel(
+        id = id,
+        title = title,
+        supportingText = supportingText,
+        initials = initials
+    )

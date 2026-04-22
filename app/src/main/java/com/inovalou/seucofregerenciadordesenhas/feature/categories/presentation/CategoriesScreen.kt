@@ -135,10 +135,12 @@ fun CategoriesScreen(
                     )
                 }
 
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    HighlightedCategoryCard(
-                        currentCategory = uiState.currentCategory
-                    )
+                uiState.currentCategory?.let { currentCategory ->
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        HighlightedCategoryCard(
+                            currentCategory = currentCategory
+                        )
+                    }
                 }
 
                 when (val categoriesState = uiState.categoriesState) {
@@ -438,7 +440,7 @@ private fun HighlightedCategoryCard(
         Spacer(modifier = Modifier.height(28.dp))
 
         Text(
-            text = stringResource(currentCategory.nameResId),
+            text = currentCategory.name,
             color = Color.White,
             fontSize = 24.sp,
             lineHeight = 32.sp,

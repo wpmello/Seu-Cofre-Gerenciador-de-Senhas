@@ -27,7 +27,16 @@ sealed interface EditCategoryContentState {
 
 sealed interface CategoryPasswordsSectionUiState {
     data object Empty : CategoryPasswordsSectionUiState
+    data class Content(
+        val passwords: List<CategoryPasswordItemUiModel>
+    ) : CategoryPasswordsSectionUiState
 }
+
+data class CategoryPasswordItemUiModel(
+    val id: Long,
+    val title: String,
+    val supportingText: String
+)
 
 sealed interface EditCategoryEffect {
     data class NavigateBackToOrigin(val openedFrom: EditCategoryOpenedFrom) : EditCategoryEffect

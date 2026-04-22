@@ -14,6 +14,7 @@ class PasswordMapperTest {
             title = "GitHub",
             login = "joao@empresa.com",
             category = "Work",
+            categoryId = 7L,
             encryptedPassword = "encrypted",
             passwordIv = "iv-value",
             passwordCipherVersion = 1,
@@ -25,7 +26,8 @@ class PasswordMapperTest {
                 id = 8L,
                 title = "GitHub",
                 login = "joao@empresa.com",
-                category = "Work"
+                categoryId = 7L,
+                categoryName = "Work"
             ),
             entity.toDomain()
         )

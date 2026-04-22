@@ -44,6 +44,9 @@ class GeneratePasswordTitleUseCaseTest {
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            emptyFlow()
+
         override suspend fun getPasswordCount(): Int = passwordCount
 
         override suspend fun createPassword(password: NewPassword): Long = 0L

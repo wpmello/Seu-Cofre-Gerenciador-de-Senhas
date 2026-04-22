@@ -79,7 +79,7 @@ private fun List<PasswordSummary>.toUiState(
         PasswordListItemUiModel(
             id = password.id,
             title = password.title,
-            supportingText = password.login.ifBlank { password.category },
+            supportingText = password.login,
             initials = password.title.toInitials()
         )
     }

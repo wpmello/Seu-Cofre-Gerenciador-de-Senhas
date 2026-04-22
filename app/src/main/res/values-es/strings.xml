@@ -84,11 +84,16 @@
     <string name="new_password_email_hint">Opcional</string>
     <string name="new_password_category_label">CATEGORÍA</string>
     <string name="new_password_category_hint">Ej: Entretenimiento, Trabajo...</string>
+    <string name="new_password_category_dialog_title">Elige una categoría</string>
+    <string name="new_password_category_dialog_loading">Cargando categorías…</string>
+    <string name="new_password_category_dialog_empty">Aún no hay categorías disponibles.</string>
     <string name="new_password_password_label">CLAVE</string>
     <string name="new_password_password_hint">Ingresa una clave segura</string>
     <string name="new_password_show_password">Mostrar clave</string>
     <string name="new_password_hide_password">Ocultar clave</string>
     <string name="new_password_save_button">Guardar clave</string>
+    <string name="new_password_category_error_missing">Selecciona una categoría para continuar.</string>
+    <string name="new_password_category_error_invalid">Selecciona una categoría válida para continuar.</string>
     <string name="new_password_password_error_blank">Ingresa una clave para continuar.</string>
     <string name="new_password_save_error">No se pudo guardar la clave.</string>
     <string name="bottom_nav_vault">COFRE</string>

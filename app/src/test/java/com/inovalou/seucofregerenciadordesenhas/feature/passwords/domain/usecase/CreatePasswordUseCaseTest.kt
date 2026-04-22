@@ -1,9 +1,12 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -18,13 +21,15 @@ class CreatePasswordUseCaseTest {
         val repository = FakePasswordRepository()
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(listOf(Category(8L, "Streaming", "ic_tv", 0))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
         val result = useCase(
             title = "Netflix",
             login = "joao@email.com",
-            category = "Streaming",
+            categoryId = 8L,
+            categoryName = "Streaming",
             password = "   "
         )
 
@@ -41,13 +46,15 @@ class CreatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordCount = 1)
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(listOf(Category(4L, "Trabalho", "ic_work", 0))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
         val result = useCase(
             title = "   ",
             login = "  joao@email.com  ",
-            category = "  Trabalho  ",
+            categoryId = 4L,
+            categoryName = "  Trabalho  ",
             password = " senha super secreta "
         )
 
@@ -56,7 +63,8 @@ class CreatePasswordUseCaseTest {
             NewPassword(
                 title = "App 2",
                 login = "joao@email.com",
-                category = "Trabalho",
+                categoryId = 4L,
+                categoryName = "Trabalho",
                 password = " senha super secreta "
             ),
             repository.createdPassword
@@ -68,13 +76,15 @@ class CreatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordCount = 8)
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(listOf(Category(2L, "Geral", "ic_app", 0))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
         val result = useCase(
             title = "  GitHub  ",
             login = "",
-            category = "",
+            categoryId = 2L,
+            categoryName = "Geral",
             password = "abc123"
         )
 
@@ -83,17 +93,71 @@ class CreatePasswordUseCaseTest {
     }
 
     @Test
+    fun givenNoSelectedCategory_whenInvoked_thenReturnsValidationError() = runTest {
+        val repository = FakePasswordRepository(passwordCount = 3)
+        val useCase = CreatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(3L, "Trabalho", "ic_work", 0))
+            ),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+        )
+
+        val result = useCase(
+            title = "GitHub",
+            login = "dev@empresa.com",
+            categoryId = null,
+            categoryName = null,
+            password = "abc123"
+        )
+
+        assertTrue(result is CreatePasswordResult.ValidationError)
+        assertEquals(
+            CreatePasswordCategoryError.Missing,
+            (result as CreatePasswordResult.ValidationError).validation.categoryError
+        )
+        assertNull(repository.createdPassword)
+    }
+
+    @Test
+    fun givenSelectedCategoryDoesNotExist_whenInvoked_thenReturnsValidationError() = runTest {
+        val repository = FakePasswordRepository(passwordCount = 3)
+        val useCase = CreatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(emptyList()),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+        )
+
+        val result = useCase(
+            title = "GitHub",
+            login = "dev@empresa.com",
+            categoryId = 99L,
+            categoryName = "Inexistente",
+            password = "abc123"
+        )
+
+        assertTrue(result is CreatePasswordResult.ValidationError)
+        assertEquals(
+            CreatePasswordCategoryError.Invalid,
+            (result as CreatePasswordResult.ValidationError).validation.categoryError
+        )
+        assertNull(repository.createdPassword)
+    }
+
+    @Test
     fun givenRepositoryFailure_whenInvoked_thenReturnsFailure() = runTest {
         val repository = FakePasswordRepository(shouldFailOnCreate = true)
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(listOf(Category(1L, "Pessoal", "ic_home", 0))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
         val result = useCase(
             title = "",
             login = "",
-            category = "",
+            categoryId = 1L,
+            categoryName = "Pessoal",
             password = "abc123"
         )
 
@@ -109,6 +173,9 @@ class CreatePasswordUseCaseTest {
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            emptyFlow()
+
         override suspend fun getPasswordCount(): Int = passwordCount
 
         override suspend fun createPassword(password: NewPassword): Long {
@@ -118,5 +185,23 @@ class CreatePasswordUseCaseTest {
             createdPassword = password
             return 1L
         }
+    }
+
+    private class FakeCategoryRepository(
+        categories: List<Category>
+    ) : CategoryRepository {
+
+        private val categoriesFlow = MutableStateFlow(categories)
+
+        override suspend fun createCategory(name: String, iconKey: String): Long = 1L
+
+        override suspend fun getCategoryById(categoryId: Long): Category? =
+            categoriesFlow.value.firstOrNull { it.id == categoryId }
+
+        override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
+        override fun observeCategories(): Flow<List<Category>> = categoriesFlow
     }
 }

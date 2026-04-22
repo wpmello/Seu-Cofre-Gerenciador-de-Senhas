@@ -19,6 +19,7 @@ class RoomPasswordsLocalDataSourceTest {
                 title = "Amazon Prime",
                 login = "compras@email.com",
                 category = "Shopping",
+                categoryId = 2L,
                 encryptedPassword = "cipher-1",
                 passwordIv = "iv-1",
                 passwordCipherVersion = 1,
@@ -29,6 +30,7 @@ class RoomPasswordsLocalDataSourceTest {
                 title = "GitHub",
                 login = "dev@empresa.com",
                 category = "Work",
+                categoryId = 4L,
                 encryptedPassword = "cipher-2",
                 passwordIv = "iv-2",
                 passwordCipherVersion = 1,
@@ -50,6 +52,7 @@ class RoomPasswordsLocalDataSourceTest {
             title = "GitHub",
             login = "dev@empresa.com",
             category = "Work",
+            categoryId = 3L,
             encryptedPassword = "cipher",
             passwordIv = "iv",
             passwordCipherVersion = 1,
@@ -60,6 +63,33 @@ class RoomPasswordsLocalDataSourceTest {
 
         assertEquals(7L, insertedId)
         assertEquals(entity, dao.insertedEntity)
+    }
+
+    @Test
+    fun givenCategoryId_whenObservingPasswordsByCategory_thenDelegatesCategoryQueryToDao() = runTest {
+        val expected = listOf(
+            PasswordEntity(
+                id = 3L,
+                title = "GitHub",
+                login = "dev@empresa.com",
+                category = "Work",
+                categoryId = 9L,
+                encryptedPassword = "cipher",
+                passwordIv = "iv",
+                passwordCipherVersion = 1,
+                iconKey = ""
+            )
+        )
+        val dao = FakePasswordDao(
+            passwordsFlow = flowOf(emptyList()),
+            passwordsByCategoryFlow = flowOf(expected)
+        )
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val observed = dataSource.observePasswordsByCategoryId(9L).first()
+
+        assertEquals(9L, dao.lastObservedCategoryId)
+        assertEquals(expected, observed)
     }
 
     @Test
@@ -95,12 +125,19 @@ class RoomPasswordsLocalDataSourceTest {
 
     private class FakePasswordDao(
         private val passwordsFlow: Flow<List<PasswordEntity>>,
+        private val passwordsByCategoryFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
         private val passwordCount: Int = 0
     ) : PasswordDao {
 
         var insertedEntity: PasswordEntity? = null
+        var lastObservedCategoryId: Long? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> {
+            lastObservedCategoryId = categoryId
+            return passwordsByCategoryFlow
+        }
 
         override suspend fun insert(password: PasswordEntity): Long {
             insertedEntity = password

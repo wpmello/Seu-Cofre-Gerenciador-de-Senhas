@@ -4,5 +4,6 @@ data class PasswordSummary(
     val id: Long,
     val title: String,
     val login: String,
-    val category: String
+    val categoryId: Long?,
+    val categoryName: String?
 )

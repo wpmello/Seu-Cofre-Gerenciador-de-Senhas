@@ -18,12 +18,16 @@ class ObservePasswordsUseCaseTest {
                 id = 3L,
                 title = "Instagram",
                 login = "@joao_viajante",
-                category = "Social"
+                categoryId = 4L,
+                categoryName = "Social"
             )
         )
         val useCase = ObservePasswordsUseCase(
             repository = object : PasswordRepository {
                 override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(expected)
+
+                override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+                    flowOf(expected)
 
                 override suspend fun getPasswordCount(): Int = expected.size
 

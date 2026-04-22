@@ -44,26 +44,54 @@ class CategoryDaoTest {
     @Test
     fun givenPersistedCategories_whenObserving_thenReturnsNameOrderedListIgnoringCase() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (1, 'zeta', 'ic_star', 2)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (1, 'zeta', 'ic_star', 0)"
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (2, 'Alpha', 'ic_directory', 1)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (2, 'Alpha', 'ic_directory', 0)"
         )
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (3, 'bravo', 'ic_padlock', 3)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (3, 'bravo', 'ic_padlock', 0)"
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (11, 'GitHub', 'dev@empresa.com', '', 2, 'cipher-a', 'iv-a', 1, '')
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (12, 'Netflix', 'user@email.com', '', 3, 'cipher-b', 'iv-b', 1, '')
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (13, 'Steam', 'gamer@email.com', '', 3, 'cipher-c', 'iv-c', 1, '')
+            """.trimIndent()
         )
 
         val categories = categoryDao.observeCategories().first()
 
         assertEquals(listOf("Alpha", "bravo", "zeta"), categories.map { it.name })
         assertEquals(listOf("ic_directory", "ic_padlock", "ic_star"), categories.map { it.iconKey })
-        assertEquals(listOf(1, 3, 2), categories.map { it.itemCount })
+        assertEquals(listOf(1, 2, 0), categories.map { it.itemCount })
     }
 
     @Test
     fun givenPersistedCategoryId_whenGettingById_thenReturnsMatchingCategory() = runTest {
         database.openHelper.writableDatabase.execSQL(
-            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (9, 'Pessoal', 'ic_directory', 5)"
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (9, 'Pessoal', 'ic_directory', 0)"
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (20, 'Bank', 'me@email.com', '', 9, 'cipher', 'iv', 1, '')
+            """.trimIndent()
         )
 
         val category = categoryDao.getCategoryById(9L)
@@ -71,7 +99,7 @@ class CategoryDaoTest {
         assertEquals(9L, category?.id)
         assertEquals("Pessoal", category?.name)
         assertEquals("ic_directory", category?.iconKey)
-        assertEquals(5, category?.itemCount)
+        assertEquals(1, category?.itemCount)
     }
 
     @Test

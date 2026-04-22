@@ -46,8 +46,35 @@ class EditCategoryScreenTest {
         composeRule.onNodeWithTag("edit_category_icon_dialog").assertIsDisplayed()
     }
 
+    @Test
+    fun givenPasswordsSectionContent_whenRendered_thenDisplaysAssociatedPasswords() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditCategoryScreen(
+                    uiState = editCategoryUiState(
+                        passwordsSectionState = CategoryPasswordsSectionUiState.Content(
+                            passwords = listOf(
+                                CategoryPasswordItemUiModel(
+                                    id = 9L,
+                                    title = "GitHub",
+                                    supportingText = "dev@empresa.com"
+                                )
+                            )
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("password_item_9").assertIsDisplayed()
+        composeRule.onNodeWithText("GitHub").assertIsDisplayed()
+        composeRule.onNodeWithText("dev@empresa.com").assertIsDisplayed()
+    }
+
     private fun editCategoryUiState(
-        isIconPickerVisible: Boolean = false
+        isIconPickerVisible: Boolean = false,
+        passwordsSectionState: CategoryPasswordsSectionUiState = CategoryPasswordsSectionUiState.Empty
     ) = EditCategoryUiState(
         name = "Trabalho",
         availableIcons = listOf(
@@ -56,6 +83,7 @@ class EditCategoryScreenTest {
         ),
         selectedIconKey = "ic_work_bag_add_category",
         contentState = EditCategoryContentState.Content,
-        isIconPickerVisible = isIconPickerVisible
+        isIconPickerVisible = isIconPickerVisible,
+        passwordsSectionState = passwordsSectionState
     )
 }

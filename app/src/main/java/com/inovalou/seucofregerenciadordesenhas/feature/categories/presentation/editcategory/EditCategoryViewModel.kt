@@ -13,6 +13,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecas
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.UpdateCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySelectableIconUiModel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +30,7 @@ import kotlinx.coroutines.launch
 class EditCategoryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCategoryByIdUseCase: GetCategoryByIdUseCase,
+    private val observePasswordsByCategoryUseCase: ObservePasswordsByCategoryUseCase,
     private val updateCategoryUseCase: UpdateCategoryUseCase,
     private val deleteCategoryUseCase: DeleteCategoryUseCase,
     private val categoryIconCatalog: CategoryIconCatalog
@@ -122,6 +125,8 @@ class EditCategoryViewModel @Inject constructor(
                     }
                 )
             }
+
+            observeAssociatedPasswords(resolvedCategoryId)
         }
     }
 
@@ -246,6 +251,16 @@ class EditCategoryViewModel @Inject constructor(
             }
         }
     }
+
+    private fun observeAssociatedPasswords(categoryId: Long) {
+        viewModelScope.launch {
+            observePasswordsByCategoryUseCase(categoryId).collect { passwords ->
+                _uiState.update { state ->
+                    state.copy(passwordsSectionState = passwords.toPasswordsSectionState())
+                }
+            }
+        }
+    }
 }
 
 private fun UpdateCategoryNameError?.toNameErrorResId(): Int? = when (this) {
@@ -256,4 +271,20 @@ private fun UpdateCategoryNameError?.toNameErrorResId(): Int? = when (this) {
 private fun UpdateCategoryIconError?.toIconErrorResId(): Int? = when (this) {
     UpdateCategoryIconError.Missing -> R.string.edit_category_icon_error_missing
     null -> null
+}
+
+private fun List<PasswordSummary>.toPasswordsSectionState(): CategoryPasswordsSectionUiState {
+    if (isEmpty()) {
+        return CategoryPasswordsSectionUiState.Empty
+    }
+
+    return CategoryPasswordsSectionUiState.Content(
+        passwords = map { password ->
+            CategoryPasswordItemUiModel(
+                id = password.id,
+                title = password.title,
+                supportingText = password.login
+            )
+        }
+    )
 }

@@ -2,8 +2,11 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,15 +25,19 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,6 +48,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -148,14 +156,13 @@ fun NewPasswordScreen(
                     testTag = "new_password_email_input"
                 )
 
-                PasswordTextField(
+                CategorySelectionField(
                     label = stringResource(R.string.new_password_category_label),
-                    value = uiState.category,
+                    value = uiState.selectedCategoryName.orEmpty(),
                     placeholder = stringResource(R.string.new_password_category_hint),
-                    leadingIcon = Icons.Outlined.GridView,
-                    onValueChange = { onAction(NewPasswordAction.OnCategoryChanged(it)) },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    testTag = "new_password_category_input"
+                    errorResId = uiState.categoryErrorResId,
+                    testTag = "new_password_category_field",
+                    onClick = { onAction(NewPasswordAction.OnCategoryFieldClick) }
                 )
 
                 PasswordSection(
@@ -183,6 +190,14 @@ fun NewPasswordScreen(
             )
         }
     }
+
+    if (uiState.isCategoryDialogVisible) {
+        CategorySelectionDialog(
+            state = uiState.categorySelectionState,
+            onCategorySelected = { onAction(NewPasswordAction.OnCategorySelected(it)) },
+            onDismiss = { onAction(NewPasswordAction.OnCategoryDialogDismissed) }
+        )
+    }
 }
 
 @Composable
@@ -199,7 +214,8 @@ private fun PasswordTextField(
     onTogglePasswordVisibility: (() -> Unit)? = null,
     containerColor: Color = DeepNavy,
     highlightedLabel: Boolean = false,
-    showBorder: Boolean = true
+    showBorder: Boolean = true,
+    readOnly: Boolean = false
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         label?.let {
@@ -215,6 +231,7 @@ private fun PasswordTextField(
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             keyboardOptions = keyboardOptions,
+            readOnly = readOnly,
             visualTransformation = if (isPasswordField && !isPasswordVisible) {
                 PasswordVisualTransformation()
             } else {
@@ -336,6 +353,157 @@ private fun PasswordSectionLabel(
         fontWeight = FontWeight.Medium,
         letterSpacing = 1.2.sp
     )
+}
+
+@Composable
+private fun CategorySelectionDialog(
+    state: NewPasswordCategorySelectionUiState,
+    onCategorySelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.new_password_category_dialog_title),
+                color = SoftWhite
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.testTag("new_password_category_dialog")
+            ) {
+                when (state) {
+                    NewPasswordCategorySelectionUiState.Loading -> {
+                        Text(
+                            text = stringResource(R.string.new_password_category_dialog_loading),
+                            color = MistText
+                        )
+                    }
+
+                    NewPasswordCategorySelectionUiState.Empty -> {
+                        Text(
+                            text = stringResource(R.string.new_password_category_dialog_empty),
+                            color = MistText
+                        )
+                    }
+
+                    is NewPasswordCategorySelectionUiState.Content -> {
+                        state.categories.forEach { category ->
+                            CategorySelectionRow(
+                                category = category,
+                                onClick = { onCategorySelected(category.id) }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.edit_category_cancel))
+            }
+        },
+        containerColor = DeepNavy
+    )
+}
+
+@Composable
+private fun CategorySelectionRow(
+    category: NewPasswordCategoryOptionUiModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = category.isSelected,
+            onClick = onClick
+        )
+        Text(
+            text = category.name,
+            color = SoftWhite,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+@Composable
+private fun CategorySelectionField(
+    label: String,
+    value: String,
+    placeholder: String,
+    errorResId: Int?,
+    testTag: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        PasswordSectionLabel(label = label, highlighted = true)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(testTag)
+                .clickable(
+                    onClick = onClick,
+                    role = Role.Button
+                )
+        ) {
+            TextField(
+                value = value,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                readOnly = true,
+                enabled = false,
+                shape = RoundedCornerShape(16.dp),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        color = GhostOutline.copy(alpha = 0.75f)
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.GridView,
+                        contentDescription = null,
+                        tint = SoftWhite.copy(alpha = 0.78f)
+                    )
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = DeepNavy,
+                    unfocusedContainerColor = DeepNavy,
+                    disabledContainerColor = DeepNavy,
+                    focusedIndicatorColor = GhostOutline.copy(alpha = 0.28f),
+                    unfocusedIndicatorColor = GhostOutline.copy(alpha = 0.16f),
+                    disabledIndicatorColor = GhostOutline.copy(alpha = 0.16f),
+                    focusedTextColor = SoftWhite,
+                    unfocusedTextColor = SoftWhite,
+                    disabledTextColor = SoftWhite,
+                    focusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
+                    unfocusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
+                    disabledPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
+                    disabledLeadingIconColor = SoftWhite.copy(alpha = 0.78f),
+                    cursorColor = ElectricBlue
+                )
+            )
+        }
+
+        errorResId?.let { validationErrorResId ->
+            ValidationText(errorResId = validationErrorResId)
+        }
+    }
 }
 
 @Composable

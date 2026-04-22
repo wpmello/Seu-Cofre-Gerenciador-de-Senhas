@@ -44,24 +44,27 @@ class PasswordDaoTest {
     @Test
     fun givenPersistedPasswords_whenObserving_thenReturnsTitleOrderedListIgnoringCase() = runTest {
         database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (9, 'Work', 'ic_directory', 0)"
+        )
+        database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
-            ) VALUES (1, 'zeta', 'z@email.com', 'Misc', 'cipher-z', 'iv-z', 1, '')
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (1, 'zeta', 'z@email.com', 'Misc', NULL, 'cipher-z', 'iv-z', 1, '')
             """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
-            ) VALUES (2, 'Alpha', 'a@email.com', 'Work', 'cipher-a', 'iv-a', 1, '')
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (2, 'Alpha', 'a@email.com', '', 9, 'cipher-a', 'iv-a', 1, '')
             """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, encrypted_password, password_iv, password_cipher_version, icon_key
-            ) VALUES (3, 'bravo', 'b@email.com', 'Private', 'cipher-b', 'iv-b', 1, '')
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (3, 'bravo', 'b@email.com', 'Private', NULL, 'cipher-b', 'iv-b', 1, '')
             """.trimIndent()
         )
 
@@ -70,6 +73,35 @@ class PasswordDaoTest {
         assertEquals(listOf("Alpha", "bravo", "zeta"), passwords.map { it.title })
         assertEquals(listOf("a@email.com", "b@email.com", "z@email.com"), passwords.map { it.login })
         assertEquals(listOf("Work", "Private", "Misc"), passwords.map { it.category })
+        assertEquals(listOf(9L, null, null), passwords.map { it.categoryId })
         assertEquals(listOf("cipher-a", "cipher-b", "cipher-z"), passwords.map { it.encryptedPassword })
+    }
+
+    @Test
+    fun givenPasswordsAssociatedToCategory_whenObservingByCategoryId_thenReturnsOnlyMatchingPasswords() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO categories(id, name, icon_key, item_count) VALUES (3, 'Streaming', 'ic_directory', 0)"
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (1, 'Netflix', 'a@email.com', '', 3, 'cipher-a', 'iv-a', 1, '')
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (2, 'GitHub', 'dev@email.com', 'Legacy', NULL, 'cipher-b', 'iv-b', 1, '')
+            """.trimIndent()
+        )
+
+        val passwords = passwordDao.observePasswordsByCategoryId(3L).first()
+
+        assertEquals(1, passwords.size)
+        assertEquals("Netflix", passwords.single().title)
+        assertEquals("Streaming", passwords.single().category)
+        assertEquals(3L, passwords.single().categoryId)
     }
 }
