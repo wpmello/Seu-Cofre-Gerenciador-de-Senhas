@@ -16,8 +16,40 @@ Salvo caso explicitamente justificado, **cada branch nova deve ser criada a part
 
 Neste projeto, isso significa normalmente:
 - criar a branch a partir de `master`;
+- atualizar a `master` local antes de iniciar uma nova branch;
 - manter a tarefa inteira nessa branch;
 - separar responsabilidades por commit.
+
+## Regra obrigatória ao iniciar um novo desenvolvimento
+
+Quando um novo desenvolvimento for iniciado e o repositório local ainda estiver parado em uma branch antiga, o agente **não deve continuar a partir dessa branch antiga por conveniência**.
+
+O procedimento correto é:
+- fazer `checkout` para `master`;
+- atualizar a `master` local com o estado mais recente já integrado nela;
+- só então criar a nova branch de trabalho a partir dessa `master` atualizada.
+
+### Motivo
+
+Essa regra existe para evitar o seguinte erro:
+- uma branch antiga já foi mergeada por PR;
+- a `master` local ficou desatualizada;
+- um novo desenvolvimento foi iniciado sem voltar para a `master`;
+- o novo trabalho acabou sendo commitado em uma branch de contexto anterior.
+
+### Regra prática
+
+Antes de começar qualquer tarefa nova, o agente deve verificar:
+- se a branch atual é apenas resquício de uma entrega anterior;
+- se a `master` local já contém as atualizações mais recentes da branch remota de integração;
+- se a nova branch nascerá da `master` atualizada, e não da branch antiga ainda aberta no workspace.
+
+### Proibição explícita
+
+Não é permitido:
+- iniciar uma nova entrega diretamente em uma branch antiga só porque ela ainda está checkoutada localmente;
+- assumir que uma branch antiga continua sendo base válida depois que o trabalho anterior já foi mergeado;
+- criar a nova branch a partir de uma `master` local desatualizada quando o objetivo é continuar do ponto mais recente já integrado ao projeto.
 
 ## Regra de modelagem de trabalho
 
@@ -132,6 +164,16 @@ Por padrão:
 
 Exceção:
 - quando o usuário disser explicitamente que o merge será para outra branch.
+
+### Etapa 2.1 — Atualizar a branch de integração local antes de iniciar nova tarefa
+
+Se a tarefa é um **novo desenvolvimento** e o agente estiver parado em uma branch anterior:
+- sair da branch antiga;
+- voltar para a branch de integração alvo, normalmente `master`;
+- atualizar essa branch local com o estado mais recente já integrado no remoto;
+- criar a nova branch somente depois dessa atualização.
+
+Essa etapa é obrigatória mesmo quando o desenvolvimento anterior já tiver sido mergeado, porque o merge no remoto não atualiza sozinho a `master` local.
 
 ### Etapa 3 — Agrupar mudanças por objetivo
 
@@ -258,6 +300,20 @@ Resultado:
 
 Esse tipo de empilhamento só deve acontecer quando a estratégia de stack estiver explícita e aceita.  
 Fora disso, cada branch deve nascer da branch de integração alvo.
+
+Houve também um caso em que:
+- uma branch antiga continuou ativa localmente após o merge da entrega anterior;
+- a `master` local não foi atualizada;
+- um novo desenvolvimento precisou ser commitado na branch antiga porque a base correta não tinha sido preparada antes.
+
+### Lição adicional consolidada
+
+Antes de qualquer novo desenvolvimento:
+- voltar para `master`;
+- atualizar a `master` local;
+- criar a nova branch a partir dessa base atualizada.
+
+Se isso não for feito, o histórico pode misturar entregas independentes e forçar commits em branch errada mesmo quando o PR anterior já tiver sido mergeado.
 
 ## Resumo executivo
 
