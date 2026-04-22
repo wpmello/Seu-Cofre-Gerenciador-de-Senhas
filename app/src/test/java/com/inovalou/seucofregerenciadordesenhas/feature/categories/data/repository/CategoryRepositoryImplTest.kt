@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.data.repository
 
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoriesLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.CategoryEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
@@ -14,22 +15,26 @@ import org.junit.Test
 
 class CategoryRepositoryImplTest {
 
+    private val timeProvider = object : TimeProvider {
+        override fun currentTimeMillis(): Long = 123L
+    }
+
     @Test
     fun givenLocalEntities_whenObservingCategories_thenMapsEntitiesToDomainModels() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(
             listOf(
-                CategoryEntity(id = 11L, name = "Viagens", iconKey = "ic_global", itemCount = 21),
-                CategoryEntity(id = 12L, name = "Saúde", iconKey = "ic_padlock", itemCount = 12)
+                CategoryEntity(id = 11L, name = "Viagens", iconKey = "ic_global", itemCount = 21, lastModifiedAt = 11L),
+                CategoryEntity(id = 12L, name = "Saúde", iconKey = "ic_padlock", itemCount = 12, lastModifiedAt = 12L)
             )
         )
-        val repository = CategoryRepositoryImpl(localDataSource)
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
 
         val observed = repository.observeCategories().first()
 
         assertEquals(
             listOf(
-                Category(id = 11L, name = "Viagens", iconKey = "ic_global", itemCount = 21),
-                Category(id = 12L, name = "Saúde", iconKey = "ic_padlock", itemCount = 12)
+                Category(id = 11L, name = "Viagens", iconKey = "ic_global", itemCount = 21, lastModifiedAt = 11L),
+                Category(id = 12L, name = "Saúde", iconKey = "ic_padlock", itemCount = 12, lastModifiedAt = 12L)
             ),
             observed
         )
@@ -38,11 +43,11 @@ class CategoryRepositoryImplTest {
     @Test
     fun givenLocalUpdates_whenObservingCategories_thenEmitsMappedUpdatesReactively() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(emptyList())
-        val repository = CategoryRepositoryImpl(localDataSource)
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
 
         localDataSource.emit(
             listOf(
-                CategoryEntity(id = 21L, name = "Entretenimento", iconKey = "ic_favorite", itemCount = 28)
+                CategoryEntity(id = 21L, name = "Entretenimento", iconKey = "ic_favorite", itemCount = 28, lastModifiedAt = 21L)
             )
         )
 
@@ -50,7 +55,7 @@ class CategoryRepositoryImplTest {
 
         assertEquals(
             listOf(
-                Category(id = 21L, name = "Entretenimento", iconKey = "ic_favorite", itemCount = 28)
+                Category(id = 21L, name = "Entretenimento", iconKey = "ic_favorite", itemCount = 28, lastModifiedAt = 21L)
             ),
             observed
         )
@@ -59,7 +64,7 @@ class CategoryRepositoryImplTest {
     @Test
     fun givenValidInput_whenCreatingCategory_thenPersistsNameAndIconKeyWithZeroItems() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(emptyList())
-        val repository = CategoryRepositoryImpl(localDataSource)
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
 
         val insertedId = repository.createCategory(
             name = "Pessoal",
@@ -71,7 +76,8 @@ class CategoryRepositoryImplTest {
             CategoryEntity(
                 name = "Pessoal",
                 iconKey = "ic_user_profile",
-                itemCount = 0
+                itemCount = 0,
+                lastModifiedAt = 123L
             ),
             localDataSource.insertedCategory
         )
@@ -86,9 +92,11 @@ class CategoryRepositoryImplTest {
                     id = 31L,
                     name = "Financeiro",
                     iconKey = "ic_star",
-                    itemCount = 6
+                    itemCount = 6,
+                    lastModifiedAt = 31L
                 )
-            )
+            ),
+            timeProvider
         )
 
         val category = repository.getCategoryById(31L)
@@ -98,7 +106,8 @@ class CategoryRepositoryImplTest {
                 id = 31L,
                 name = "Financeiro",
                 iconKey = "ic_star",
-                itemCount = 6
+                itemCount = 6,
+                lastModifiedAt = 31L
             ),
             category
         )
@@ -107,14 +116,15 @@ class CategoryRepositoryImplTest {
     @Test
     fun givenUpdatedCategory_whenUpdating_thenPersistsMappedEntity() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(emptyList())
-        val repository = CategoryRepositoryImpl(localDataSource)
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
 
         repository.updateCategory(
             Category(
                 id = 41L,
                 name = "Nova",
                 iconKey = "ic_cloud",
-                itemCount = 9
+                itemCount = 9,
+                lastModifiedAt = 50L
             )
         )
 
@@ -123,16 +133,28 @@ class CategoryRepositoryImplTest {
                 id = 41L,
                 name = "Nova",
                 iconKey = "ic_cloud",
-                itemCount = 9
+                itemCount = 9,
+                lastModifiedAt = 123L
             ),
             localDataSource.updatedCategory
         )
     }
 
     @Test
+    fun givenCategoryId_whenTouchingCategory_thenUpdatesOnlyLastModifiedAt() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(emptyList())
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
+
+        repository.touchCategory(88L)
+
+        assertEquals(88L, localDataSource.touchedCategoryId)
+        assertEquals(123L, localDataSource.touchedLastModifiedAt)
+    }
+
+    @Test
     fun givenCategoryId_whenDeleting_thenDelegatesDeleteToLocalSource() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(emptyList())
-        val repository = CategoryRepositoryImpl(localDataSource)
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
 
         repository.deleteCategoryById(52L)
 
@@ -150,12 +172,18 @@ class CategoryRepositoryImplTest {
 
                 override suspend fun updateCategory(category: CategoryEntity) = Unit
 
+                override suspend fun updateCategoryLastModifiedAt(
+                    categoryId: Long,
+                    lastModifiedAt: Long
+                ) = Unit
+
                 override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
                 override fun observeCategories(): Flow<List<CategoryEntity>> = flow {
                     throw expected
                 }
-            }
+            },
+            timeProvider
         )
 
         val thrown = try {
@@ -177,6 +205,8 @@ class CategoryRepositoryImplTest {
         private val categoriesFlow = MutableStateFlow(initialCategories)
         var insertedCategory: CategoryEntity? = null
         var updatedCategory: CategoryEntity? = null
+        var touchedCategoryId: Long? = null
+        var touchedLastModifiedAt: Long? = null
         var deletedCategoryId: Long? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
@@ -188,6 +218,11 @@ class CategoryRepositoryImplTest {
 
         override suspend fun updateCategory(category: CategoryEntity) {
             updatedCategory = category
+        }
+
+        override suspend fun updateCategoryLastModifiedAt(categoryId: Long, lastModifiedAt: Long) {
+            touchedCategoryId = categoryId
+            touchedLastModifiedAt = lastModifiedAt
         }
 
         override suspend fun deleteCategoryById(categoryId: Long) {

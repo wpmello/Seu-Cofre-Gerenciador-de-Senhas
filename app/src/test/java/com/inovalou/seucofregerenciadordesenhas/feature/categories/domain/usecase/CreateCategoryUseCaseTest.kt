@@ -87,6 +87,8 @@ class CreateCategoryUseCaseTest {
 
         override suspend fun updateCategory(category: Category) = Unit
 
+        override suspend fun touchCategory(categoryId: Long) = Unit
+
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
         override fun observeCategories(): Flow<List<Category>> = emptyFlow()

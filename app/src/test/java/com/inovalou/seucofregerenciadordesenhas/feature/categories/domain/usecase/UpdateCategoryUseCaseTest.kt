@@ -18,7 +18,8 @@ class UpdateCategoryUseCaseTest {
                 id = 3L,
                 name = "Trabalho",
                 iconKey = "ic_work_bag_add_category",
-                itemCount = 7
+                itemCount = 7,
+                lastModifiedAt = 10L
             )
         )
         val useCase = UpdateCategoryUseCase(repository)
@@ -35,7 +36,8 @@ class UpdateCategoryUseCaseTest {
                 id = 3L,
                 name = "Corporativo",
                 iconKey = "ic_directory",
-                itemCount = 7
+                itemCount = 7,
+                lastModifiedAt = 10L
             ),
             repository.updatedCategory
         )
@@ -49,7 +51,8 @@ class UpdateCategoryUseCaseTest {
                     id = 2L,
                     name = "Pessoal",
                     iconKey = "ic_directory",
-                    itemCount = 0
+                    itemCount = 0,
+                    lastModifiedAt = 0L
                 )
             )
         )
@@ -69,7 +72,8 @@ class UpdateCategoryUseCaseTest {
                     id = 2L,
                     name = "Pessoal",
                     iconKey = "ic_directory",
-                    itemCount = 0
+                    itemCount = 0,
+                    lastModifiedAt = 0L
                 )
             )
         )
@@ -98,7 +102,8 @@ class UpdateCategoryUseCaseTest {
                     id = 8L,
                     name = "Saúde",
                     iconKey = "ic_padlock",
-                    itemCount = 2
+                    itemCount = 2,
+                    lastModifiedAt = 0L
                 ),
                 shouldFailOnUpdate = true
             )
@@ -124,6 +129,8 @@ class UpdateCategoryUseCaseTest {
             if (shouldFailOnUpdate) error("update failure")
             updatedCategory = category
         }
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 

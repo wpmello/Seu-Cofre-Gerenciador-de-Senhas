@@ -52,8 +52,8 @@ class AllCategoriesViewModelTest {
     fun givenPersistedCategories_whenObservingState_thenShowsFullListFromRepository() = runTest {
         val viewModel = buildViewModel(
             categories = listOf(
-                Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
-                Category(id = 2L, name = "Bancos", iconKey = "ic_directory", itemCount = 8)
+                Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 0L),
+                Category(id = 2L, name = "Bancos", iconKey = "ic_directory", itemCount = 8, lastModifiedAt = 0L)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -71,9 +71,9 @@ class AllCategoriesViewModelTest {
     fun givenSearchQueryMatchesCategories_whenQueryChanges_thenFiltersListIgnoringCase() = runTest {
         val viewModel = buildViewModel(
             categories = listOf(
-                Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
-                Category(id = 2L, name = "Bancos", iconKey = "ic_directory", itemCount = 8),
-                Category(id = 3L, name = "Compras", iconKey = "ic_home", itemCount = 24)
+                Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 0L),
+                Category(id = 2L, name = "Bancos", iconKey = "ic_directory", itemCount = 8, lastModifiedAt = 0L),
+                Category(id = 3L, name = "Compras", iconKey = "ic_home", itemCount = 24, lastModifiedAt = 0L)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -91,8 +91,8 @@ class AllCategoriesViewModelTest {
     fun givenSearchQueryCleared_whenQueryBecomesBlank_thenRestoresFullList() = runTest {
         val viewModel = buildViewModel(
             categories = listOf(
-                Category(id = 1L, name = "Social", iconKey = "ic_global", itemCount = 18),
-                Category(id = 2L, name = "Privado", iconKey = "ic_padlock", itemCount = 3)
+                Category(id = 1L, name = "Social", iconKey = "ic_global", itemCount = 18, lastModifiedAt = 0L),
+                Category(id = 2L, name = "Privado", iconKey = "ic_padlock", itemCount = 3, lastModifiedAt = 0L)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -112,7 +112,7 @@ class AllCategoriesViewModelTest {
     fun givenSearchQueryHasNoMatches_whenQueryChanges_thenShowsSearchEmptyState() = runTest {
         val viewModel = buildViewModel(
             categories = listOf(
-                Category(id = 1L, name = "Saude", iconKey = "ic_favorite", itemCount = 5)
+                Category(id = 1L, name = "Saude", iconKey = "ic_favorite", itemCount = 5, lastModifiedAt = 0L)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -130,7 +130,7 @@ class AllCategoriesViewModelTest {
     fun givenUnknownIconKey_whenObservingState_thenUsesSafeFallbackIcon() = runTest {
         val viewModel = buildViewModel(
             categories = listOf(
-                Category(id = 7L, name = "Legado", iconKey = "ic_unknown_legacy", itemCount = 2)
+                Category(id = 7L, name = "Legado", iconKey = "ic_unknown_legacy", itemCount = 2, lastModifiedAt = 0L)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -165,6 +165,8 @@ class AllCategoriesViewModelTest {
 
             override suspend fun updateCategory(category: Category) = Unit
 
+            override suspend fun touchCategory(categoryId: Long) = Unit
+
             override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
             override fun observeCategories(): Flow<List<Category>> = flow {
@@ -184,7 +186,7 @@ class AllCategoriesViewModelTest {
 
     private fun buildViewModel(
         categories: List<Category> = listOf(
-            Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42)
+            Category(id = 1L, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 0L)
         )
     ): AllCategoriesViewModel = AllCategoriesViewModel(
         observeCategoriesUseCase = ObserveCategoriesUseCase(FakeCategoryRepository(categories)),
@@ -202,6 +204,8 @@ class AllCategoriesViewModelTest {
         override suspend fun getCategoryById(categoryId: Long): Category? = null
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 

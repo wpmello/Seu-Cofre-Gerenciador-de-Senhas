@@ -64,8 +64,11 @@ class CategoriesViewModel @Inject constructor(
 
         return CategoriesUiState(
             securitySummary = SecuritySummaryUiModel(totalItems = totalItems),
-            currentCategory = categories.firstOrNull()?.let { category ->
+            currentCategory = categories.maxWithOrNull(
+                compareBy<Category>({ it.lastModifiedAt }, { it.id })
+            )?.let { category ->
                 HighlightedCategoryUiModel(
+                    id = category.id,
                     name = category.name,
                     itemCount = category.itemCount
                 )

@@ -21,7 +21,7 @@ class CreatePasswordUseCaseTest {
         val repository = FakePasswordRepository()
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
-            categoryRepository = FakeCategoryRepository(listOf(Category(8L, "Streaming", "ic_tv", 0))),
+            categoryRepository = FakeCategoryRepository(listOf(Category(8L, "Streaming", "ic_tv", 0, 50L))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
@@ -46,7 +46,7 @@ class CreatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordCount = 1)
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
-            categoryRepository = FakeCategoryRepository(listOf(Category(4L, "Trabalho", "ic_work", 0))),
+            categoryRepository = FakeCategoryRepository(listOf(Category(4L, "Trabalho", "ic_work", 0, 50L))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
@@ -72,11 +72,35 @@ class CreatePasswordUseCaseTest {
     }
 
     @Test
+    fun givenPasswordCreatedWithPersistedCategory_whenInvoked_thenTouchesThatCategory() = runTest {
+        val repository = FakePasswordRepository(passwordCount = 1)
+        val categoryRepository = FakeCategoryRepository(
+            listOf(Category(4L, "Trabalho", "ic_work", 0, 50L))
+        )
+        val useCase = CreatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = categoryRepository,
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+        )
+
+        val result = useCase(
+            title = "Email",
+            login = "joao@email.com",
+            categoryId = 4L,
+            categoryName = "Trabalho",
+            password = "senha"
+        )
+
+        assertEquals(CreatePasswordResult.Success, result)
+        assertEquals(4L, categoryRepository.touchedCategoryId)
+    }
+
+    @Test
     fun givenExplicitTitle_whenInvoked_thenPreservesTrimmedUserValue() = runTest {
         val repository = FakePasswordRepository(passwordCount = 8)
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
-            categoryRepository = FakeCategoryRepository(listOf(Category(2L, "Geral", "ic_app", 0))),
+            categoryRepository = FakeCategoryRepository(listOf(Category(2L, "Geral", "ic_app", 0, 50L))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
@@ -98,7 +122,7 @@ class CreatePasswordUseCaseTest {
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = FakeCategoryRepository(
-                listOf(Category(3L, "Trabalho", "ic_work", 0))
+                listOf(Category(3L, "Trabalho", "ic_work", 0, 50L))
             ),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
@@ -149,7 +173,7 @@ class CreatePasswordUseCaseTest {
         val repository = FakePasswordRepository(shouldFailOnCreate = true)
         val useCase = CreatePasswordUseCase(
             passwordRepository = repository,
-            categoryRepository = FakeCategoryRepository(listOf(Category(1L, "Pessoal", "ic_home", 0))),
+            categoryRepository = FakeCategoryRepository(listOf(Category(1L, "Pessoal", "ic_home", 0, 50L))),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
         )
 
@@ -192,6 +216,7 @@ class CreatePasswordUseCaseTest {
     ) : CategoryRepository {
 
         private val categoriesFlow = MutableStateFlow(categories)
+        var touchedCategoryId: Long? = null
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
@@ -199,6 +224,10 @@ class CreatePasswordUseCaseTest {
             categoriesFlow.value.firstOrNull { it.id == categoryId }
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) {
+            touchedCategoryId = categoryId
+        }
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 

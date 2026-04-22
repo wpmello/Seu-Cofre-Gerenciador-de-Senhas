@@ -4,5 +4,6 @@ data class Category(
     val id: Long,
     val name: String,
     val iconKey: String,
-    val itemCount: Int
+    val itemCount: Int,
+    val lastModifiedAt: Long
 )

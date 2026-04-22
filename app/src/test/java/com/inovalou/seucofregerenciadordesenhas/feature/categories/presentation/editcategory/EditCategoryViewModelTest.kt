@@ -40,7 +40,8 @@ class EditCategoryViewModelTest {
                 id = 9L,
                 name = "Trabalho",
                 iconKey = "ic_work_bag_add_category",
-                itemCount = 4
+                itemCount = 4,
+                lastModifiedAt = 0L
             )
         )
 
@@ -257,7 +258,8 @@ class EditCategoryViewModelTest {
             id = 9L,
             name = "Trabalho",
             iconKey = "ic_work_bag_add_category",
-            itemCount = 4
+            itemCount = 4,
+            lastModifiedAt = 0L
         ),
         passwords: List<PasswordSummary> = emptyList(),
         openedFrom: EditCategoryOpenedFrom = EditCategoryOpenedFrom.Categories,
@@ -285,6 +287,7 @@ class EditCategoryViewModelTest {
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
         override suspend fun getCategoryById(categoryId: Long): Category? = category
         override suspend fun updateCategory(category: Category) = Unit
+        override suspend fun touchCategory(categoryId: Long) = Unit
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
         override fun observeCategories() = kotlinx.coroutines.flow.emptyFlow<List<Category>>()
     }
@@ -300,7 +303,7 @@ class EditCategoryViewModelTest {
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
         override suspend fun getCategoryById(categoryId: Long): Category? =
-            Category(id = categoryId, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 4)
+            Category(id = categoryId, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 4, lastModifiedAt = 0L)
 
         override suspend fun updateCategory(category: Category) {
             lastCategoryId = category.id
@@ -308,6 +311,8 @@ class EditCategoryViewModelTest {
             lastIconKey = category.iconKey
             if (result is UpdateCategoryResult.Failure) error("update failure")
         }
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
@@ -323,9 +328,11 @@ class EditCategoryViewModelTest {
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
         override suspend fun getCategoryById(categoryId: Long): Category? =
-            Category(id = categoryId, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 4)
+            Category(id = categoryId, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 4, lastModifiedAt = 0L)
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) {
             if (result is DeleteCategoryResult.Failure) error("delete failure")

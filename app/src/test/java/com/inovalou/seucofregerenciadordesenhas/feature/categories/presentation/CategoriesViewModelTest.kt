@@ -43,8 +43,8 @@ class CategoriesViewModelTest {
     fun givenCategoriesFlow_whenObservingState_thenMapsToContentUiState() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
-                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
-                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15)
+                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
+                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L)
             )
         )
         val viewModel = CategoriesViewModel(
@@ -69,11 +69,11 @@ class CategoriesViewModelTest {
     fun givenMoreThanFourCategories_whenObservingState_thenKeepsOnlyFourPreviewCards() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
-                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
-                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15),
-                Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12),
-                Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21),
-                Category(id = 5, name = "Privado", iconKey = "ic_directory", itemCount = 3)
+                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
+                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L),
+                Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12, lastModifiedAt = 30L),
+                Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21, lastModifiedAt = 40L),
+                Category(id = 5, name = "Privado", iconKey = "ic_directory", itemCount = 3, lastModifiedAt = 50L)
             )
         )
         val viewModel = CategoriesViewModel(
@@ -99,10 +99,10 @@ class CategoriesViewModelTest {
     fun givenFourOrFewerCategories_whenObservingState_thenHidesBottomViewAllButton() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
-                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42),
-                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15),
-                Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12),
-                Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21)
+                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
+                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L),
+                Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12, lastModifiedAt = 30L),
+                Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21, lastModifiedAt = 40L)
             )
         )
         val viewModel = CategoriesViewModel(
@@ -121,7 +121,7 @@ class CategoriesViewModelTest {
     fun givenUnknownIconKey_whenObservingState_thenUsesSafeFallbackIcon() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
-                Category(id = 3, name = "Legado", iconKey = "ic_unknown_legacy", itemCount = 2)
+                Category(id = 3, name = "Legado", iconKey = "ic_unknown_legacy", itemCount = 2, lastModifiedAt = 10L)
             )
         )
         val viewModel = CategoriesViewModel(
@@ -143,7 +143,7 @@ class CategoriesViewModelTest {
     fun givenCategoriesAreUpdatedAfterEdit_whenObservingState_thenListReflectsNewNameAndIcon() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
-                Category(id = 5, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 8)
+                Category(id = 5, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 8, lastModifiedAt = 10L)
             )
         )
         val viewModel = CategoriesViewModel(
@@ -154,7 +154,7 @@ class CategoriesViewModelTest {
 
         repository.emit(
             listOf(
-                Category(id = 5, name = "Corporativo", iconKey = "ic_directory", itemCount = 8)
+                Category(id = 5, name = "Corporativo", iconKey = "ic_directory", itemCount = 8, lastModifiedAt = 20L)
             )
         )
         advanceUntilIdle()
@@ -171,7 +171,7 @@ class CategoriesViewModelTest {
     fun givenCategoriesBecomeEmptyAfterDelete_whenObservingState_thenListReflectsEmptyState() = runTest {
         val repository = FakeCategoryRepository(
             listOf(
-                Category(id = 6, name = "Pessoal", iconKey = "ic_directory", itemCount = 1)
+                Category(id = 6, name = "Pessoal", iconKey = "ic_directory", itemCount = 1, lastModifiedAt = 10L)
             )
         )
         val viewModel = CategoriesViewModel(
@@ -195,6 +195,8 @@ class CategoriesViewModelTest {
 
             override suspend fun updateCategory(category: Category) = Unit
 
+            override suspend fun touchCategory(categoryId: Long) = Unit
+
             override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
             override fun observeCategories(): Flow<List<Category>> = flow {
@@ -213,6 +215,27 @@ class CategoriesViewModelTest {
         assertTrue(categoriesState is CategoriesContentUiState.Error)
     }
 
+    @Test
+    fun givenCategoriesWithDifferentLastModifiedAt_whenObservingState_thenHighlightsMostRecentlyChangedCategory() = runTest {
+        val repository = FakeCategoryRepository(
+            listOf(
+                Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
+                Category(id = 7, name = "Pessoal", iconKey = "ic_directory", itemCount = 3, lastModifiedAt = 200L),
+                Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L)
+            )
+        )
+        val viewModel = CategoriesViewModel(
+            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        advanceUntilIdle()
+
+        assertEquals(7L, viewModel.uiState.value.currentCategory?.id)
+        assertEquals("Pessoal", viewModel.uiState.value.currentCategory?.name)
+    }
+
     private class FakeCategoryRepository(
         categories: List<Category>
     ) : CategoryRepository {
@@ -224,6 +247,8 @@ class CategoriesViewModelTest {
         override suspend fun getCategoryById(categoryId: Long): Category? = null
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 

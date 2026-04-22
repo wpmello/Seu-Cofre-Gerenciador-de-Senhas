@@ -14,6 +14,8 @@ interface CategoryRepository {
 
     suspend fun updateCategory(category: Category)
 
+    suspend fun touchCategory(categoryId: Long)
+
     suspend fun deleteCategoryById(categoryId: Long)
 
     fun observeCategories(): Flow<List<Category>>

@@ -18,7 +18,8 @@ class DeleteCategoryUseCaseTest {
                 id = 18L,
                 name = "Pessoal",
                 iconKey = "ic_directory",
-                itemCount = 0
+                itemCount = 0,
+                lastModifiedAt = 0L
             )
         )
         val useCase = DeleteCategoryUseCase(repository)
@@ -46,7 +47,8 @@ class DeleteCategoryUseCaseTest {
                     id = 22L,
                     name = "Work",
                     iconKey = "ic_work_bag",
-                    itemCount = 5
+                    itemCount = 5,
+                    lastModifiedAt = 0L
                 ),
                 shouldFailOnDelete = true
             )
@@ -69,6 +71,8 @@ class DeleteCategoryUseCaseTest {
         override suspend fun getCategoryById(categoryId: Long): Category? = existingCategory
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) {
             if (shouldFailOnDelete) error("delete failure")

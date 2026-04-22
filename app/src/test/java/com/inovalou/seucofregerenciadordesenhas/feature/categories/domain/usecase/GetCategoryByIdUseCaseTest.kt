@@ -17,7 +17,8 @@ class GetCategoryByIdUseCaseTest {
                 id = 14L,
                 name = "Financeiro",
                 iconKey = "ic_star",
-                itemCount = 10
+                itemCount = 10,
+                lastModifiedAt = 0L
             )
         )
         val useCase = GetCategoryByIdUseCase(repository)
@@ -48,6 +49,8 @@ class GetCategoryByIdUseCaseTest {
         override suspend fun getCategoryById(categoryId: Long): Category? = category
 
         override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 

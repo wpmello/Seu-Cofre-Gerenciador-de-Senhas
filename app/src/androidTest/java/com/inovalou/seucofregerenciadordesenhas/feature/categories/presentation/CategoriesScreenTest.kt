@@ -127,6 +127,36 @@ class CategoriesScreenTest {
         assertTrue(wasClicked)
     }
 
+    @Test
+    fun givenHighlightedCategoryCard_whenClicked_thenInvokesCategoryNavigationCallback() {
+        var clickedCategoryId: Long? = null
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        currentCategory = HighlightedCategoryUiModel(
+                            id = 7L,
+                            name = "Pessoal",
+                            itemCount = 3
+                        ),
+                        categoriesState = CategoriesContentUiState.Content(
+                            categories = sampleCategories()
+                        )
+                    ),
+                    onAction = {},
+                    onCategoryClick = { clickedCategoryId = it },
+                    onViewAllClick = {},
+                    onAddCategoryClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("highlighted_category_card").performClick()
+
+        assertTrue(clickedCategoryId == 7L)
+    }
+
     private fun sampleCategories() = listOf(
         CategoryCardUiModel(
             id = 1L,

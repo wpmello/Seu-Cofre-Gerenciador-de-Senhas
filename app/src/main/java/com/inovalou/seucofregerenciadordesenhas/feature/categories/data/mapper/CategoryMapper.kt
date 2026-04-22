@@ -7,12 +7,14 @@ fun CategoryEntity.toDomain(): Category = Category(
     id = id,
     name = name,
     iconKey = iconKey,
-    itemCount = itemCount
+    itemCount = itemCount,
+    lastModifiedAt = lastModifiedAt
 )
 
 fun Category.toEntity(): CategoryEntity = CategoryEntity(
     id = id,
     name = name,
     iconKey = iconKey,
-    itemCount = itemCount
+    itemCount = itemCount,
+    lastModifiedAt = lastModifiedAt
 )
