@@ -1,0 +1,12 @@
+root = true
+
+[*.{kt,kts,java,xml,gradle,md,txt,json,yml,yaml,properties,gitignore,gitattributes,editorconfig}]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+[*.bat]
+end_of_line = crlf
+
+[*.cmd]
+end_of_line = crlf
