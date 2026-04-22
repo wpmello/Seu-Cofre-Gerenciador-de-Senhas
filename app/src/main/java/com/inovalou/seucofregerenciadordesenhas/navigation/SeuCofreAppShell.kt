@@ -27,6 +27,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.PasswordsRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordDestination
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordRoute
 
@@ -65,7 +67,9 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
             }
             composable(AppBottomDestination.Passwords.route) {
                 PasswordsRoute(
-                    onOpenPassword = {},
+                    onOpenPassword = { passwordId ->
+                        navController.navigate(EditPasswordDestination.createRoute(passwordId))
+                    },
                     onAddPassword = {
                         navController.navigate(NewPasswordDestination.route)
                     }
@@ -73,6 +77,23 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
             }
             composable(NewPasswordDestination.route) {
                 NewPasswordRoute(
+                    onNavigateBack = {
+                        navController.popBackStack(
+                            AppBottomDestination.Passwords.route,
+                            inclusive = false
+                        )
+                    }
+                )
+            }
+            composable(
+                route = EditPasswordDestination.routePattern,
+                arguments = listOf(
+                    navArgument(EditPasswordDestination.passwordIdArg) {
+                        type = NavType.LongType
+                    }
+                )
+            ) {
+                EditPasswordRoute(
                     onNavigateBack = {
                         navController.popBackStack(
                             AppBottomDestination.Passwords.route,
