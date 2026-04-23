@@ -2,15 +2,23 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import androidx.annotation.StringRes
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 
 data class EditPasswordUiState(
     val title: String = "",
     val email: String = "",
+    val selectedCategoryId: Long? = null,
+    val selectedCategoryName: String? = null,
+    val isCategoryDialogVisible: Boolean = false,
+    val categorySelectionState: PasswordCategorySelectionUiState =
+        PasswordCategorySelectionUiState.Loading,
     val password: String = "",
+    val isIdentityCardEditing: Boolean = false,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L,
     val isPasswordVisible: Boolean = false,
     val isSaving: Boolean = false,
+    @StringRes val categoryErrorResId: Int? = null,
     @StringRes val passwordErrorResId: Int? = null,
     @StringRes val submitErrorResId: Int? = null,
     val lastCopiedField: EditPasswordCopiedField? = null,

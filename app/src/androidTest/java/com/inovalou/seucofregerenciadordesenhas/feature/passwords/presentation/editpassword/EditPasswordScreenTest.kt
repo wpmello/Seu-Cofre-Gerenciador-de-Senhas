@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Rule
 import org.junit.Test
@@ -34,10 +35,12 @@ class EditPasswordScreenTest {
 
         composeRule.onNodeWithTag("edit_password_screen").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_header").assertIsDisplayed()
-        composeRule.onNodeWithTag("edit_password_title_input").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_identity_card_mode_button").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_title_text").assertIsDisplayed()
         composeRule.onNodeWithText("SP").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_email_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_password_input").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_category_field").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_save_button").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_delete_button").assertIsDisplayed()
         composeRule.onNodeWithText("Notas seguras").assertIsDisplayed()
@@ -74,8 +77,77 @@ class EditPasswordScreenTest {
                 EditPasswordScreen(
                     uiState = uiState,
                     onAction = { action ->
-                        if (action is EditPasswordAction.OnTitleChanged) {
-                            uiState = uiState.copy(title = action.title)
+                        when (action) {
+                            EditPasswordAction.OnIdentityCardEditClick -> {
+                                uiState = uiState.copy(isIdentityCardEditing = true)
+                            }
+                            is EditPasswordAction.OnTitleChanged -> {
+                                uiState = uiState.copy(title = action.title)
+                            }
+                            else -> Unit
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_identity_card_mode_button").performClick()
+        composeRule.onNodeWithTag("edit_password_title_input").performTextClearance()
+        composeRule.onNodeWithTag("edit_password_title_input").performTextInput("Netflix")
+
+        composeRule.onNodeWithText("Netflix").assertIsDisplayed()
+        composeRule.onNodeWithText("NE").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenCategoryFieldClick_whenStateIsControlled_thenDisplaysReusedDialog() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                var uiState by remember { mutableStateOf(editPasswordUiState()) }
+                EditPasswordScreen(
+                    uiState = uiState,
+                    onAction = { action ->
+                        when (action) {
+                            EditPasswordAction.OnIdentityCardEditClick -> {
+                                uiState = uiState.copy(isIdentityCardEditing = true)
+                            }
+                            EditPasswordAction.OnCategoryFieldClick -> {
+                                uiState = uiState.copy(isCategoryDialogVisible = true)
+                            }
+                            EditPasswordAction.OnCategoryDialogDismissed -> {
+                                uiState = uiState.copy(isCategoryDialogVisible = false)
+                            }
+                            else -> Unit
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_identity_card_mode_button").performClick()
+        composeRule.onNodeWithTag("edit_password_category_field").performClick()
+
+        composeRule.onNodeWithTag("password_category_dialog").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenIdentityCardSaveClick_whenStateIsControlled_thenReturnsToReadModeWithUpdatedTitle() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                var uiState by remember {
+                    mutableStateOf(editPasswordUiState().copy(isIdentityCardEditing = true))
+                }
+                EditPasswordScreen(
+                    uiState = uiState,
+                    onAction = { action ->
+                        when (action) {
+                            is EditPasswordAction.OnTitleChanged -> {
+                                uiState = uiState.copy(title = action.title)
+                            }
+                            EditPasswordAction.OnIdentityCardSaveClick -> {
+                                uiState = uiState.copy(isIdentityCardEditing = false)
+                            }
+                            else -> Unit
                         }
                     }
                 )
@@ -84,15 +156,27 @@ class EditPasswordScreenTest {
 
         composeRule.onNodeWithTag("edit_password_title_input").performTextClearance()
         composeRule.onNodeWithTag("edit_password_title_input").performTextInput("Netflix")
+        composeRule.onNodeWithTag("edit_password_identity_card_mode_button").performClick()
 
+        composeRule.onNodeWithTag("edit_password_title_text").assertIsDisplayed()
         composeRule.onNodeWithText("Netflix").assertIsDisplayed()
-        composeRule.onNodeWithText("NE").assertIsDisplayed()
     }
 
     private fun editPasswordUiState() = EditPasswordUiState(
         title = "Spotify",
         email = "premium@vault.com",
         password = "plain-secret",
+        selectedCategoryId = 2L,
+        selectedCategoryName = "Music",
+        categorySelectionState = PasswordCategorySelectionUiState.Content(
+            categories = listOf(
+                com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategoryOptionUiModel(
+                    id = 2L,
+                    name = "Music",
+                    isSelected = true
+                )
+            )
+        ),
         createdAt = 1_700_000_000_000L,
         updatedAt = 1_710_000_000_000L,
         contentState = EditPasswordContentState.Content,

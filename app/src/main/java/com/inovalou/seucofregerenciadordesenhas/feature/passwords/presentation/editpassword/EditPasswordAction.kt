@@ -2,8 +2,13 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 sealed interface EditPasswordAction {
     data object OnBackClick : EditPasswordAction
+    data object OnIdentityCardEditClick : EditPasswordAction
+    data object OnIdentityCardSaveClick : EditPasswordAction
     data class OnTitleChanged(val title: String) : EditPasswordAction
     data class OnEmailChanged(val email: String) : EditPasswordAction
+    data object OnCategoryFieldClick : EditPasswordAction
+    data object OnCategoryDialogDismissed : EditPasswordAction
+    data class OnCategorySelected(val categoryId: Long) : EditPasswordAction
     data class OnPasswordChanged(val password: String) : EditPasswordAction
     data object OnTogglePasswordVisibility : EditPasswordAction
     data object OnCopyEmailClick : EditPasswordAction

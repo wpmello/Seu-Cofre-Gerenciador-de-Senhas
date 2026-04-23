@@ -1,6 +1,8 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
@@ -20,6 +22,7 @@ class UpdatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordDetails = persistedPassword())
         val useCase = UpdatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(validCategory = persistedCategory()),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
@@ -28,6 +31,8 @@ class UpdatePasswordUseCaseTest {
             passwordId = 8L,
             title = "Spotify",
             login = "editado@vault.com",
+            categoryId = 2L,
+            categoryName = "Music",
             password = "   "
         )
 
@@ -44,6 +49,7 @@ class UpdatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordDetails = null)
         val useCase = UpdatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(validCategory = persistedCategory()),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
@@ -54,6 +60,8 @@ class UpdatePasswordUseCaseTest {
                 passwordId = 44L,
                 title = "Spotify",
                 login = "",
+                categoryId = 2L,
+                categoryName = "Music",
                 password = "new-secret"
             )
         )
@@ -64,6 +72,7 @@ class UpdatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordDetails = persistedPassword())
         val useCase = UpdatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(validCategory = persistedCategory()),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
@@ -72,6 +81,8 @@ class UpdatePasswordUseCaseTest {
             passwordId = 8L,
             title = "  Spotify Family  ",
             login = "  novo@email.com  ",
+            categoryId = 2L,
+            categoryName = "Music",
             password = "new-secret"
         )
 
@@ -94,6 +105,7 @@ class UpdatePasswordUseCaseTest {
                 passwordDetails = persistedPassword(),
                 shouldFailOnUpdate = true
             ),
+            categoryRepository = FakeCategoryRepository(validCategory = persistedCategory()),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(
                 FakePasswordRepository(passwordDetails = persistedPassword())
             ),
@@ -106,6 +118,8 @@ class UpdatePasswordUseCaseTest {
                 passwordId = 8L,
                 title = "Spotify",
                 login = "mail",
+                categoryId = 2L,
+                categoryName = "Music",
                 password = "new-secret"
             )
         )
@@ -116,6 +130,7 @@ class UpdatePasswordUseCaseTest {
         val repository = FakePasswordRepository(passwordDetails = persistedPassword())
         val useCase = UpdatePasswordUseCase(
             passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(validCategory = persistedCategory()),
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
@@ -124,6 +139,8 @@ class UpdatePasswordUseCaseTest {
             passwordId = 8L,
             title = "   ",
             login = "novo@email.com",
+            categoryId = 2L,
+            categoryName = "Music",
             password = "new-secret"
         )
 
@@ -131,16 +148,81 @@ class UpdatePasswordUseCaseTest {
         assertEquals("App 1", repository.updatedPassword?.title)
     }
 
-    private fun persistedPassword() = PasswordDetails(
+    @Test
+    fun givenMissingCategory_whenInvoked_thenReturnsValidationError() = runTest {
+        val repository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val useCase = UpdatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(validCategory = null),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_750_000_000_000L)
+        )
+
+        val result = useCase(
+            passwordId = 8L,
+            title = "Spotify",
+            login = "mail@vault.com",
+            categoryId = null,
+            categoryName = null,
+            password = "new-secret"
+        )
+
+        assertTrue(result is UpdatePasswordResult.ValidationError)
+        assertEquals(
+            CreatePasswordCategoryError.Missing,
+            (result as UpdatePasswordResult.ValidationError).validation.categoryError
+        )
+        assertNull(repository.updatedPassword)
+    }
+
+    @Test
+    fun givenLegacyInvalidCategory_whenInvoked_thenReturnsValidationError() = runTest {
+        val repository = FakePasswordRepository(passwordDetails = persistedPassword(categoryId = null, categoryName = "Legacy"))
+        val useCase = UpdatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(validCategory = null),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_750_000_000_000L)
+        )
+
+        val result = useCase(
+            passwordId = 8L,
+            title = "Spotify",
+            login = "mail@vault.com",
+            categoryId = null,
+            categoryName = "Legacy",
+            password = "new-secret"
+        )
+
+        assertTrue(result is UpdatePasswordResult.ValidationError)
+        assertEquals(
+            CreatePasswordCategoryError.Invalid,
+            (result as UpdatePasswordResult.ValidationError).validation.categoryError
+        )
+        assertNull(repository.updatedPassword)
+    }
+
+    private fun persistedPassword(
+        categoryId: Long? = 2L,
+        categoryName: String? = "Music"
+    ) = PasswordDetails(
         id = 8L,
         title = "Spotify",
         login = "premium@vault.com",
         password = "old-secret",
-        categoryId = 2L,
-        categoryName = "Music",
+        categoryId = categoryId,
+        categoryName = categoryName,
         iconKey = "sp",
         createdAt = 1_700_000_000_000L,
         updatedAt = 1_710_000_000_000L
+    )
+
+    private fun persistedCategory() = Category(
+        id = 2L,
+        name = "Music",
+        iconKey = "music",
+        itemCount = 3,
+        lastModifiedAt = 1_700_000_000_000L
     )
 
     private class FakePasswordRepository(
@@ -167,6 +249,24 @@ class UpdatePasswordUseCaseTest {
             }
             updatedPassword = password
         }
+    }
+
+    private class FakeCategoryRepository(
+        private val validCategory: Category?
+    ) : CategoryRepository {
+
+        override suspend fun createCategory(name: String, iconKey: String): Long = 0L
+
+        override suspend fun getCategoryById(categoryId: Long): Category? =
+            validCategory?.takeIf { it.id == categoryId }
+
+        override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
+
+        override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
+        override fun observeCategories(): Flow<List<Category>> = emptyFlow()
     }
 
     private class FixedTimeProvider(

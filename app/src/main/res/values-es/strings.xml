@@ -98,8 +98,13 @@
     <string name="new_password_save_error">No se pudo guardar la clave.</string>
     <string name="edit_password_back">Volver</string>
     <string name="edit_password_title">Editar clave</string>
+    <string name="edit_password_identity_card_edit">Editar</string>
+    <string name="edit_password_identity_card_save">Guardar</string>
+    <string name="edit_password_app_name_label">NOMBRE DE LA APP</string>
     <string name="edit_password_app_name_placeholder">Nombre de la app</string>
     <string name="edit_password_email_label">CORREO</string>
+    <string name="edit_password_category_label">CATEGORÍA</string>
+    <string name="edit_password_category_placeholder">Selecciona una categoría</string>
     <string name="edit_password_password_label">CLAVE</string>
     <string name="edit_password_show_password">Mostrar clave</string>
     <string name="edit_password_hide_password">Ocultar clave</string>
@@ -121,6 +126,8 @@
     <string name="edit_password_load_error">No se pudo cargar la clave.</string>
     <string name="edit_password_not_found_error">Clave no encontrada.</string>
     <string name="edit_password_save_error">No se pudieron guardar los cambios de la clave.</string>
+    <string name="edit_password_category_error_missing">Selecciona una categoría para continuar.</string>
+    <string name="edit_password_category_error_invalid">Selecciona una categoría válida para continuar.</string>
     <string name="edit_password_password_error_blank">Ingresa una clave para continuar.</string>
     <string name="bottom_nav_vault">COFRE</string>
     <string name="bottom_nav_passwords">CLAVES</string>

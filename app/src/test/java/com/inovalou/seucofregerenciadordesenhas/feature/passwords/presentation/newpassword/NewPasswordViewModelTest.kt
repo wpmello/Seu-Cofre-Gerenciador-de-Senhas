@@ -12,6 +12,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -92,7 +93,7 @@ class NewPasswordViewModelTest {
         advanceUntilIdle()
 
         assertEquals(
-            NewPasswordCategorySelectionUiState.Empty,
+            PasswordCategorySelectionUiState.Empty,
             viewModel.uiState.value.categorySelectionState
         )
     }
@@ -111,8 +112,8 @@ class NewPasswordViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value.categorySelectionState
-        assertTrue(state is NewPasswordCategorySelectionUiState.Content)
-        state as NewPasswordCategorySelectionUiState.Content
+        assertTrue(state is PasswordCategorySelectionUiState.Content)
+        state as PasswordCategorySelectionUiState.Content
         assertEquals(listOf("Trabalho", "Pessoal"), state.categories.map { it.name })
         assertTrue(state.categories.none { it.isSelected })
     }
@@ -149,8 +150,8 @@ class NewPasswordViewModelTest {
         viewModel.onAction(NewPasswordAction.OnCategoryFieldClick)
 
         val state = viewModel.uiState.value.categorySelectionState
-        assertTrue(state is NewPasswordCategorySelectionUiState.Content)
-        state as NewPasswordCategorySelectionUiState.Content
+        assertTrue(state is PasswordCategorySelectionUiState.Content)
+        state as PasswordCategorySelectionUiState.Content
         assertEquals(8L, state.categories.single { it.isSelected }.id)
     }
 
@@ -169,7 +170,7 @@ class NewPasswordViewModelTest {
         assertNull(viewModel.uiState.value.selectedCategoryId)
         assertNull(viewModel.uiState.value.selectedCategoryName)
         assertEquals(
-            NewPasswordCategorySelectionUiState.Empty,
+            PasswordCategorySelectionUiState.Empty,
             viewModel.uiState.value.categorySelectionState
         )
     }
