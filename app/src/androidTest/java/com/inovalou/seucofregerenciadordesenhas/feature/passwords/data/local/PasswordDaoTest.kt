@@ -49,22 +49,22 @@ class PasswordDaoTest {
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
-            ) VALUES (1, 'zeta', 'z@email.com', 'Misc', NULL, 'cipher-z', 'iv-z', 1, '', 100, 200)
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (1, 'zeta', 'z@email.com', 'Misc', NULL, 'cipher-z', 'iv-z', 1, '', 'Primeira conta', 100, 200)
             """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
-            ) VALUES (2, 'Alpha', 'a@email.com', '', 9, 'cipher-a', 'iv-a', 1, '', 300, 400)
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (2, 'Alpha', 'a@email.com', '', 9, 'cipher-a', 'iv-a', 1, '', NULL, 300, 400)
             """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
-            ) VALUES (3, 'bravo', 'b@email.com', 'Private', NULL, 'cipher-b', 'iv-b', 1, '', 500, 600)
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (3, 'bravo', 'b@email.com', 'Private', NULL, 'cipher-b', 'iv-b', 1, '', 'Backup', 500, 600)
             """.trimIndent()
         )
 
@@ -74,6 +74,7 @@ class PasswordDaoTest {
         assertEquals(listOf("a@email.com", "b@email.com", "z@email.com"), passwords.map { it.login })
         assertEquals(listOf("Work", "Private", "Misc"), passwords.map { it.category })
         assertEquals(listOf(9L, null, null), passwords.map { it.categoryId })
+        assertEquals(listOf(null, "Backup", "Primeira conta"), passwords.map { it.note })
         assertEquals(listOf("cipher-a", "cipher-b", "cipher-z"), passwords.map { it.encryptedPassword })
         assertEquals(listOf(300L, 500L, 100L), passwords.map { it.createdAt })
         assertEquals(listOf(400L, 600L, 200L), passwords.map { it.updatedAt })
@@ -87,15 +88,15 @@ class PasswordDaoTest {
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
-            ) VALUES (1, 'Netflix', 'a@email.com', '', 3, 'cipher-a', 'iv-a', 1, '', 100, 200)
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (1, 'Netflix', 'a@email.com', '', 3, 'cipher-a', 'iv-a', 1, '', 'Perfil da TV', 100, 200)
             """.trimIndent()
         )
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
-            ) VALUES (2, 'GitHub', 'dev@email.com', 'Legacy', NULL, 'cipher-b', 'iv-b', 1, '', 300, 400)
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (2, 'GitHub', 'dev@email.com', 'Legacy', NULL, 'cipher-b', 'iv-b', 1, '', NULL, 300, 400)
             """.trimIndent()
         )
 
@@ -105,6 +106,7 @@ class PasswordDaoTest {
         assertEquals("Netflix", passwords.single().title)
         assertEquals("Streaming", passwords.single().category)
         assertEquals(3L, passwords.single().categoryId)
+        assertEquals("Perfil da TV", passwords.single().note)
     }
 
     @Test
@@ -112,14 +114,15 @@ class PasswordDaoTest {
         database.openHelper.writableDatabase.execSQL(
             """
             INSERT INTO passwords(
-                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
-            ) VALUES (9, 'Spotify', 'premium@vault.com', 'Music', NULL, 'cipher', 'iv', 1, 'sp', 111, 222)
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (9, 'Spotify', 'premium@vault.com', 'Music', NULL, 'cipher', 'iv', 1, 'sp', 'Renovar em julho', 111, 222)
             """.trimIndent()
         )
 
         val password = passwordDao.getPasswordById(9L)
 
         assertEquals(9L, password?.id)
+        assertEquals("Renovar em julho", password?.note)
         assertEquals(111L, password?.createdAt)
         assertEquals(222L, password?.updatedAt)
     }

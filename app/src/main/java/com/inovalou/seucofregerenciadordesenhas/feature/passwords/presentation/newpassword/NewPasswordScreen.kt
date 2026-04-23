@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -170,6 +171,11 @@ fun NewPasswordScreen(
                         onAction(NewPasswordAction.OnTogglePasswordVisibility)
                     }
                 )
+
+                NoteSection(
+                    note = uiState.note,
+                    onNoteChanged = { onAction(NewPasswordAction.OnNoteChanged(it)) }
+                )
             }
 
             uiState.submitErrorResId?.let { errorResId ->
@@ -203,17 +209,21 @@ private fun PasswordTextField(
     label: String?,
     value: String,
     placeholder: String,
-    leadingIcon: ImageVector,
+    leadingIcon: ImageVector? = null,
     onValueChange: (String) -> Unit,
     keyboardOptions: KeyboardOptions,
     testTag: String,
     isPasswordField: Boolean = false,
     isPasswordVisible: Boolean = false,
     onTogglePasswordVisibility: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     containerColor: Color = DeepNavy,
     highlightedLabel: Boolean = false,
     showBorder: Boolean = true,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = 1
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         label?.let {
@@ -223,10 +233,12 @@ private fun PasswordTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .testTag(testTag),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             shape = RoundedCornerShape(16.dp),
             keyboardOptions = keyboardOptions,
             readOnly = readOnly,
@@ -241,12 +253,14 @@ private fun PasswordTextField(
                     color = GhostOutline.copy(alpha = 0.75f)
                 )
             },
-            leadingIcon = {
-                Icon(
-                    imageVector = leadingIcon,
-                    contentDescription = null,
-                    tint = SoftWhite.copy(alpha = 0.78f)
-                )
+            leadingIcon = leadingIcon?.let { icon ->
+                {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = SoftWhite.copy(alpha = 0.78f)
+                    )
+                }
             },
             trailingIcon = if (isPasswordField && onTogglePasswordVisibility != null) {
                 {
@@ -290,6 +304,69 @@ private fun PasswordTextField(
                 unfocusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
                 cursorColor = ElectricBlue
             )
+        )
+    }
+}
+
+@Composable
+private fun NoteSection(
+    note: String,
+    onNoteChanged: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        PasswordSectionLabel(
+            label = stringResource(R.string.new_password_note_label),
+            highlighted = true
+        )
+
+        PasswordTextField(
+            label = null,
+            value = note,
+            placeholder = stringResource(R.string.new_password_note_hint),
+            onValueChange = onNoteChanged,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Default
+            ),
+            testTag = "new_password_note_input",
+            modifier = Modifier.heightIn(min = 168.dp),
+            containerColor = DeepNavy,
+            singleLine = false,
+            minLines = 6,
+            maxLines = 6
+        )
+
+        if (note.isNotEmpty()) {
+            PlainTextNoteWarning(
+                warningText = stringResource(R.string.new_password_note_warning)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlainTextNoteWarning(
+    warningText: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0x1AF4C95D),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = Color(0x66F4C95D)
+        )
+    ) {
+        Text(
+            text = warningText,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            color = Color(0xFFF4C95D),
+            fontSize = 12.sp,
+            lineHeight = 18.sp
         )
     }
 }

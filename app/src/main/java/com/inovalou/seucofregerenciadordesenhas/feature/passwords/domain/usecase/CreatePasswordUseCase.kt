@@ -18,7 +18,8 @@ class CreatePasswordUseCase @Inject constructor(
         login: String,
         categoryId: Long?,
         categoryName: String?,
-        password: String
+        password: String,
+        note: String? = null
     ): CreatePasswordResult {
         val persistedCategory = when {
             categoryId == null -> null
@@ -50,6 +51,7 @@ class CreatePasswordUseCase @Inject constructor(
                     categoryId = persistedCategory?.id,
                     categoryName = persistedCategory?.name ?: categoryName?.trim()?.takeIf { it.isNotBlank() },
                     password = password,
+                    note = note?.trim()?.takeIf { it.isNotEmpty() },
                     createdAt = now,
                     updatedAt = now
                 )

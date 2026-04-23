@@ -33,7 +33,8 @@ class UpdatePasswordUseCaseTest {
             login = "editado@vault.com",
             categoryId = 2L,
             categoryName = "Music",
-            password = "   "
+            password = "   ",
+            note = null
         )
 
         assertTrue(result is UpdatePasswordResult.ValidationError)
@@ -62,7 +63,8 @@ class UpdatePasswordUseCaseTest {
                 login = "",
                 categoryId = 2L,
                 categoryName = "Music",
-                password = "new-secret"
+                password = "new-secret",
+                note = null
             )
         )
     }
@@ -83,7 +85,8 @@ class UpdatePasswordUseCaseTest {
             login = "  novo@email.com  ",
             categoryId = 2L,
             categoryName = "Music",
-            password = "new-secret"
+            password = "new-secret",
+            note = "  Login compartilhado com o time.  "
         )
 
         assertEquals(UpdatePasswordResult.Success, result)
@@ -92,6 +95,7 @@ class UpdatePasswordUseCaseTest {
                 title = "Spotify Family",
                 login = "novo@email.com",
                 password = "new-secret",
+                note = "Login compartilhado com o time.",
                 updatedAt = 1_750_000_000_000L
             ),
             repository.updatedPassword
@@ -120,7 +124,8 @@ class UpdatePasswordUseCaseTest {
                 login = "mail",
                 categoryId = 2L,
                 categoryName = "Music",
-                password = "new-secret"
+                password = "new-secret",
+                note = null
             )
         )
     }
@@ -141,7 +146,8 @@ class UpdatePasswordUseCaseTest {
             login = "novo@email.com",
             categoryId = 2L,
             categoryName = "Music",
-            password = "new-secret"
+            password = "new-secret",
+            note = null
         )
 
         assertEquals(UpdatePasswordResult.Success, result)
@@ -164,7 +170,8 @@ class UpdatePasswordUseCaseTest {
             login = "mail@vault.com",
             categoryId = null,
             categoryName = null,
-            password = "new-secret"
+            password = "new-secret",
+            note = null
         )
 
         assertTrue(result is UpdatePasswordResult.ValidationError)
@@ -191,7 +198,8 @@ class UpdatePasswordUseCaseTest {
             login = "mail@vault.com",
             categoryId = null,
             categoryName = "Legacy",
-            password = "new-secret"
+            password = "new-secret",
+            note = null
         )
 
         assertTrue(result is UpdatePasswordResult.ValidationError)
@@ -204,12 +212,14 @@ class UpdatePasswordUseCaseTest {
 
     private fun persistedPassword(
         categoryId: Long? = 2L,
-        categoryName: String? = "Music"
+        categoryName: String? = "Music",
+        note: String? = null
     ) = PasswordDetails(
         id = 8L,
         title = "Spotify",
         login = "premium@vault.com",
         password = "old-secret",
+        note = note,
         categoryId = categoryId,
         categoryName = categoryName,
         iconKey = "sp",

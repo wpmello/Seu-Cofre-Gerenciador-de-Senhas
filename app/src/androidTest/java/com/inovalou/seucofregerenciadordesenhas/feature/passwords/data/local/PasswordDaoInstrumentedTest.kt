@@ -45,6 +45,7 @@ class PasswordDaoInstrumentedTest {
                 passwordIv = "iv-text",
                 passwordCipherVersion = 1,
                 iconKey = "",
+                note = "Acesso do trabalho",
                 createdAt = 100L,
                 updatedAt = 200L
             )
@@ -57,6 +58,7 @@ class PasswordDaoInstrumentedTest {
         assertEquals("cipher-text", stored.encryptedPassword)
         assertEquals("iv-text", stored.passwordIv)
         assertEquals(10L, stored.categoryId)
+        assertEquals("Acesso do trabalho", stored.note)
         assertEquals(100L, stored.createdAt)
         assertEquals(200L, stored.updatedAt)
     }

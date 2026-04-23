@@ -24,7 +24,8 @@ class GetPasswordDetailsUseCaseTest {
             categoryName = "Music",
             iconKey = "sp",
             createdAt = 1_700_000_000_000L,
-            updatedAt = 1_710_000_000_000L
+            updatedAt = 1_710_000_000_000L,
+            note = "Conta premium"
         )
         val useCase = GetPasswordDetailsUseCase(
             passwordRepository = FakePasswordRepository(passwordDetails = expected)

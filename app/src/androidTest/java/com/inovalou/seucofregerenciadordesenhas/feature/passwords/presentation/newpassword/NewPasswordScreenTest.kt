@@ -6,7 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -39,8 +41,45 @@ class NewPasswordScreenTest {
         composeRule.onNodeWithTag("new_password_email_input").assertIsDisplayed()
         composeRule.onNodeWithTag("new_password_category_field").assertIsDisplayed()
         composeRule.onNodeWithTag("new_password_password_input").assertIsDisplayed()
+        composeRule.onNodeWithTag("new_password_note_input").assertIsDisplayed()
         composeRule.onNodeWithTag("new_password_visibility_toggle").assertIsDisplayed()
         composeRule.onNodeWithTag("new_password_save_button").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenEmptyNote_whenScreenIsRendered_thenPlainTextWarningIsHidden() {
+        composeRule.setContent {
+            NewPasswordScreen(
+                uiState = NewPasswordUiState(),
+                onAction = {}
+            )
+        }
+
+        composeRule.onNodeWithText(
+            "Atenção: esta nota será salva em texto puro. Não adicione senhas, códigos ou outras informações sensíveis."
+        ).assertDoesNotExist()
+    }
+
+    @Test
+    fun givenTypedNote_whenStateIsControlled_thenShowsPlainTextWarning() {
+        composeRule.setContent {
+            var uiState by remember { mutableStateOf(NewPasswordUiState()) }
+
+            NewPasswordScreen(
+                uiState = uiState,
+                onAction = { action ->
+                    if (action is NewPasswordAction.OnNoteChanged) {
+                        uiState = uiState.copy(note = action.note)
+                    }
+                }
+            )
+        }
+
+        composeRule.onNodeWithTag("new_password_note_input").performTextInput("Cobrança compartilhada")
+
+        composeRule.onNodeWithText(
+            "Atenção: esta nota será salva em texto puro. Não adicione senhas, códigos ou outras informações sensíveis."
+        ).assertIsDisplayed()
     }
 
     @Test

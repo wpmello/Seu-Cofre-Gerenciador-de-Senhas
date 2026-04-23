@@ -12,6 +12,7 @@ data class NewPasswordUiState(
     val categorySelectionState: PasswordCategorySelectionUiState =
         PasswordCategorySelectionUiState.Loading,
     val password: String = "",
+    val note: String = "",
     val isPasswordVisible: Boolean = false,
     val isSaving: Boolean = false,
     @StringRes val categoryErrorResId: Int? = null,

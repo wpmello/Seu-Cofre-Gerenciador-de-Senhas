@@ -140,6 +140,7 @@ class PasswordRepositoryImplTest {
                 categoryId = 11L,
                 categoryName = "Work",
                 password = "plain-secret",
+                note = "Conta usada pelo time de plataforma",
                 createdAt = 1_700_000_000_000L,
                 updatedAt = 1_700_000_000_000L
             )
@@ -149,6 +150,7 @@ class PasswordRepositoryImplTest {
         assertEquals("iv::plain-secret", localDataSource.insertedPassword?.passwordIv)
         assertEquals(11L, localDataSource.insertedPassword?.categoryId)
         assertEquals("Work", localDataSource.insertedPassword?.category)
+        assertEquals("Conta usada pelo time de plataforma", localDataSource.insertedPassword?.note)
         assertEquals(1_700_000_000_000L, localDataSource.insertedPassword?.createdAt)
         assertEquals(1_700_000_000_000L, localDataSource.insertedPassword?.updatedAt)
         assertEquals("plain-secret", passwordCipher.lastEncryptedPlainText)
@@ -180,7 +182,8 @@ class PasswordRepositoryImplTest {
                     categoryName = null,
                     password = "plain-secret",
                     createdAt = 1_700_000_000_000L,
-                    updatedAt = 1_700_000_000_000L
+                    updatedAt = 1_700_000_000_000L,
+                    note = null
                 )
             )
             null
@@ -287,7 +290,8 @@ class PasswordRepositoryImplTest {
                 passwordCipherVersion = 2,
                 iconKey = "sp",
                 createdAt = 1_700_000_000_000L,
-                updatedAt = 1_710_000_000_000L
+                updatedAt = 1_710_000_000_000L,
+                note = "Renovar no fim do trimestre"
             )
         )
         val repository = PasswordRepositoryImpl(
@@ -305,11 +309,12 @@ class PasswordRepositoryImplTest {
                 login = "premium@vault.com",
                 password = "plain::cipher",
                 categoryId = 7L,
-                categoryName = "Music",
-                iconKey = "sp",
-                createdAt = 1_700_000_000_000L,
-                updatedAt = 1_710_000_000_000L
-            ),
+                    categoryName = "Music",
+                    iconKey = "sp",
+                    note = "Renovar no fim do trimestre",
+                    createdAt = 1_700_000_000_000L,
+                    updatedAt = 1_710_000_000_000L
+                ),
             result
         )
     }
@@ -329,6 +334,7 @@ class PasswordRepositoryImplTest {
                 title = "Spotify",
                 login = "updated@vault.com",
                 password = "new-secret",
+                note = "Conta rotacionada em janeiro",
                 categoryId = 7L,
                 categoryName = "Music",
                 iconKey = "sp",
@@ -339,6 +345,7 @@ class PasswordRepositoryImplTest {
 
         assertEquals("enc::new-secret", localDataSource.updatedPassword?.encryptedPassword)
         assertEquals("iv::new-secret", localDataSource.updatedPassword?.passwordIv)
+        assertEquals("Conta rotacionada em janeiro", localDataSource.updatedPassword?.note)
         assertEquals(1_700_000_000_000L, localDataSource.updatedPassword?.createdAt)
         assertEquals(1_760_000_000_000L, localDataSource.updatedPassword?.updatedAt)
     }

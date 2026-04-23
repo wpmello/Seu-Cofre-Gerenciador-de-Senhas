@@ -49,6 +49,7 @@ class NewPasswordViewModel @Inject constructor(
             NewPasswordAction.OnCategoryDialogDismissed -> closeCategoryDialog()
             is NewPasswordAction.OnCategorySelected -> selectCategory(action.categoryId)
             is NewPasswordAction.OnPasswordChanged -> updateState(password = action.password)
+            is NewPasswordAction.OnNoteChanged -> updateState(note = action.note)
             NewPasswordAction.OnTogglePasswordVisibility -> togglePasswordVisibility()
             NewPasswordAction.OnSaveClick -> savePassword()
         }
@@ -57,13 +58,15 @@ class NewPasswordViewModel @Inject constructor(
     private fun updateState(
         title: String = _uiState.value.title,
         login: String = _uiState.value.login,
-        password: String = _uiState.value.password
+        password: String = _uiState.value.password,
+        note: String = _uiState.value.note
     ) {
         _uiState.update { state ->
             state.copy(
                 title = title,
                 login = login,
                 password = password,
+                note = note,
                 passwordErrorResId = null,
                 submitErrorResId = null
             )
@@ -93,7 +96,8 @@ class NewPasswordViewModel @Inject constructor(
                     login = _uiState.value.login,
                     categoryId = _uiState.value.selectedCategoryId,
                     categoryName = _uiState.value.selectedCategoryName,
-                    password = _uiState.value.password
+                    password = _uiState.value.password,
+                    note = _uiState.value.note
                 )
             ) {
                 CreatePasswordResult.Success -> {

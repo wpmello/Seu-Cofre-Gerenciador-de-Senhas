@@ -32,6 +32,7 @@ object DatabaseModule {
         .addMigrations(SeuCofreDatabaseMigrations.MIGRATION_4_5)
         .addMigrations(SeuCofreDatabaseMigrations.MIGRATION_5_6)
         .addMigrations(SeuCofreDatabaseMigrations.MIGRATION_6_7)
+        .addMigrations(SeuCofreDatabaseMigrations.MIGRATION_7_8)
         .build()
 
     @Provides

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -203,7 +204,8 @@ fun EditPasswordScreen(
                     }
 
                     NotesCard(
-                        notes = stringResource(uiState.notesResId)
+                        note = uiState.note,
+                        onNoteChanged = { onAction(EditPasswordAction.OnNoteChanged(it)) }
                     )
 
                     Row(
@@ -876,7 +878,10 @@ private fun DateInfoCard(
 }
 
 @Composable
-private fun NotesCard(notes: String) {
+private fun NotesCard(
+    note: String,
+    onNoteChanged: (String) -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
@@ -897,13 +902,55 @@ private fun NotesCard(notes: String) {
                 letterSpacing = 2.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            Text(
-                text = notes,
-                color = MistText,
-                fontSize = 14.sp,
-                lineHeight = 22.sp
+            TextField(
+                value = note,
+                onValueChange = onNoteChanged,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 140.dp)
+                    .testTag("edit_password_note_input"),
+                singleLine = false,
+                minLines = 5,
+                maxLines = 5,
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.edit_password_notes_empty_hint),
+                        color = GhostOutline.copy(alpha = 0.75f)
+                    )
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = DeepNavy.copy(alpha = 0.3f),
+                    unfocusedContainerColor = DeepNavy.copy(alpha = 0.3f),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = MistText,
+                    unfocusedTextColor = MistText,
+                    cursorColor = ElectricBlue
+                )
             )
+
+            if (note.isNotEmpty()) {
+                PlainTextNoteNotice(text = stringResource(R.string.new_password_note_warning))
+            }
         }
+    }
+}
+
+@Composable
+private fun PlainTextNoteNotice(text: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0x1AF4C95D),
+        border = BorderStroke(1.dp, Color(0x66F4C95D))
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            color = Color(0xFFF4C95D),
+            fontSize = 12.sp,
+            lineHeight = 18.sp
+        )
     }
 }
 
