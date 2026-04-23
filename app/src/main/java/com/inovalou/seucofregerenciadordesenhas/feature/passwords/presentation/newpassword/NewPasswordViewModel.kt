@@ -9,6 +9,9 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordPasswordError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.toPasswordCategorySelectionState
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.withSelection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -140,7 +143,7 @@ class NewPasswordViewModel @Inject constructor(
 
     private fun selectCategory(categoryId: Long) {
         val selectionState = _uiState.value.categorySelectionState
-        if (selectionState !is NewPasswordCategorySelectionUiState.Content) {
+        if (selectionState !is PasswordCategorySelectionUiState.Content) {
             return
         }
 
@@ -190,26 +193,4 @@ private fun CreatePasswordPasswordError?.toPasswordErrorResId(): Int? = when (th
 
 private fun List<Category>.toSelectionState(
     selectedCategoryId: Long?
-): NewPasswordCategorySelectionUiState {
-    if (isEmpty()) {
-        return NewPasswordCategorySelectionUiState.Empty
-    }
-
-    return NewPasswordCategorySelectionUiState.Content(
-        categories = map { category ->
-            NewPasswordCategoryOptionUiModel(
-                id = category.id,
-                name = category.name,
-                isSelected = category.id == selectedCategoryId
-            )
-        }
-    )
-}
-
-private fun NewPasswordCategorySelectionUiState.Content.withSelection(
-    selectedCategoryId: Long
-): NewPasswordCategorySelectionUiState.Content = copy(
-    categories = categories.map { category ->
-        category.copy(isSelected = category.id == selectedCategoryId)
-    }
-)
+): PasswordCategorySelectionUiState = toPasswordCategorySelectionState(selectedCategoryId)

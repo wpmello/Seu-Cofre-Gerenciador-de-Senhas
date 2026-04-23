@@ -122,4 +122,29 @@ object SeuCofreDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                UPDATE passwords
+                SET created_at = CAST(strftime('%s','now') AS INTEGER) * 1000,
+                    updated_at = CAST(strftime('%s','now') AS INTEGER) * 1000
+                WHERE created_at = 0 OR updated_at = 0
+                """.trimIndent()
+            )
+        }
+    }
 }

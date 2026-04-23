@@ -2,14 +2,17 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -90,7 +93,7 @@ class NewPasswordViewModelTest {
         advanceUntilIdle()
 
         assertEquals(
-            NewPasswordCategorySelectionUiState.Empty,
+            PasswordCategorySelectionUiState.Empty,
             viewModel.uiState.value.categorySelectionState
         )
     }
@@ -109,8 +112,8 @@ class NewPasswordViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value.categorySelectionState
-        assertTrue(state is NewPasswordCategorySelectionUiState.Content)
-        state as NewPasswordCategorySelectionUiState.Content
+        assertTrue(state is PasswordCategorySelectionUiState.Content)
+        state as PasswordCategorySelectionUiState.Content
         assertEquals(listOf("Trabalho", "Pessoal"), state.categories.map { it.name })
         assertTrue(state.categories.none { it.isSelected })
     }
@@ -147,8 +150,8 @@ class NewPasswordViewModelTest {
         viewModel.onAction(NewPasswordAction.OnCategoryFieldClick)
 
         val state = viewModel.uiState.value.categorySelectionState
-        assertTrue(state is NewPasswordCategorySelectionUiState.Content)
-        state as NewPasswordCategorySelectionUiState.Content
+        assertTrue(state is PasswordCategorySelectionUiState.Content)
+        state as PasswordCategorySelectionUiState.Content
         assertEquals(8L, state.categories.single { it.isSelected }.id)
     }
 
@@ -167,7 +170,7 @@ class NewPasswordViewModelTest {
         assertNull(viewModel.uiState.value.selectedCategoryId)
         assertNull(viewModel.uiState.value.selectedCategoryName)
         assertEquals(
-            NewPasswordCategorySelectionUiState.Empty,
+            PasswordCategorySelectionUiState.Empty,
             viewModel.uiState.value.categorySelectionState
         )
     }
@@ -303,7 +306,8 @@ class NewPasswordViewModelTest {
         createPasswordUseCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = categoryRepository,
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository)
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
         ),
         observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository)
     )
@@ -328,6 +332,10 @@ class NewPasswordViewModelTest {
             createdPassword = password
             return 1L
         }
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
     }
 
     private class FakeCategoryRepository(
@@ -352,5 +360,11 @@ class NewPasswordViewModelTest {
         fun emit(categories: List<Category>) {
             categoriesFlow.value = categories
         }
+    }
+
+    private class FixedTimeProvider(
+        private val currentTimeMillis: Long
+    ) : TimeProvider {
+        override fun currentTimeMillis(): Long = currentTimeMillis
     }
 }

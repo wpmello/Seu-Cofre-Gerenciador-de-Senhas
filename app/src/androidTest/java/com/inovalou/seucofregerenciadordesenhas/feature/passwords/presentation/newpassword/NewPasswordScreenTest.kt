@@ -11,6 +11,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategoryOptionUiModel
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +49,7 @@ class NewPasswordScreenTest {
             NewPasswordScreen(
                 uiState = NewPasswordUiState(
                     isCategoryDialogVisible = true,
-                    categorySelectionState = NewPasswordCategorySelectionUiState.Empty
+                    categorySelectionState = PasswordCategorySelectionUiState.Empty
                 ),
                 onAction = {}
             )
@@ -68,7 +70,7 @@ class NewPasswordScreenTest {
                     if (action == NewPasswordAction.OnCategoryFieldClick) {
                         uiState = uiState.copy(
                             isCategoryDialogVisible = true,
-                            categorySelectionState = NewPasswordCategorySelectionUiState.Empty
+                            categorySelectionState = PasswordCategorySelectionUiState.Empty
                         )
                     }
                 }
@@ -87,9 +89,9 @@ class NewPasswordScreenTest {
             NewPasswordScreen(
                 uiState = NewPasswordUiState(
                     isCategoryDialogVisible = true,
-                    categorySelectionState = NewPasswordCategorySelectionUiState.Content(
+                    categorySelectionState = PasswordCategorySelectionUiState.Content(
                         categories = listOf(
-                            NewPasswordCategoryOptionUiModel(
+                            PasswordCategoryOptionUiModel(
                                 id = 3L,
                                 name = "Trabalho",
                                 isSelected = false

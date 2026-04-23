@@ -2,11 +2,10 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecas
 
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
-import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import javax.inject.Inject
 
-class CreatePasswordUseCase @Inject constructor(
+class UpdatePasswordUseCase @Inject constructor(
     private val passwordRepository: PasswordRepository,
     private val categoryRepository: CategoryRepository,
     private val generatePasswordTitleUseCase: GeneratePasswordTitleUseCase,
@@ -14,75 +13,74 @@ class CreatePasswordUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(
+        passwordId: Long,
         title: String,
         login: String,
         categoryId: Long?,
         categoryName: String?,
         password: String
-    ): CreatePasswordResult {
+    ): UpdatePasswordResult {
         val persistedCategory = when {
             categoryId == null -> null
             else -> categoryRepository.getCategoryById(categoryId)
         }
-        val validation = CreatePasswordValidation(
+        val validation = UpdatePasswordValidation(
             categoryError = when {
-                categoryId == null -> CreatePasswordCategoryError.Missing
-                persistedCategory == null -> CreatePasswordCategoryError.Invalid
+                categoryId == null && categoryName.isNullOrBlank() -> CreatePasswordCategoryError.Missing
+                categoryId == null && !categoryName.isNullOrBlank() -> CreatePasswordCategoryError.Invalid
+                categoryId != null && persistedCategory == null -> CreatePasswordCategoryError.Invalid
                 else -> null
             },
             passwordError = if (password.isBlank()) {
-                CreatePasswordPasswordError.Blank
+                UpdatePasswordPasswordError.Blank
             } else {
                 null
             }
         )
 
         if (validation.hasError) {
-            return CreatePasswordResult.ValidationError(validation)
+            return UpdatePasswordResult.ValidationError(validation)
         }
 
+        val currentPassword = passwordRepository.getPasswordDetails(passwordId)
+            ?: return UpdatePasswordResult.NotFound
+
         return try {
-            val now = timeProvider.currentTimeMillis()
-            passwordRepository.createPassword(
-                NewPassword(
+            passwordRepository.updatePassword(
+                currentPassword.copy(
                     title = generatePasswordTitleUseCase(title),
                     login = login.trim(),
                     categoryId = persistedCategory?.id,
-                    categoryName = persistedCategory?.name ?: categoryName?.trim()?.takeIf { it.isNotBlank() },
+                    categoryName = persistedCategory?.name,
                     password = password,
-                    createdAt = now,
-                    updatedAt = now
+                    updatedAt = timeProvider.currentTimeMillis()
                 )
             )
             persistedCategory?.id?.let { categoryRepository.touchCategory(it) }
-            CreatePasswordResult.Success
+            UpdatePasswordResult.Success
         } catch (_: Exception) {
-            CreatePasswordResult.Failure
+            UpdatePasswordResult.Failure
         }
     }
 }
 
-data class CreatePasswordValidation(
+data class UpdatePasswordValidation(
     val categoryError: CreatePasswordCategoryError? = null,
-    val passwordError: CreatePasswordPasswordError? = null
+    val passwordError: UpdatePasswordPasswordError? = null
 ) {
     val hasError: Boolean
         get() = categoryError != null || passwordError != null
 }
 
-enum class CreatePasswordCategoryError {
-    Missing,
-    Invalid
-}
-
-enum class CreatePasswordPasswordError {
+enum class UpdatePasswordPasswordError {
     Blank
 }
 
-sealed interface CreatePasswordResult {
-    data object Success : CreatePasswordResult
+sealed interface UpdatePasswordResult {
+    data object Success : UpdatePasswordResult
     data class ValidationError(
-        val validation: CreatePasswordValidation
-    ) : CreatePasswordResult
-    data object Failure : CreatePasswordResult
+        val validation: UpdatePasswordValidation
+    ) : UpdatePasswordResult
+    data object NotFound : UpdatePasswordResult
+    data object Failure : UpdatePasswordResult
 }

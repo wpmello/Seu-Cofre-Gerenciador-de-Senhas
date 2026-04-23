@@ -25,16 +25,13 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -56,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
@@ -192,7 +190,7 @@ fun NewPasswordScreen(
     }
 
     if (uiState.isCategoryDialogVisible) {
-        CategorySelectionDialog(
+        PasswordCategorySelectionDialog(
             state = uiState.categorySelectionState,
             onCategorySelected = { onAction(NewPasswordAction.OnCategorySelected(it)) },
             onDismiss = { onAction(NewPasswordAction.OnCategoryDialogDismissed) }
@@ -353,86 +351,6 @@ private fun PasswordSectionLabel(
         fontWeight = FontWeight.Medium,
         letterSpacing = 1.2.sp
     )
-}
-
-@Composable
-private fun CategorySelectionDialog(
-    state: NewPasswordCategorySelectionUiState,
-    onCategorySelected: (Long) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.new_password_category_dialog_title),
-                color = SoftWhite
-            )
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.testTag("new_password_category_dialog")
-            ) {
-                when (state) {
-                    NewPasswordCategorySelectionUiState.Loading -> {
-                        Text(
-                            text = stringResource(R.string.new_password_category_dialog_loading),
-                            color = MistText
-                        )
-                    }
-
-                    NewPasswordCategorySelectionUiState.Empty -> {
-                        Text(
-                            text = stringResource(R.string.new_password_category_dialog_empty),
-                            color = MistText
-                        )
-                    }
-
-                    is NewPasswordCategorySelectionUiState.Content -> {
-                        state.categories.forEach { category ->
-                            CategorySelectionRow(
-                                category = category,
-                                onClick = { onCategorySelected(category.id) }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.edit_category_cancel))
-            }
-        },
-        containerColor = DeepNavy
-    )
-}
-
-@Composable
-private fun CategorySelectionRow(
-    category: NewPasswordCategoryOptionUiModel,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = category.isSelected,
-            onClick = onClick
-        )
-        Text(
-            text = category.name,
-            color = SoftWhite,
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
 }
 
 @Composable
