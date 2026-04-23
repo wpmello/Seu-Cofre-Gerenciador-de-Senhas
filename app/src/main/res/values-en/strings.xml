@@ -89,6 +89,9 @@
     <string name="new_password_category_dialog_empty">There are no categories available yet.</string>
     <string name="new_password_password_label">PASSWORD</string>
     <string name="new_password_password_hint">Enter a secure password</string>
+    <string name="new_password_note_label">NOTES</string>
+    <string name="new_password_note_hint">Add an optional note about this credential</string>
+    <string name="new_password_note_warning">Warning: this note will be stored in plain text. Do not add passwords, codes, or other sensitive information.</string>
     <string name="new_password_show_password">Show password</string>
     <string name="new_password_hide_password">Hide password</string>
     <string name="new_password_save_button">Save Password</string>
@@ -114,8 +117,8 @@
     <string name="edit_password_delete_button">Delete</string>
     <string name="edit_password_created_at_label">Created on</string>
     <string name="edit_password_updated_at_label">Modified on</string>
-    <string name="edit_password_notes_label">Secure notes</string>
-    <string name="edit_password_notes_mock">This account is linked to the family plan. Billing happens on the 15th of every month using the primary credit card.</string>
+    <string name="edit_password_notes_label">Notes</string>
+    <string name="edit_password_notes_empty_hint">This credential does not have notes yet. You can write a note here.</string>
     <string name="edit_password_suggest_action">Suggest Strong Password</string>
     <string name="edit_password_history_action">View History</string>
     <string name="edit_password_security_title">Security Risk</string>

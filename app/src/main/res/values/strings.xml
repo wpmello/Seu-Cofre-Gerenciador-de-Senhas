@@ -89,6 +89,9 @@
     <string name="new_password_category_dialog_empty">Ainda não existem categorias disponíveis.</string>
     <string name="new_password_password_label">SENHA</string>
     <string name="new_password_password_hint">Digite uma senha segura</string>
+    <string name="new_password_note_label">ANOTAÇÕES</string>
+    <string name="new_password_note_hint">Adicione uma anotação opcional sobre esta credencial</string>
+    <string name="new_password_note_warning">Atenção: esta nota será salva em texto puro. Não adicione senhas, códigos ou outras informações sensíveis.</string>
     <string name="new_password_show_password">Mostrar senha</string>
     <string name="new_password_hide_password">Ocultar senha</string>
     <string name="new_password_save_button">Salvar Senha</string>
@@ -114,8 +117,8 @@
     <string name="edit_password_delete_button">Excluir</string>
     <string name="edit_password_created_at_label">Criado em</string>
     <string name="edit_password_updated_at_label">Modificado em</string>
-    <string name="edit_password_notes_label">Notas seguras</string>
-    <string name="edit_password_notes_mock">Esta conta está vinculada ao plano familiar. A cobrança é feita no dia 15 de cada mês através do cartão de crédito principal.</string>
+    <string name="edit_password_notes_label">Anotações</string>
+    <string name="edit_password_notes_empty_hint">Esta credencial ainda não possui anotações. Você pode escrever uma nota aqui.</string>
     <string name="edit_password_suggest_action">Sugerir Senha Forte</string>
     <string name="edit_password_history_action">Ver Histórico</string>
     <string name="edit_password_security_title">Risco de Segurança</string>

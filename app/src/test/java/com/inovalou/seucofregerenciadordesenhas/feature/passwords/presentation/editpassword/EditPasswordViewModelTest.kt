@@ -50,6 +50,7 @@ class EditPasswordViewModelTest {
         assertEquals("Spotify", state.title)
         assertEquals("mail@vault.com", state.email)
         assertEquals("plain-secret", state.password)
+        assertEquals("Conta principal da família.", state.note)
         assertEquals(2L, state.selectedCategoryId)
         assertEquals("Music", state.selectedCategoryName)
         assertFalse(state.isIdentityCardEditing)
@@ -132,19 +133,21 @@ class EditPasswordViewModelTest {
     }
 
     @Test
-    fun givenIdentityCardReadMode_whenEditActionsAreHandled_thenKeepsFieldsReadOnly() = runTest {
+    fun givenIdentityCardReadMode_whenProtectedFieldsAndNoteAreHandled_thenKeepsProtectedFieldsReadOnlyAndAllowsNote() = runTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.onAction(EditPasswordAction.OnTitleChanged("Netflix"))
         viewModel.onAction(EditPasswordAction.OnEmailChanged("new@vault.com"))
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
+        viewModel.onAction(EditPasswordAction.OnNoteChanged("Nova anotação"))
         viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
 
         val state = viewModel.uiState.value
         assertEquals("Spotify", state.title)
         assertEquals("premium@vault.com", state.email)
         assertEquals("plain-secret", state.password)
+        assertEquals("Nova anotação", state.note)
         assertFalse(state.isCategoryDialogVisible)
     }
 
@@ -250,6 +253,7 @@ class EditPasswordViewModelTest {
         viewModel.onAction(EditPasswordAction.OnEmailChanged("  updated@vault.com  "))
         viewModel.onAction(EditPasswordAction.OnCategorySelected(2L))
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
+        viewModel.onAction(EditPasswordAction.OnNoteChanged("  Atualizar após renovação anual.  "))
         viewModel.onAction(EditPasswordAction.OnSaveClick)
         advanceUntilIdle()
 
@@ -259,6 +263,7 @@ class EditPasswordViewModelTest {
         assertEquals(2L, updateUseCase.lastCategoryId)
         assertEquals("Music", updateUseCase.lastCategoryName)
         assertEquals("new-secret", updateUseCase.lastPassword)
+        assertEquals("Atualizar após renovação anual.", updateUseCase.lastNote)
         assertEquals(EditPasswordEffect.NavigateBack, effect.await())
     }
 
@@ -336,12 +341,14 @@ class EditPasswordViewModelTest {
     private fun persistedPassword(
         login: String = "premium@vault.com",
         categoryId: Long? = 2L,
-        categoryName: String? = "Music"
+        categoryName: String? = "Music",
+        note: String? = "Conta principal da família."
     ) = PasswordDetails(
         id = 8L,
         title = "Spotify",
         login = login,
         password = "plain-secret",
+        note = note,
         categoryId = categoryId,
         categoryName = categoryName,
         iconKey = "sp",
@@ -374,6 +381,7 @@ class EditPasswordViewModelTest {
             title = "Spotify",
             login = "premium@vault.com",
             password = "plain-secret",
+            note = "Conta principal da família.",
             categoryId = 2L,
             categoryName = "Music",
             iconKey = "sp",
@@ -388,6 +396,7 @@ class EditPasswordViewModelTest {
         var lastCategoryId: Long? = null
         var lastCategoryName: String? = null
         var lastPassword: String? = null
+        var lastNote: String? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
@@ -407,6 +416,7 @@ class EditPasswordViewModelTest {
             lastCategoryId = password.categoryId
             lastCategoryName = password.categoryName
             lastPassword = password.password
+            lastNote = password.note
             if (result is UpdatePasswordResult.Failure) {
                 error("update failure")
             }

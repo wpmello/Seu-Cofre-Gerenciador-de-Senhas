@@ -17,6 +17,7 @@ fun PasswordEntity.toDetailsDomain(password: String): PasswordDetails = Password
     title = title,
     login = login,
     password = password,
+    note = note,
     categoryId = categoryId,
     categoryName = category.ifBlank { null },
     iconKey = iconKey,

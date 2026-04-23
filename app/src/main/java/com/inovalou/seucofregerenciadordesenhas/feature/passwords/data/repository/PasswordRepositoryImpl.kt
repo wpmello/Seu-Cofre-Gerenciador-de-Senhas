@@ -47,6 +47,7 @@ class PasswordRepositoryImpl @Inject constructor(
                 passwordIv = encryptedPassword.iv,
                 passwordCipherVersion = encryptedPassword.version,
                 iconKey = "",
+                note = password.note,
                 createdAt = persistedAt,
                 updatedAt = updatedAt
             )
@@ -76,6 +77,7 @@ class PasswordRepositoryImpl @Inject constructor(
                 passwordIv = encryptedPassword.iv,
                 passwordCipherVersion = encryptedPassword.version,
                 iconKey = password.iconKey,
+                note = password.note,
                 createdAt = password.createdAt,
                 updatedAt = password.updatedAt
             )

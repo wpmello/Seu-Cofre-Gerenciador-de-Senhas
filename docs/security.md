@@ -46,7 +46,7 @@ Regras:
 Exemplos:
 - login/username
 - URLs privadas
-- notas seguras
+- notas de credenciais
 - metadados que revelem comportamento do usuário
 - timestamps como `createdAt` e `updatedAt` quando associados a credenciais
 
@@ -54,6 +54,7 @@ Regras:
 - tratar como privados por padrão;
 - evitar exposição desnecessária fora da UI esperada;
 - revisar necessidade de backup, compartilhamento e exportação.
+- quando uma nota de credencial for armazenada sem criptografia por decisão explícita de produto, a UI deve avisar claramente que o campo fica em texto puro e não deve receber segredo.
 
 ### 3. Dados não sensíveis
 Exemplos:

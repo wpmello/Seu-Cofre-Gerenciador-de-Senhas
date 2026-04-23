@@ -20,6 +20,7 @@ class PasswordMapperTest {
             passwordIv = "iv-value",
             passwordCipherVersion = 1,
             iconKey = "",
+            note = "Acesso de produção",
             createdAt = 1_710_000_000_000L,
             updatedAt = 1_720_000_000_000L
         )
@@ -48,6 +49,7 @@ class PasswordMapperTest {
             passwordIv = "iv-value",
             passwordCipherVersion = 1,
             iconKey = "sp",
+            note = "Conta compartilhada",
             createdAt = 1_700_000_000_000L,
             updatedAt = 1_730_000_000_000L
         )
@@ -58,6 +60,7 @@ class PasswordMapperTest {
                 title = "Spotify",
                 login = "premium@vault.com",
                 password = "plain-secret",
+                note = "Conta compartilhada",
                 categoryId = 4L,
                 categoryName = "Music",
                 iconKey = "sp",

@@ -43,6 +43,7 @@ class NewPasswordViewModelTest {
         assertEquals(null, viewModel.uiState.value.selectedCategoryId)
         assertEquals(null, viewModel.uiState.value.selectedCategoryName)
         assertEquals("", viewModel.uiState.value.password)
+        assertEquals("", viewModel.uiState.value.note)
         assertFalse(viewModel.uiState.value.isPasswordVisible)
         assertFalse(viewModel.uiState.value.isSaving)
     }
@@ -190,6 +191,7 @@ class NewPasswordViewModelTest {
         viewModel.onAction(NewPasswordAction.OnLoginChanged("user@email.com"))
         viewModel.onAction(NewPasswordAction.OnCategorySelected(2L))
         viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
+        viewModel.onAction(NewPasswordAction.OnNoteChanged("Conta principal do streaming"))
         viewModel.onAction(NewPasswordAction.OnSaveClick)
 
         advanceUntilIdle()
@@ -199,6 +201,7 @@ class NewPasswordViewModelTest {
         assertEquals("user@email.com", repository.createdPassword?.login)
         assertEquals(2L, repository.createdPassword?.categoryId)
         assertEquals("Pessoal", repository.createdPassword?.categoryName)
+        assertEquals("Conta principal do streaming", repository.createdPassword?.note)
     }
 
     @Test
@@ -293,6 +296,7 @@ class NewPasswordViewModelTest {
 
         viewModel.onAction(NewPasswordAction.OnCategorySelected(4L))
         viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
+        viewModel.onAction(NewPasswordAction.OnNoteChanged("Observação"))
 
         assertNull(viewModel.uiState.value.passwordErrorResId)
         assertNull(viewModel.uiState.value.categoryErrorResId)

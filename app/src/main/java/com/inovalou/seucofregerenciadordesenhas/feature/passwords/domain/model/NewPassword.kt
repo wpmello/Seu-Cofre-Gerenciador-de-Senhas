@@ -7,5 +7,6 @@ data class NewPassword(
     val categoryName: String?,
     val password: String,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val note: String? = null
 )

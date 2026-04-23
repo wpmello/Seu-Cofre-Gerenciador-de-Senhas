@@ -41,11 +41,51 @@ class EditPasswordScreenTest {
         composeRule.onNodeWithTag("edit_password_email_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_password_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_category_field").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_note_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_save_button").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_delete_button").assertIsDisplayed()
-        composeRule.onNodeWithText("Notas seguras").assertIsDisplayed()
+        composeRule.onNodeWithText("Anotações").assertIsDisplayed()
+        composeRule.onNodeWithText("Conta principal da família.").assertIsDisplayed()
         composeRule.onNodeWithText("Sugerir Senha Forte").assertIsDisplayed()
         composeRule.onNodeWithText("Ver Histórico").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenEmptyNote_whenRendered_thenDisplaysFallbackHint() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditPasswordScreen(
+                    uiState = editPasswordUiState().copy(note = ""),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(
+            "Esta credencial ainda não possui anotações. Você pode escrever uma nota aqui."
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenReadMode_whenTypingNote_thenFieldStaysEditable() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                var uiState by remember { mutableStateOf(editPasswordUiState()) }
+                EditPasswordScreen(
+                    uiState = uiState,
+                    onAction = { action ->
+                        if (action is EditPasswordAction.OnNoteChanged) {
+                            uiState = uiState.copy(note = action.note)
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_note_input").performTextClearance()
+        composeRule.onNodeWithTag("edit_password_note_input").performTextInput("Observação livre")
+
+        composeRule.onNodeWithText("Observação livre").assertIsDisplayed()
     }
 
     @Test
@@ -166,6 +206,7 @@ class EditPasswordScreenTest {
         title = "Spotify",
         email = "premium@vault.com",
         password = "plain-secret",
+        note = "Conta principal da família.",
         selectedCategoryId = 2L,
         selectedCategoryName = "Music",
         categorySelectionState = PasswordCategorySelectionUiState.Content(
@@ -182,7 +223,6 @@ class EditPasswordScreenTest {
         contentState = EditPasswordContentState.Content,
         securitySection = EditPasswordSecuritySectionUiState(
             scorePercent = 32
-        ),
-        notesResId = R.string.edit_password_notes_mock
+        )
     )
 }

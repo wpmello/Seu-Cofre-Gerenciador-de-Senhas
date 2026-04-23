@@ -8,6 +8,7 @@ sealed interface NewPasswordAction {
     data object OnCategoryDialogDismissed : NewPasswordAction
     data class OnCategorySelected(val categoryId: Long) : NewPasswordAction
     data class OnPasswordChanged(val password: String) : NewPasswordAction
+    data class OnNoteChanged(val note: String) : NewPasswordAction
     data object OnTogglePasswordVisibility : NewPasswordAction
     data object OnSaveClick : NewPasswordAction
 }

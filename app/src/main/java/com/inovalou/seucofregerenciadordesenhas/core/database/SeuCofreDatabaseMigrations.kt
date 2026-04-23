@@ -147,4 +147,15 @@ object SeuCofreDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN note TEXT
+                """.trimIndent()
+            )
+        }
+    }
 }

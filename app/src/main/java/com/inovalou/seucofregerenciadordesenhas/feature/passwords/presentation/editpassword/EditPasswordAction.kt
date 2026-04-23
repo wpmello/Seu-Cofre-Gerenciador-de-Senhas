@@ -10,6 +10,7 @@ sealed interface EditPasswordAction {
     data object OnCategoryDialogDismissed : EditPasswordAction
     data class OnCategorySelected(val categoryId: Long) : EditPasswordAction
     data class OnPasswordChanged(val password: String) : EditPasswordAction
+    data class OnNoteChanged(val note: String) : EditPasswordAction
     data object OnTogglePasswordVisibility : EditPasswordAction
     data object OnCopyEmailClick : EditPasswordAction
     data object OnCopyPasswordClick : EditPasswordAction

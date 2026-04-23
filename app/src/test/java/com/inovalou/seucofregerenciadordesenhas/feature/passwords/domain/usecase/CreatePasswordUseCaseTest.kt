@@ -70,6 +70,7 @@ class CreatePasswordUseCaseTest {
                 categoryId = 4L,
                 categoryName = "Trabalho",
                 password = " senha super secreta ",
+                note = null,
                 createdAt = 1_700_000_000_000L,
                 updatedAt = 1_700_000_000_000L
             ),
@@ -125,6 +126,29 @@ class CreatePasswordUseCaseTest {
     }
 
     @Test
+    fun givenOptionalNote_whenInvoked_thenPersistsTrimmedPlainTextNote() = runTest {
+        val repository = FakePasswordRepository(passwordCount = 1)
+        val useCase = CreatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(listOf(Category(4L, "Trabalho", "ic_work", 0, 50L))),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+        )
+
+        val result = useCase(
+            title = "GitHub",
+            login = "dev@empresa.com",
+            categoryId = 4L,
+            categoryName = "Trabalho",
+            password = "abc123",
+            note = "  Conta usada apenas para deploy.  "
+        )
+
+        assertEquals(CreatePasswordResult.Success, result)
+        assertEquals("Conta usada apenas para deploy.", repository.createdPassword?.note)
+    }
+
+    @Test
     fun givenNoSelectedCategory_whenInvoked_thenReturnsValidationError() = runTest {
         val repository = FakePasswordRepository(passwordCount = 3)
         val useCase = CreatePasswordUseCase(
@@ -141,7 +165,8 @@ class CreatePasswordUseCaseTest {
             login = "dev@empresa.com",
             categoryId = null,
             categoryName = null,
-            password = "abc123"
+            password = "abc123",
+            note = null
         )
 
         assertTrue(result is CreatePasswordResult.ValidationError)
@@ -167,7 +192,8 @@ class CreatePasswordUseCaseTest {
             login = "dev@empresa.com",
             categoryId = 99L,
             categoryName = "Inexistente",
-            password = "abc123"
+            password = "abc123",
+            note = null
         )
 
         assertTrue(result is CreatePasswordResult.ValidationError)
@@ -193,7 +219,8 @@ class CreatePasswordUseCaseTest {
             login = "",
             categoryId = 1L,
             categoryName = "Pessoal",
-            password = "abc123"
+            password = "abc123",
+            note = "  "
         )
 
         assertEquals(CreatePasswordResult.Failure, result)

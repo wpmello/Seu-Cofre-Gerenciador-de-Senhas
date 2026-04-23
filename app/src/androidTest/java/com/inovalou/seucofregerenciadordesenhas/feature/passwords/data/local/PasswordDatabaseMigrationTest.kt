@@ -164,6 +164,46 @@ class PasswordDatabaseMigrationTest {
         cursor.close()
     }
 
+    @Test
+    fun migrate7To8_addsOptionalPlainTextNoteColumnWithoutBreakingExistingPasswords() {
+        migrationTestHelper.createDatabase(TEST_DB, 7).apply {
+            execSQL(
+                """
+                INSERT INTO passwords(
+                    id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at
+                ) VALUES (1, 'Netflix', 'joao@email.com', 'Legacy', NULL, 'cipher', 'iv', 1, 'ic_home', 100, 200)
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val migratedDb = migrationTestHelper.runMigrationsAndValidate(
+            TEST_DB,
+            8,
+            true,
+            SeuCofreDatabaseMigrations.MIGRATION_7_8
+        )
+
+        migratedDb.execSQL(
+            "UPDATE passwords SET note = 'Cobrança no cartão final 1234' WHERE id = 1"
+        )
+
+        val cursor = migratedDb.query(
+            """
+            SELECT note, created_at, updated_at
+            FROM passwords
+            WHERE id = 1
+            """.trimIndent()
+        )
+        cursor.moveToFirst()
+
+        assertEquals("Cobrança no cartão final 1234", cursor.getString(0))
+        assertEquals(100L, cursor.getLong(1))
+        assertEquals(200L, cursor.getLong(2))
+
+        cursor.close()
+    }
+
     private companion object {
         const val TEST_DB = "password-migration-test"
     }

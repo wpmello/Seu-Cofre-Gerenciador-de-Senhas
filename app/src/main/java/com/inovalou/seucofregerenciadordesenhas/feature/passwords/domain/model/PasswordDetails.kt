@@ -9,5 +9,6 @@ data class PasswordDetails(
     val categoryName: String?,
     val iconKey: String,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val note: String? = null
 )

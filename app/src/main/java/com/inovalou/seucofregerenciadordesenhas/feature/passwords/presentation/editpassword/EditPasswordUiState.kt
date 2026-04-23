@@ -13,6 +13,7 @@ data class EditPasswordUiState(
     val categorySelectionState: PasswordCategorySelectionUiState =
         PasswordCategorySelectionUiState.Loading,
     val password: String = "",
+    val note: String = "",
     val isIdentityCardEditing: Boolean = false,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L,
@@ -23,8 +24,7 @@ data class EditPasswordUiState(
     @StringRes val submitErrorResId: Int? = null,
     val lastCopiedField: EditPasswordCopiedField? = null,
     val contentState: EditPasswordContentState = EditPasswordContentState.Loading,
-    val securitySection: EditPasswordSecuritySectionUiState = EditPasswordSecuritySectionUiState(),
-    @StringRes val notesResId: Int = R.string.edit_password_notes_mock
+    val securitySection: EditPasswordSecuritySectionUiState = EditPasswordSecuritySectionUiState()
 )
 
 enum class EditPasswordCopiedField {

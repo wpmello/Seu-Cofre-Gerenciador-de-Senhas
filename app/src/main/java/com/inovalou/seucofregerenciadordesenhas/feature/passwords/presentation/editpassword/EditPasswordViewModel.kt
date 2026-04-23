@@ -58,6 +58,7 @@ class EditPasswordViewModel @Inject constructor(
             EditPasswordAction.OnCategoryDialogDismissed -> closeCategoryDialog()
             is EditPasswordAction.OnCategorySelected -> selectCategory(action.categoryId)
             is EditPasswordAction.OnPasswordChanged -> updatePassword(action.password)
+            is EditPasswordAction.OnNoteChanged -> updateNote(action.note)
             EditPasswordAction.OnTogglePasswordVisibility -> togglePasswordVisibility()
             EditPasswordAction.OnCopyEmailClick -> copyEmail()
             EditPasswordAction.OnCopyPasswordClick -> copyPassword()
@@ -107,6 +108,7 @@ class EditPasswordViewModel @Inject constructor(
                     selectedCategoryName = password.categoryName,
                     categorySelectionState = updatedCategorySelectionState,
                     password = password.password,
+                    note = password.note.orEmpty(),
                     createdAt = password.createdAt,
                     updatedAt = password.updatedAt,
                     categoryErrorResId = if (
@@ -207,6 +209,15 @@ class EditPasswordViewModel @Inject constructor(
         }
     }
 
+    private fun updateNote(note: String) {
+        _uiState.update {
+            it.copy(
+                note = note,
+                submitErrorResId = null
+            )
+        }
+    }
+
     private fun startIdentityCardEditing() {
         _uiState.update { state ->
             state.copy(isIdentityCardEditing = true)
@@ -269,7 +280,8 @@ class EditPasswordViewModel @Inject constructor(
                     login = _uiState.value.email,
                     categoryId = _uiState.value.selectedCategoryId,
                     categoryName = _uiState.value.selectedCategoryName,
-                    password = _uiState.value.password
+                    password = _uiState.value.password,
+                    note = _uiState.value.note
                 )
             ) {
                 UpdatePasswordResult.Success -> {

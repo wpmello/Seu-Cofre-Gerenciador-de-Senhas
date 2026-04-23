@@ -21,6 +21,7 @@ interface PasswordDao {
             passwords.password_iv,
             passwords.password_cipher_version,
             passwords.icon_key,
+            passwords.note,
             passwords.created_at,
             passwords.updated_at
         FROM passwords
@@ -42,6 +43,7 @@ interface PasswordDao {
             passwords.password_iv,
             passwords.password_cipher_version,
             passwords.icon_key,
+            passwords.note,
             passwords.created_at,
             passwords.updated_at
         FROM passwords
@@ -64,6 +66,7 @@ interface PasswordDao {
             passwords.password_iv,
             passwords.password_cipher_version,
             passwords.icon_key,
+            passwords.note,
             passwords.created_at,
             passwords.updated_at
         FROM passwords
