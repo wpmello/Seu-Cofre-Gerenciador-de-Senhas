@@ -2,21 +2,27 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import androidx.lifecycle.SavedStateHandle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GetPasswordDetailsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordValidation
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordPasswordError
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -44,8 +50,74 @@ class EditPasswordViewModelTest {
         assertEquals("Spotify", state.title)
         assertEquals("mail@vault.com", state.email)
         assertEquals("plain-secret", state.password)
+        assertEquals(2L, state.selectedCategoryId)
+        assertEquals("Music", state.selectedCategoryName)
+        assertFalse(state.isIdentityCardEditing)
         assertEquals(1_700_000_000_000L, state.createdAt)
         assertEquals(1_710_000_000_000L, state.updatedAt)
+    }
+
+    @Test
+    fun givenLegacyInvalidCategory_whenViewModelLoads_thenExposesInvalidCategoryError() = runTest {
+        val viewModel = buildViewModel(
+            passwordDetails = persistedPassword(categoryId = null, categoryName = "Legacy")
+        )
+
+        advanceUntilIdle()
+
+        assertEquals("Legacy", viewModel.uiState.value.selectedCategoryName)
+        assertEquals(
+            R.string.edit_password_category_error_invalid,
+            viewModel.uiState.value.categoryErrorResId
+        )
+    }
+
+    @Test
+    fun givenEmptyCategory_whenDialogOpens_thenKeepsSelectionEmpty() = runTest {
+        val viewModel = buildViewModel(
+            passwordDetails = persistedPassword(categoryId = null, categoryName = null)
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
+        viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
+
+        assertTrue(viewModel.uiState.value.isCategoryDialogVisible)
+        val selectionState = viewModel.uiState.value.categorySelectionState
+        assertTrue(selectionState is PasswordCategorySelectionUiState.Content)
+        assertFalse((selectionState as PasswordCategorySelectionUiState.Content).categories.any { it.isSelected })
+    }
+
+    @Test
+    fun givenValidCategory_whenDialogOpens_thenMarksExistingSelection() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
+        viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
+
+        val selectionState = viewModel.uiState.value.categorySelectionState
+        assertTrue(selectionState is PasswordCategorySelectionUiState.Content)
+        val selected = (selectionState as PasswordCategorySelectionUiState.Content)
+            .categories
+            .single { it.id == 2L }
+        assertTrue(selected.isSelected)
+    }
+
+    @Test
+    fun givenCategorySelection_whenHandled_thenUpdatesCategoryAndClearsError() = runTest {
+        val viewModel = buildViewModel(
+            passwordDetails = persistedPassword(categoryId = null, categoryName = "Legacy")
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
+        viewModel.onAction(EditPasswordAction.OnCategorySelected(2L))
+
+        assertEquals(2L, viewModel.uiState.value.selectedCategoryId)
+        assertEquals("Music", viewModel.uiState.value.selectedCategoryName)
+        assertEquals(null, viewModel.uiState.value.categoryErrorResId)
+        assertFalse(viewModel.uiState.value.isCategoryDialogVisible)
     }
 
     @Test
@@ -53,9 +125,40 @@ class EditPasswordViewModelTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
 
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
 
         assertEquals("Spotify Family", viewModel.uiState.value.title)
+    }
+
+    @Test
+    fun givenIdentityCardReadMode_whenEditActionsAreHandled_thenKeepsFieldsReadOnly() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Netflix"))
+        viewModel.onAction(EditPasswordAction.OnEmailChanged("new@vault.com"))
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
+        viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
+
+        val state = viewModel.uiState.value
+        assertEquals("Spotify", state.title)
+        assertEquals("premium@vault.com", state.email)
+        assertEquals("plain-secret", state.password)
+        assertFalse(state.isCategoryDialogVisible)
+    }
+
+    @Test
+    fun givenIdentityCardEditMode_whenCardSaveIsHandled_thenKeepsDraftInStateAndExitsEditMode() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Netflix"))
+        viewModel.onAction(EditPasswordAction.OnIdentityCardSaveClick)
+
+        assertEquals("Netflix", viewModel.uiState.value.title)
+        assertFalse(viewModel.uiState.value.isIdentityCardEditing)
     }
 
     @Test
@@ -142,8 +245,10 @@ class EditPasswordViewModelTest {
         advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnTitleChanged("  Spotify Family  "))
         viewModel.onAction(EditPasswordAction.OnEmailChanged("  updated@vault.com  "))
+        viewModel.onAction(EditPasswordAction.OnCategorySelected(2L))
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
         viewModel.onAction(EditPasswordAction.OnSaveClick)
         advanceUntilIdle()
@@ -151,6 +256,8 @@ class EditPasswordViewModelTest {
         assertEquals(8L, updateUseCase.lastPasswordId)
         assertEquals("Spotify Family", updateUseCase.lastTitle)
         assertEquals("updated@vault.com", updateUseCase.lastLogin)
+        assertEquals(2L, updateUseCase.lastCategoryId)
+        assertEquals("Music", updateUseCase.lastCategoryName)
         assertEquals("new-secret", updateUseCase.lastPassword)
         assertEquals(EditPasswordEffect.NavigateBack, effect.await())
     }
@@ -158,14 +265,11 @@ class EditPasswordViewModelTest {
     @Test
     fun givenValidationFailure_whenSaving_thenExposesFieldError() = runTest {
         val viewModel = buildViewModel(
-            updatePasswordUseCase = FakeUpdatePasswordUseCase(
-                result = UpdatePasswordResult.ValidationError(
-                    UpdatePasswordValidation(passwordError = UpdatePasswordPasswordError.Blank)
-                )
-            )
+            passwordDetails = persistedPassword(categoryId = null, categoryName = "Legacy")
         )
         advanceUntilIdle()
 
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("   "))
         viewModel.onAction(EditPasswordAction.OnSaveClick)
         advanceUntilIdle()
@@ -173,6 +277,10 @@ class EditPasswordViewModelTest {
         assertEquals(
             R.string.edit_password_password_error_blank,
             viewModel.uiState.value.passwordErrorResId
+        )
+        assertEquals(
+            R.string.edit_password_category_error_invalid,
+            viewModel.uiState.value.categoryErrorResId
         )
     }
 
@@ -203,7 +311,8 @@ class EditPasswordViewModelTest {
     private fun buildViewModel(
         passwordId: Long? = 8L,
         passwordDetails: PasswordDetails? = persistedPassword(),
-        updatePasswordUseCase: FakeUpdatePasswordUseCase = FakeUpdatePasswordUseCase()
+        updatePasswordUseCase: FakeUpdatePasswordUseCase = FakeUpdatePasswordUseCase(),
+        categoryRepository: FakeCategoryRepository = FakeCategoryRepository()
     ): EditPasswordViewModel = EditPasswordViewModel(
         savedStateHandle = SavedStateHandle(
             buildMap {
@@ -215,20 +324,26 @@ class EditPasswordViewModelTest {
         getPasswordDetailsUseCase = GetPasswordDetailsUseCase(
             FakePasswordRepository(passwordDetails)
         ),
+        observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
         updatePasswordUseCase = UpdatePasswordUseCase(
             passwordRepository = updatePasswordUseCase,
+            categoryRepository = categoryRepository,
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(updatePasswordUseCase),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         )
     )
 
-    private fun persistedPassword(login: String = "premium@vault.com") = PasswordDetails(
+    private fun persistedPassword(
+        login: String = "premium@vault.com",
+        categoryId: Long? = 2L,
+        categoryName: String? = "Music"
+    ) = PasswordDetails(
         id = 8L,
         title = "Spotify",
         login = login,
         password = "plain-secret",
-        categoryId = 2L,
-        categoryName = "Music",
+        categoryId = categoryId,
+        categoryName = categoryName,
         iconKey = "sp",
         createdAt = 1_700_000_000_000L,
         updatedAt = 1_710_000_000_000L
@@ -270,6 +385,8 @@ class EditPasswordViewModelTest {
         var lastPasswordId: Long? = null
         var lastTitle: String? = null
         var lastLogin: String? = null
+        var lastCategoryId: Long? = null
+        var lastCategoryName: String? = null
         var lastPassword: String? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
@@ -287,11 +404,48 @@ class EditPasswordViewModelTest {
             lastPasswordId = password.id
             lastTitle = password.title
             lastLogin = password.login
+            lastCategoryId = password.categoryId
+            lastCategoryName = password.categoryName
             lastPassword = password.password
             if (result is UpdatePasswordResult.Failure) {
                 error("update failure")
             }
         }
+    }
+
+    private class FakeCategoryRepository(
+        initialCategories: List<Category> = listOf(
+            Category(
+                id = 2L,
+                name = "Music",
+                iconKey = "music",
+                itemCount = 4,
+                lastModifiedAt = 1_700_000_000_000L
+            ),
+            Category(
+                id = 3L,
+                name = "Work",
+                iconKey = "work",
+                itemCount = 2,
+                lastModifiedAt = 1_710_000_000_000L
+            )
+        )
+    ) : CategoryRepository {
+
+        private val categoriesFlow = MutableStateFlow(initialCategories)
+
+        override suspend fun createCategory(name: String, iconKey: String): Long = 0L
+
+        override suspend fun getCategoryById(categoryId: Long): Category? =
+            categoriesFlow.value.firstOrNull { it.id == categoryId }
+
+        override suspend fun updateCategory(category: Category) = Unit
+
+        override suspend fun touchCategory(categoryId: Long) = Unit
+
+        override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
+        override fun observeCategories(): Flow<List<Category>> = categoriesFlow
     }
 
     private class FixedTimeProvider(

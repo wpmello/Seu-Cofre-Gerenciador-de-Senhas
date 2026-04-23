@@ -98,8 +98,13 @@
     <string name="new_password_save_error">Could not save the password.</string>
     <string name="edit_password_back">Back</string>
     <string name="edit_password_title">Edit Password</string>
+    <string name="edit_password_identity_card_edit">Edit</string>
+    <string name="edit_password_identity_card_save">Save</string>
+    <string name="edit_password_app_name_label">APP NAME</string>
     <string name="edit_password_app_name_placeholder">App name</string>
     <string name="edit_password_email_label">EMAIL</string>
+    <string name="edit_password_category_label">CATEGORY</string>
+    <string name="edit_password_category_placeholder">Select a category</string>
     <string name="edit_password_password_label">PASSWORD</string>
     <string name="edit_password_show_password">Show password</string>
     <string name="edit_password_hide_password">Hide password</string>
@@ -121,6 +126,8 @@
     <string name="edit_password_load_error">Could not load the password.</string>
     <string name="edit_password_not_found_error">Password not found.</string>
     <string name="edit_password_save_error">Could not save the password changes.</string>
+    <string name="edit_password_category_error_missing">Select a category to continue.</string>
+    <string name="edit_password_category_error_invalid">Select a valid category to continue.</string>
     <string name="edit_password_password_error_blank">Enter a password to continue.</string>
     <string name="bottom_nav_vault">VAULT</string>
     <string name="bottom_nav_passwords">PASSWORDS</string>

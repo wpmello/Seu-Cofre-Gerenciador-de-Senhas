@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.PersistableBundle
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,15 +19,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Shield
@@ -57,7 +59,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
@@ -162,11 +165,17 @@ fun EditPasswordScreen(
                     PasswordIdentityCard(
                         title = uiState.title,
                         email = uiState.email,
+                        categoryName = uiState.selectedCategoryName.orEmpty(),
+                        categoryErrorResId = uiState.categoryErrorResId,
                         password = uiState.password,
+                        isEditing = uiState.isIdentityCardEditing,
                         isPasswordVisible = uiState.isPasswordVisible,
                         passwordErrorResId = uiState.passwordErrorResId,
+                        onEditClick = { onAction(EditPasswordAction.OnIdentityCardEditClick) },
+                        onCardSaveClick = { onAction(EditPasswordAction.OnIdentityCardSaveClick) },
                         onTitleChanged = { onAction(EditPasswordAction.OnTitleChanged(it)) },
                         onEmailChanged = { onAction(EditPasswordAction.OnEmailChanged(it)) },
+                        onCategoryClick = { onAction(EditPasswordAction.OnCategoryFieldClick) },
                         onPasswordChanged = { onAction(EditPasswordAction.OnPasswordChanged(it)) },
                         onCopyEmail = { onAction(EditPasswordAction.OnCopyEmailClick) },
                         onCopyPassword = { onAction(EditPasswordAction.OnCopyPasswordClick) },
@@ -273,17 +282,31 @@ fun EditPasswordScreen(
             }
         }
     }
+
+    if (uiState.isCategoryDialogVisible) {
+        PasswordCategorySelectionDialog(
+            state = uiState.categorySelectionState,
+            onCategorySelected = { onAction(EditPasswordAction.OnCategorySelected(it)) },
+            onDismiss = { onAction(EditPasswordAction.OnCategoryDialogDismissed) }
+        )
+    }
 }
 
 @Composable
 private fun PasswordIdentityCard(
     title: String,
     email: String,
+    categoryName: String,
+    categoryErrorResId: Int?,
     password: String,
+    isEditing: Boolean,
     isPasswordVisible: Boolean,
     passwordErrorResId: Int?,
+    onEditClick: () -> Unit,
+    onCardSaveClick: () -> Unit,
     onTitleChanged: (String) -> Unit,
     onEmailChanged: (String) -> Unit,
+    onCategoryClick: () -> Unit,
     onPasswordChanged: (String) -> Unit,
     onCopyEmail: () -> Unit,
     onCopyPassword: () -> Unit,
@@ -295,164 +318,300 @@ private fun PasswordIdentityCard(
         color = SlateBlue.copy(alpha = 0.82f),
         tonalElevation = 0.dp
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(28.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(96.dp)
-                        .clip(RoundedCornerShape(32.dp))
-                        .background(SurfaceBright),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = title.toInitials(),
-                        color = SoftWhite,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                }
-
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    BasicTextField(
-                        value = title,
-                        onValueChange = onTitleChanged,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 18.dp)
-                            .testTag("edit_password_title_input"),
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.headlineMedium.copy(
-                            color = SoftWhite,
-                            fontWeight = FontWeight.ExtraBold,
-                            textAlign = TextAlign.Center
-                        ),
-                        cursorBrush = Brush.verticalGradient(
-                            colors = listOf(ElectricBlue, ElectricBlue)
-                        ),
-                        decorationBox = { innerTextField ->
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (title.isBlank()) {
-                                    Text(
-                                        text = stringResource(
-                                            R.string.edit_password_app_name_placeholder
-                                        ),
-                                        color = MistText.copy(alpha = 0.72f),
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontWeight = FontWeight.ExtraBold,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        }
-                    )
-
-                    Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        contentDescription = null,
-                        tint = MistText.copy(alpha = 0.72f),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(14.dp)
-                    )
-                }
-            }
-
-            CredentialField(
-                label = stringResource(R.string.edit_password_email_label),
-                value = email,
-                onValueChange = onEmailChanged,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                trailingContent = {
-                    IconButton(
-                        onClick = onCopyEmail,
-                        modifier = Modifier.testTag("edit_password_copy_email_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.ContentCopy,
-                            contentDescription = stringResource(R.string.edit_password_copy_email),
-                            tint = ElectricBlue
-                        )
-                    }
-                },
-                testTag = "edit_password_email_input"
+        Box(modifier = Modifier.fillMaxWidth()) {
+            IdentityCardModeButton(
+                isEditing = isEditing,
+                onEditClick = onEditClick,
+                onSaveClick = onCardSaveClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 18.dp, end = 20.dp)
+                    .testTag("edit_password_identity_card_mode_button")
             )
 
-            CredentialField(
-                label = stringResource(R.string.edit_password_password_label),
-                value = password,
-                onValueChange = onPasswordChanged,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                visualTransformation = if (isPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                trailingContent = {
-                    Row {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 28.dp, top = 56.dp, end = 28.dp, bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(SurfaceBright),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = title.toInitials(),
+                            color = SoftWhite,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+
+                    if (isEditing) {
+                        CredentialField(
+                            label = stringResource(R.string.edit_password_app_name_label),
+                            value = title,
+                            onValueChange = onTitleChanged,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            trailingContent = {},
+                            testTag = "edit_password_title_input"
+                        )
+                    } else {
+                        Text(
+                            text = title.ifBlank {
+                                stringResource(R.string.edit_password_app_name_placeholder)
+                            },
+                            modifier = Modifier.testTag("edit_password_title_text"),
+                            color = SoftWhite,
+                            fontSize = 30.sp,
+                            lineHeight = 36.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+
+                CredentialField(
+                    label = stringResource(R.string.edit_password_email_label),
+                    value = email,
+                    onValueChange = onEmailChanged,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    trailingContent = {
                         IconButton(
-                            onClick = onTogglePasswordVisibility,
-                            modifier = Modifier.testTag("edit_password_visibility_toggle")
-                        ) {
-                            Icon(
-                                imageVector = if (isPasswordVisible) {
-                                    Icons.Outlined.VisibilityOff
-                                } else {
-                                    Icons.Outlined.Visibility
-                                },
-                                contentDescription = stringResource(
-                                    if (isPasswordVisible) {
-                                        R.string.edit_password_hide_password
-                                    } else {
-                                        R.string.edit_password_show_password
-                                    }
-                                ),
-                                tint = MistText
-                            )
-                        }
-                        IconButton(
-                            onClick = onCopyPassword,
-                            modifier = Modifier.testTag("edit_password_copy_password_button")
+                            onClick = onCopyEmail,
+                            modifier = Modifier.testTag("edit_password_copy_email_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.ContentCopy,
-                                contentDescription = stringResource(R.string.edit_password_copy_password),
+                                contentDescription = stringResource(R.string.edit_password_copy_email),
                                 tint = ElectricBlue
                             )
                         }
-                    }
-                },
-                testTag = "edit_password_password_input"
-            )
+                    },
+                    testTag = "edit_password_email_input",
+                    readOnly = !isEditing
+                )
 
-            passwordErrorResId?.let { errorResId ->
+                CredentialField(
+                    label = stringResource(R.string.edit_password_password_label),
+                    value = password,
+                    onValueChange = onPasswordChanged,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    visualTransformation = if (isPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    trailingContent = {
+                        Row {
+                            IconButton(
+                                onClick = onTogglePasswordVisibility,
+                                modifier = Modifier.testTag("edit_password_visibility_toggle")
+                            ) {
+                                Icon(
+                                    imageVector = if (isPasswordVisible) {
+                                        Icons.Outlined.VisibilityOff
+                                    } else {
+                                        Icons.Outlined.Visibility
+                                    },
+                                    contentDescription = stringResource(
+                                        if (isPasswordVisible) {
+                                            R.string.edit_password_hide_password
+                                        } else {
+                                            R.string.edit_password_show_password
+                                        }
+                                    ),
+                                    tint = MistText
+                                )
+                            }
+                            IconButton(
+                                onClick = onCopyPassword,
+                                modifier = Modifier.testTag("edit_password_copy_password_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ContentCopy,
+                                    contentDescription = stringResource(R.string.edit_password_copy_password),
+                                    tint = ElectricBlue
+                                )
+                            }
+                        }
+                    },
+                    testTag = "edit_password_password_input",
+                    readOnly = !isEditing
+                )
+
+                CategoryField(
+                    label = stringResource(R.string.edit_password_category_label),
+                    value = categoryName,
+                    placeholder = stringResource(R.string.edit_password_category_placeholder),
+                    errorResId = categoryErrorResId,
+                    onClick = onCategoryClick,
+                    testTag = "edit_password_category_field",
+                    enabled = isEditing
+                )
+
+                passwordErrorResId?.let { errorResId ->
+                    Text(
+                        text = stringResource(errorResId),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IdentityCardModeButton(
+    isEditing: Boolean,
+    onEditClick: () -> Unit,
+    onSaveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (isEditing) {
+        Surface(
+            modifier = modifier
+                .widthIn(min = 88.dp)
+                .height(34.dp)
+                .clickable(onClick = onSaveClick),
+            shape = RoundedCornerShape(999.dp),
+            color = Color.Transparent
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(ElectricBlue, NeonPink)
+                        ),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .padding(horizontal = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    text = stringResource(errorResId),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = stringResource(R.string.edit_password_identity_card_save),
+                    color = SoftWhite,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
+        }
+    } else {
+        Row(
+            modifier = modifier
+                .clip(RoundedCornerShape(999.dp))
+                .clickable(onClick = onEditClick)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.edit_password_identity_card_edit),
+                color = ElectricBlue,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = null,
+                tint = ElectricBlue,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CategoryField(
+    label: String,
+    value: String,
+    placeholder: String,
+    errorResId: Int?,
+    onClick: () -> Unit,
+    testTag: String,
+    enabled: Boolean
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = label,
+            color = ElectricBlue.copy(alpha = 0.72f),
+            fontSize = 10.sp,
+            lineHeight = 15.sp,
+            letterSpacing = 2.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(testTag)
+                .clickable(
+                    enabled = enabled,
+                    onClick = onClick,
+                    role = Role.Button
+                )
+        )
+        {
+            TextField(
+                value = value,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                readOnly = true,
+                enabled = false,
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        color = GhostOutline.copy(alpha = 0.75f)
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.GridView,
+                        contentDescription = null,
+                        tint = SoftWhite.copy(alpha = 0.78f)
+                    )
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = DeepNavy.copy(alpha = 0.55f),
+                    unfocusedContainerColor = DeepNavy.copy(alpha = 0.55f),
+                    disabledContainerColor = DeepNavy.copy(alpha = 0.55f),
+                    focusedIndicatorColor = GhostOutline.copy(alpha = 0.28f),
+                    unfocusedIndicatorColor = GhostOutline.copy(alpha = 0.16f),
+                    disabledIndicatorColor = GhostOutline.copy(alpha = 0.16f),
+                    focusedTextColor = SoftWhite,
+                    unfocusedTextColor = SoftWhite,
+                    disabledTextColor = SoftWhite,
+                    focusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
+                    unfocusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
+                    disabledPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
+                    disabledLeadingIconColor = SoftWhite.copy(alpha = 0.78f),
+                    cursorColor = ElectricBlue
+                )
+            )
+        }
+
+        errorResId?.let { validationErrorResId ->
+            Text(
+                text = stringResource(validationErrorResId),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
@@ -465,6 +624,7 @@ private fun CredentialField(
     keyboardOptions: KeyboardOptions,
     testTag: String,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    readOnly: Boolean = false,
     trailingContent: @Composable () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -485,6 +645,7 @@ private fun CredentialField(
             shape = RoundedCornerShape(20.dp),
             keyboardOptions = keyboardOptions,
             singleLine = true,
+            readOnly = readOnly,
             visualTransformation = visualTransformation,
             trailingIcon = trailingContent,
             colors = TextFieldDefaults.colors(

@@ -1,11 +1,13 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import javax.inject.Inject
 
 class UpdatePasswordUseCase @Inject constructor(
     private val passwordRepository: PasswordRepository,
+    private val categoryRepository: CategoryRepository,
     private val generatePasswordTitleUseCase: GeneratePasswordTitleUseCase,
     private val timeProvider: TimeProvider
 ) {
@@ -14,9 +16,21 @@ class UpdatePasswordUseCase @Inject constructor(
         passwordId: Long,
         title: String,
         login: String,
+        categoryId: Long?,
+        categoryName: String?,
         password: String
     ): UpdatePasswordResult {
+        val persistedCategory = when {
+            categoryId == null -> null
+            else -> categoryRepository.getCategoryById(categoryId)
+        }
         val validation = UpdatePasswordValidation(
+            categoryError = when {
+                categoryId == null && categoryName.isNullOrBlank() -> CreatePasswordCategoryError.Missing
+                categoryId == null && !categoryName.isNullOrBlank() -> CreatePasswordCategoryError.Invalid
+                categoryId != null && persistedCategory == null -> CreatePasswordCategoryError.Invalid
+                else -> null
+            },
             passwordError = if (password.isBlank()) {
                 UpdatePasswordPasswordError.Blank
             } else {
@@ -36,10 +50,13 @@ class UpdatePasswordUseCase @Inject constructor(
                 currentPassword.copy(
                     title = generatePasswordTitleUseCase(title),
                     login = login.trim(),
+                    categoryId = persistedCategory?.id,
+                    categoryName = persistedCategory?.name,
                     password = password,
                     updatedAt = timeProvider.currentTimeMillis()
                 )
             )
+            persistedCategory?.id?.let { categoryRepository.touchCategory(it) }
             UpdatePasswordResult.Success
         } catch (_: Exception) {
             UpdatePasswordResult.Failure
@@ -48,10 +65,11 @@ class UpdatePasswordUseCase @Inject constructor(
 }
 
 data class UpdatePasswordValidation(
+    val categoryError: CreatePasswordCategoryError? = null,
     val passwordError: UpdatePasswordPasswordError? = null
 ) {
     val hasError: Boolean
-        get() = passwordError != null
+        get() = categoryError != null || passwordError != null
 }
 
 enum class UpdatePasswordPasswordError {
