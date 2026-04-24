@@ -128,6 +128,8 @@
     <string name="edit_password_security_tag_duplicate">Clave duplicada</string>
     <string name="edit_password_security_tag_safe">Clave segura</string>
     <string name="edit_password_security_index_label">Índice</string>
+    <string name="edit_password_security_alert_label">Alerta de seguridad:</string>
+    <string name="edit_password_security_safe_label">Clave segura:</string>
     <string name="edit_password_security_alert_high">Las claves cortas, comunes o reutilizadas aumentan mucho el riesgo. Prefiere una clave más larga, difícil de adivinar y exclusiva para esta credencial.</string>
     <string name="edit_password_security_alert_medium">La clave ya ofrece cierta resistencia, pero todavía puede mejorar. Aumenta la longitud y evita patrones previsibles o reutilización.</string>
     <string name="edit_password_security_alert_safe">La clave cumple con los criterios locales actuales de la app. Eso no elimina todo el riesgo, así que sigue priorizando claves largas y únicas.</string>

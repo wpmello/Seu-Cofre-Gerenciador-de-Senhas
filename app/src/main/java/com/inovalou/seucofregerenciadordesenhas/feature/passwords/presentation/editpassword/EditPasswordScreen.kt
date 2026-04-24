@@ -11,10 +11,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -51,17 +53,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -674,152 +681,117 @@ private fun SecuritySection(
         EditPasswordSecurityVisualState.MediumRisk -> VaultAmber
         EditPasswordSecurityVisualState.Safe -> VaultGreen
     }
-    val accentGlow = when (state.visualState) {
-        EditPasswordSecurityVisualState.HighRisk -> Color(0x14FF716C)
-        EditPasswordSecurityVisualState.MediumRisk -> Color(0x1AFFC857)
-        EditPasswordSecurityVisualState.Safe -> Color(0x143FFF8B)
-    }
-    val accentRadial = when (state.visualState) {
-        EditPasswordSecurityVisualState.HighRisk -> Color(0x22FF716C)
-        EditPasswordSecurityVisualState.MediumRisk -> Color(0x22FFC857)
-        EditPasswordSecurityVisualState.Safe -> Color(0x223FFF8B)
-    }
     val statusIcon = when (state.visualState) {
         EditPasswordSecurityVisualState.HighRisk,
         EditPasswordSecurityVisualState.MediumRisk -> Icons.Rounded.WarningAmber
         EditPasswordSecurityVisualState.Safe -> Icons.Rounded.CheckCircle
     }
+    val alertLabel = when (state.visualState) {
+        EditPasswordSecurityVisualState.HighRisk,
+        EditPasswordSecurityVisualState.MediumRisk -> stringResource(R.string.edit_password_security_alert_label)
+        EditPasswordSecurityVisualState.Safe -> stringResource(R.string.edit_password_security_safe_label)
+    }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("edit_password_security_section"),
         shape = RoundedCornerShape(40.dp),
-        color = DeepNavy
+        color = DeepNavy,
+        border = BorderStroke(1.dp, GhostOutline.copy(alpha = 0.05f))
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 33.dp, vertical = 33.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(160.dp)
-                    .clip(CircleShape)
-                    .background(accentGlow)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(28.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                Column(
+                    modifier = Modifier.widthIn(max = 160.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = statusIcon,
-                                contentDescription = null,
-                                tint = accentColor,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = stringResource(state.riskTitleResId),
-                                color = accentColor,
-                                fontSize = 14.sp,
-                                lineHeight = 20.sp,
-                                letterSpacing = 0.7.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = statusIcon,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = stringResource(state.riskTitleResId),
+                            color = accentColor,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            letterSpacing = 0.7.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2
+                        )
+                    }
 
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.tagResIds.forEach { tagResId ->
                             SecurityTag(
                                 text = stringResource(tagResId),
-                                visualState = state.visualState
+                                style = securityTagStyle(tagResId)
                             )
                         }
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(Color.Transparent),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .clip(CircleShape)
-                                    .background(
-                                        Brush.radialGradient(
-                                            colors = listOf(
-                                                accentRadial,
-                                                Color.Transparent
-                                            )
-                                        )
-                                    )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .size(72.dp)
-                                    .clip(CircleShape)
-                                    .background(MidnightBlue)
-                                    .background(Color.Transparent)
-                            )
-                            Text(
-                                text = "${state.scorePercent}%",
-                                color = accentColor,
-                                fontSize = 24.sp,
-                                lineHeight = 32.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.edit_password_security_index_label),
-                            color = MistText,
-                            fontSize = 9.sp,
-                            lineHeight = 14.sp,
-                            letterSpacing = 0.9.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
                     }
                 }
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    color = Color(0x99000000)
+                SecurityScoreIndicator(
+                    scorePercent = state.scorePercent,
+                    accentColor = accentColor
+                )
+            }
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0x80000000)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Spacer(
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .size(width = 3.dp, height = 72.dp)
-                                .background(accentColor)
-                        )
-                        Text(
-                            text = stringResource(state.alertResId),
-                            color = MistText,
-                            fontSize = 14.sp,
-                            lineHeight = 22.sp
-                        )
-                    }
+                            .fillMaxHeight()
+                            .widthIn(min = 4.dp)
+                            .background(accentColor)
+                    )
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(
+                                SpanStyle(
+                                    color = accentColor,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            ) {
+                                append(alertLabel)
+                                append(" ")
+                            }
+                            withStyle(
+                                SpanStyle(
+                                    color = MistText,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            ) {
+                                append(stringResource(state.alertResId))
+                            }
+                        },
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 15.dp, bottom = 15.dp),
+                        fontSize = 14.sp,
+                        lineHeight = 22.75.sp
+                    )
                 }
             }
         }
@@ -829,40 +801,131 @@ private fun SecuritySection(
 @Composable
 private fun SecurityTag(
     text: String,
-    visualState: EditPasswordSecurityVisualState
+    style: SecurityTagStyle
 ) {
-    val contentColor = when (visualState) {
-        EditPasswordSecurityVisualState.HighRisk -> MaterialTheme.colorScheme.error
-        EditPasswordSecurityVisualState.MediumRisk -> VaultAmber
-        EditPasswordSecurityVisualState.Safe -> VaultGreen
-    }
-    val background = contentColor.copy(alpha = 0.16f)
-
     Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = background
+        shape = RoundedCornerShape(8.dp),
+        color = style.backgroundColor,
+        border = BorderStroke(1.dp, style.borderColor)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier
+                .height(30.dp)
+                .padding(horizontal = 13.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Outlined.Shield,
+                imageVector = style.icon,
                 contentDescription = null,
-                tint = contentColor,
+                tint = style.contentColor,
                 modifier = Modifier.size(14.dp)
             )
             Text(
                 text = text,
-                color = contentColor,
+                color = style.contentColor,
                 fontSize = 12.sp,
                 lineHeight = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.6).sp
             )
         }
     }
 }
+
+@Composable
+private fun SecurityScoreIndicator(
+    scorePercent: Int,
+    accentColor: Color
+) {
+    val sweepAngle = securityScoreSweepAngle(scorePercent = scorePercent)
+
+    Column(
+        modifier = Modifier.widthIn(min = 80.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            accentColor.copy(alpha = 0.10f),
+                            Color.Transparent
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .drawBehind {
+                        val strokeWidth = 4.dp.toPx()
+                        drawCircle(
+                            color = accentColor.copy(alpha = 0.2f),
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                        )
+                        drawArc(
+                            color = accentColor,
+                            startAngle = -90f,
+                            sweepAngle = sweepAngle,
+                            useCenter = false,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                width = strokeWidth,
+                                cap = StrokeCap.Round
+                            )
+                        )
+                    }
+            )
+            Text(
+                text = "${scorePercent}%",
+                color = accentColor,
+                fontSize = 24.sp,
+                lineHeight = 32.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+        Text(
+            text = stringResource(R.string.edit_password_security_index_label),
+            color = MistText,
+            fontSize = 9.sp,
+            lineHeight = 13.5.sp,
+            letterSpacing = 0.9.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+private fun securityTagStyle(tagResId: Int): SecurityTagStyle = when (tagResId) {
+    R.string.edit_password_security_tag_weak -> SecurityTagStyle(
+        icon = Icons.Rounded.WarningAmber,
+        contentColor = Color(0xFFFF716C),
+        backgroundColor = Color(0x339F0519),
+        borderColor = Color(0x1AFF716C)
+    )
+    R.string.edit_password_security_tag_duplicate -> SecurityTagStyle(
+        icon = Icons.Outlined.ContentCopy,
+        contentColor = Color(0xFFEA73FB),
+        backgroundColor = Color(0x338F15A4),
+        borderColor = Color(0x1AEA73FB)
+    )
+    else -> SecurityTagStyle(
+        icon = Icons.Rounded.CheckCircle,
+        contentColor = VaultGreen,
+        backgroundColor = VaultGreen.copy(alpha = 0.16f),
+        borderColor = VaultGreen.copy(alpha = 0.12f)
+    )
+}
+
+private data class SecurityTagStyle(
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val contentColor: Color,
+    val backgroundColor: Color,
+    val borderColor: Color
+)
 
 @Composable
 private fun DateInfoCard(
