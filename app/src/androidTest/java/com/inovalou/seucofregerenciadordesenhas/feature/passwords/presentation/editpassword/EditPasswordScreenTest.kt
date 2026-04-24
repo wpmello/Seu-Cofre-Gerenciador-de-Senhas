@@ -41,6 +41,7 @@ class EditPasswordScreenTest {
         composeRule.onNodeWithTag("edit_password_email_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_password_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_category_field").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_security_section").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_note_input").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_save_button").assertIsDisplayed()
         composeRule.onNodeWithTag("edit_password_delete_button").assertIsDisplayed()
@@ -48,6 +49,8 @@ class EditPasswordScreenTest {
         composeRule.onNodeWithText("Conta principal da família.").assertIsDisplayed()
         composeRule.onNodeWithText("Sugerir Senha Forte").assertIsDisplayed()
         composeRule.onNodeWithText("Ver Histórico").assertIsDisplayed()
+        composeRule.onNodeWithText("Senha fraca").assertIsDisplayed()
+        composeRule.onNodeWithText("Senha duplicada").assertIsDisplayed()
     }
 
     @Test
@@ -70,6 +73,7 @@ class EditPasswordScreenTest {
         }
 
         composeRule.onNodeWithText("Senha Segura").assertIsDisplayed()
+        composeRule.onNodeWithText("Senha segura").assertIsDisplayed()
         composeRule.onNodeWithText("A senha atende aos critérios locais atuais do app.").assertIsDisplayed()
     }
 
