@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.AnalyzePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GetPasswordDetailsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordPasswordError
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -30,6 +32,7 @@ class EditPasswordViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getPasswordDetailsUseCase: GetPasswordDetailsUseCase,
     observeCategoriesUseCase: ObserveCategoriesUseCase,
+    private val analyzePasswordSecurityUseCase: AnalyzePasswordSecurityUseCase,
     private val updatePasswordUseCase: UpdatePasswordUseCase
 ) : ViewModel() {
 
@@ -40,6 +43,7 @@ class EditPasswordViewModel @Inject constructor(
 
     private val _effects = MutableSharedFlow<EditPasswordEffect>()
     val effects: SharedFlow<EditPasswordEffect> = _effects.asSharedFlow()
+    private var securityAnalysisJob: Job? = null
 
     init {
         observeCategoriesUseCase()
@@ -121,6 +125,7 @@ class EditPasswordViewModel @Inject constructor(
                     contentState = EditPasswordContentState.Content
                 )
             }
+            analyzePasswordSecurity(password.password)
         }
     }
 
@@ -207,6 +212,7 @@ class EditPasswordViewModel @Inject constructor(
                 submitErrorResId = null
             )
         }
+        analyzePasswordSecurity(password)
     }
 
     private fun updateNote(note: String) {
@@ -317,6 +323,25 @@ class EditPasswordViewModel @Inject constructor(
                             passwordErrorResId = result.validation.passwordError.toPasswordErrorResId()
                         )
                     }
+                }
+            }
+        }
+    }
+
+    private fun analyzePasswordSecurity(password: String) {
+        securityAnalysisJob?.cancel()
+        securityAnalysisJob = viewModelScope.launch {
+            val analysis = analyzePasswordSecurityUseCase(
+                password = password,
+                currentPasswordId = passwordId
+            )
+            _uiState.update { state ->
+                if (state.password != password) {
+                    state
+                } else {
+                    state.copy(
+                        securitySection = analysis.toEditPasswordSecuritySectionUiState()
+                    )
                 }
             }
         }

@@ -122,10 +122,15 @@
     <string name="edit_password_suggest_action">Sugerir clave fuerte</string>
     <string name="edit_password_history_action">Ver historial</string>
     <string name="edit_password_security_title">Riesgo de seguridad</string>
+    <string name="edit_password_security_moderate_title">Riesgo moderado</string>
+    <string name="edit_password_security_safe_title">Clave segura</string>
     <string name="edit_password_security_tag_weak">Clave débil</string>
     <string name="edit_password_security_tag_duplicate">Clave duplicada</string>
+    <string name="edit_password_security_tag_safe">Clave segura</string>
     <string name="edit_password_security_index_label">Índice</string>
-    <string name="edit_password_security_alert">Alerta de seguridad: Las claves cortas o reutilizadas son la causa del 81% de las intrusiones. Recomendamos generar una nueva clave alfanumérica cifrada.</string>
+    <string name="edit_password_security_alert_high">Las claves cortas, comunes o reutilizadas aumentan mucho el riesgo. Prefiere una clave más larga, difícil de adivinar y exclusiva para esta credencial.</string>
+    <string name="edit_password_security_alert_medium">La clave ya ofrece cierta resistencia, pero todavía puede mejorar. Aumenta la longitud y evita patrones previsibles o reutilización.</string>
+    <string name="edit_password_security_alert_safe">La clave cumple con los criterios locales actuales de la app. Eso no elimina todo el riesgo, así que sigue priorizando claves largas y únicas.</string>
     <string name="edit_password_load_error">No se pudo cargar la clave.</string>
     <string name="edit_password_not_found_error">Clave no encontrada.</string>
     <string name="edit_password_save_error">No se pudieron guardar los cambios de la clave.</string>

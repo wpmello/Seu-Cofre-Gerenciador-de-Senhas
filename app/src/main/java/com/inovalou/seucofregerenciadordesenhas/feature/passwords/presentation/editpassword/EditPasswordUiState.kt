@@ -39,14 +39,18 @@ sealed interface EditPasswordContentState {
 }
 
 data class EditPasswordSecuritySectionUiState(
-    val scorePercent: Int = 32,
+    val scorePercent: Int = 0,
+    val visualState: EditPasswordSecurityVisualState = EditPasswordSecurityVisualState.HighRisk,
     @StringRes val riskTitleResId: Int = R.string.edit_password_security_title,
-    val tagResIds: List<Int> = listOf(
-        R.string.edit_password_security_tag_weak,
-        R.string.edit_password_security_tag_duplicate
-    ),
-    @StringRes val alertResId: Int = R.string.edit_password_security_alert
+    val tagResIds: List<Int> = emptyList(),
+    @StringRes val alertResId: Int = R.string.edit_password_security_alert_high
 )
+
+enum class EditPasswordSecurityVisualState {
+    HighRisk,
+    MediumRisk,
+    Safe
+}
 
 sealed interface EditPasswordEffect {
     data object NavigateBack : EditPasswordEffect
