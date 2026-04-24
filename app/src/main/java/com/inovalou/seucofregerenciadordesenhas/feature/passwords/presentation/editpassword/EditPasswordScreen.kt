@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
 import java.time.Instant
 import java.time.ZoneId
@@ -667,6 +669,27 @@ private fun CredentialField(
 private fun SecuritySection(
     state: EditPasswordSecuritySectionUiState
 ) {
+    val accentColor = when (state.visualState) {
+        EditPasswordSecurityVisualState.HighRisk -> MaterialTheme.colorScheme.error
+        EditPasswordSecurityVisualState.MediumRisk -> VaultAmber
+        EditPasswordSecurityVisualState.Safe -> VaultGreen
+    }
+    val accentGlow = when (state.visualState) {
+        EditPasswordSecurityVisualState.HighRisk -> Color(0x14FF716C)
+        EditPasswordSecurityVisualState.MediumRisk -> Color(0x1AFFC857)
+        EditPasswordSecurityVisualState.Safe -> Color(0x143FFF8B)
+    }
+    val accentRadial = when (state.visualState) {
+        EditPasswordSecurityVisualState.HighRisk -> Color(0x22FF716C)
+        EditPasswordSecurityVisualState.MediumRisk -> Color(0x22FFC857)
+        EditPasswordSecurityVisualState.Safe -> Color(0x223FFF8B)
+    }
+    val statusIcon = when (state.visualState) {
+        EditPasswordSecurityVisualState.HighRisk,
+        EditPasswordSecurityVisualState.MediumRisk -> Icons.Rounded.WarningAmber
+        EditPasswordSecurityVisualState.Safe -> Icons.Rounded.CheckCircle
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(40.dp),
@@ -680,7 +703,7 @@ private fun SecuritySection(
                     .align(Alignment.TopEnd)
                     .size(160.dp)
                     .clip(CircleShape)
-                    .background(Color(0x14FF716C))
+                    .background(accentGlow)
             )
 
             Column(
@@ -700,14 +723,14 @@ private fun SecuritySection(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.WarningAmber,
+                                imageVector = statusIcon,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = accentColor,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = stringResource(state.riskTitleResId),
-                                color = MaterialTheme.colorScheme.error,
+                                color = accentColor,
                                 fontSize = 14.sp,
                                 lineHeight = 20.sp,
                                 letterSpacing = 0.7.sp,
@@ -715,10 +738,10 @@ private fun SecuritySection(
                             )
                         }
 
-                        state.tagResIds.forEachIndexed { index, tagResId ->
+                        state.tagResIds.forEach { tagResId ->
                             SecurityTag(
                                 text = stringResource(tagResId),
-                                isSecondary = index == 1
+                                visualState = state.visualState
                             )
                         }
                     }
@@ -741,7 +764,7 @@ private fun SecuritySection(
                                     .background(
                                         Brush.radialGradient(
                                             colors = listOf(
-                                                Color(0x22FF716C),
+                                                accentRadial,
                                                 Color.Transparent
                                             )
                                         )
@@ -756,7 +779,7 @@ private fun SecuritySection(
                             )
                             Text(
                                 text = "${state.scorePercent}%",
-                                color = MaterialTheme.colorScheme.error,
+                                color = accentColor,
                                 fontSize = 24.sp,
                                 lineHeight = 32.sp,
                                 fontWeight = FontWeight.ExtraBold
@@ -788,7 +811,7 @@ private fun SecuritySection(
                             modifier = Modifier
                                 .padding(top = 4.dp)
                                 .size(width = 3.dp, height = 72.dp)
-                                .background(MaterialTheme.colorScheme.error)
+                                .background(accentColor)
                         )
                         Text(
                             text = stringResource(state.alertResId),
@@ -806,14 +829,14 @@ private fun SecuritySection(
 @Composable
 private fun SecurityTag(
     text: String,
-    isSecondary: Boolean
+    visualState: EditPasswordSecurityVisualState
 ) {
-    val background = if (isSecondary) {
-        NeonPink.copy(alpha = 0.18f)
-    } else {
-        MaterialTheme.colorScheme.error.copy(alpha = 0.16f)
+    val contentColor = when (visualState) {
+        EditPasswordSecurityVisualState.HighRisk -> MaterialTheme.colorScheme.error
+        EditPasswordSecurityVisualState.MediumRisk -> VaultAmber
+        EditPasswordSecurityVisualState.Safe -> VaultGreen
     }
-    val contentColor = if (isSecondary) NeonPink else MaterialTheme.colorScheme.error
+    val background = contentColor.copy(alpha = 0.16f)
 
     Surface(
         shape = RoundedCornerShape(10.dp),

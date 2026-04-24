@@ -18,4 +18,6 @@ interface PasswordRepository {
     suspend fun getPasswordDetails(passwordId: Long): PasswordDetails?
 
     suspend fun updatePassword(password: PasswordDetails)
+
+    suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long? = null): Boolean
 }

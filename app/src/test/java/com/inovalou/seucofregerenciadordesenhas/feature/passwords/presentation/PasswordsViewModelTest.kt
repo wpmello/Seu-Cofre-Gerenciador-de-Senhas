@@ -192,6 +192,11 @@ class PasswordsViewModelTest {
             override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
 
             override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+            override suspend fun hasPasswordDuplicate(
+                password: String,
+                excludePasswordId: Long?
+            ): Boolean = false
         }
         val viewModel = PasswordsViewModel(
             observePasswordsUseCase = ObservePasswordsUseCase(repository)
@@ -256,6 +261,11 @@ class PasswordsViewModelTest {
         override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
 
         override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+        override suspend fun hasPasswordDuplicate(
+            password: String,
+            excludePasswordId: Long?
+        ): Boolean = false
 
         fun emit(passwords: List<PasswordSummary>) {
             passwordsFlow.value = passwords

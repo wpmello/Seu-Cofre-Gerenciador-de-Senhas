@@ -204,6 +204,46 @@ class PasswordDatabaseMigrationTest {
         cursor.close()
     }
 
+    @Test
+    fun migrate8To9_addsNullablePasswordFingerprintColumnWithoutBreakingExistingPasswords() {
+        migrationTestHelper.createDatabase(TEST_DB, 8).apply {
+            execSQL(
+                """
+                INSERT INTO passwords(
+                    id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, created_at, updated_at, note
+                ) VALUES (1, 'Netflix', 'joao@email.com', 'Legacy', NULL, 'cipher', 'iv', 1, 'ic_home', 100, 200, NULL)
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val migratedDb = migrationTestHelper.runMigrationsAndValidate(
+            TEST_DB,
+            9,
+            true,
+            SeuCofreDatabaseMigrations.MIGRATION_8_9
+        )
+
+        migratedDb.execSQL(
+            "UPDATE passwords SET password_fingerprint = 'fp-1' WHERE id = 1"
+        )
+
+        val cursor = migratedDb.query(
+            """
+            SELECT password_fingerprint, created_at, updated_at
+            FROM passwords
+            WHERE id = 1
+            """.trimIndent()
+        )
+        cursor.moveToFirst()
+
+        assertEquals("fp-1", cursor.getString(0))
+        assertEquals(100L, cursor.getLong(1))
+        assertEquals(200L, cursor.getLong(2))
+
+        cursor.close()
+    }
+
     private companion object {
         const val TEST_DB = "password-migration-test"
     }

@@ -8,47 +8,43 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class GeneratePasswordTitleUseCaseTest {
+class AnalyzePasswordSecurityUseCaseTest {
 
     @Test
-    fun givenBlankTitleAndNoStoredPasswords_whenInvoked_thenReturnsFirstAutomaticTitle() = runTest {
-        val useCase = GeneratePasswordTitleUseCase(
-            passwordRepository = FakePasswordRepository(passwordCount = 0)
+    fun givenPasswordAndCurrentCredentialId_whenAnalyzed_thenDelegatesDuplicateLookupAndReturnsPolicyResult() = runTest {
+        val repository = FakePasswordRepository(isDuplicate = true)
+        val useCase = AnalyzePasswordSecurityUseCase(
+            passwordRepository = repository,
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
         )
 
-        assertEquals("App 1", useCase("   "))
-    }
-
-    @Test
-    fun givenBlankTitleAndExistingPasswords_whenInvoked_thenReturnsNextAutomaticTitle() = runTest {
-        val useCase = GeneratePasswordTitleUseCase(
-            passwordRepository = FakePasswordRepository(passwordCount = 2)
+        val result = useCase(
+            password = "S7!mQ2#vN9@tL4\$z",
+            currentPasswordId = 42L
         )
 
-        assertEquals("App 3", useCase(""))
-    }
-
-    @Test
-    fun givenExplicitTitle_whenInvoked_thenKeepsTrimmedUserValue() = runTest {
-        val useCase = GeneratePasswordTitleUseCase(
-            passwordRepository = FakePasswordRepository(passwordCount = 9)
-        )
-
-        assertEquals("GitHub", useCase("  GitHub  "))
+        assertEquals("S7!mQ2#vN9@tL4\$z", repository.lastDuplicateLookupPassword)
+        assertEquals(42L, repository.lastDuplicateLookupExcludedId)
+        assertTrue(result.tags.contains(com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityTag.Duplicate))
+        assertEquals(80, result.scorePercent)
     }
 
     private class FakePasswordRepository(
-        private val passwordCount: Int
+        private val isDuplicate: Boolean
     ) : PasswordRepository {
+
+        var lastDuplicateLookupPassword: String? = null
+        var lastDuplicateLookupExcludedId: Long? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
             emptyFlow()
 
-        override suspend fun getPasswordCount(): Int = passwordCount
+        override suspend fun getPasswordCount(): Int = 0
 
         override suspend fun createPassword(password: NewPassword): Long = 0L
 
@@ -59,6 +55,10 @@ class GeneratePasswordTitleUseCaseTest {
         override suspend fun hasPasswordDuplicate(
             password: String,
             excludePasswordId: Long?
-        ): Boolean = false
+        ): Boolean {
+            lastDuplicateLookupPassword = password
+            lastDuplicateLookupExcludedId = excludePasswordId
+            return isDuplicate
+        }
     }
 }

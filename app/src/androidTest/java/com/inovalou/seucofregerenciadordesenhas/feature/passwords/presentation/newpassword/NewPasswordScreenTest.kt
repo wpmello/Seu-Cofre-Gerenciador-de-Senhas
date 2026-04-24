@@ -8,8 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.inovalou.seucofregerenciadordesenhas.R
@@ -55,9 +56,9 @@ class NewPasswordScreenTest {
             )
         }
 
-        composeRule.onNodeWithText(
+        composeRule.onAllNodesWithText(
             "Atenção: esta nota será salva em texto puro. Não adicione senhas, códigos ou outras informações sensíveis."
-        ).assertDoesNotExist()
+        ).assertCountEquals(0)
     }
 
     @Test

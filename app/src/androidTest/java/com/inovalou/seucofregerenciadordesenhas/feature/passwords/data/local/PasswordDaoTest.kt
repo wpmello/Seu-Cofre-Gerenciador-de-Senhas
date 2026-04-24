@@ -126,4 +126,51 @@ class PasswordDaoTest {
         assertEquals(111L, password?.createdAt)
         assertEquals(222L, password?.updatedAt)
     }
+
+    @Test
+    fun givenMatchingFingerprints_whenCountingDuplicates_thenIgnoresExcludedPassword() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at, password_fingerprint
+            ) VALUES (1, 'Spotify', 'a@vault.com', 'Music', NULL, 'cipher-a', 'iv-a', 1, '', NULL, 100, 200, 'fp-1')
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at, password_fingerprint
+            ) VALUES (2, 'Netflix', 'b@vault.com', 'Streaming', NULL, 'cipher-b', 'iv-b', 1, '', NULL, 300, 400, 'fp-1')
+            """.trimIndent()
+        )
+
+        val duplicateCount = passwordDao.countPasswordsWithFingerprint(
+            passwordFingerprint = "fp-1",
+            excludePasswordId = 1L
+        )
+
+        assertEquals(1, duplicateCount)
+    }
+
+    @Test
+    fun givenLegacyPasswordsWithoutFingerprint_whenQueryingMissingFingerprints_thenReturnsOnlyLegacyRows() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at, password_fingerprint
+            ) VALUES (1, 'Legacy One', 'a@vault.com', 'Legacy', NULL, 'cipher-a', 'iv-a', 1, '', NULL, 100, 200, NULL)
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at, password_fingerprint
+            ) VALUES (2, 'Fresh One', 'b@vault.com', 'Fresh', NULL, 'cipher-b', 'iv-b', 1, '', NULL, 300, 400, 'fp-2')
+            """.trimIndent()
+        )
+
+        val missing = passwordDao.getPasswordsMissingFingerprint()
+
+        assertEquals(listOf(1L), missing.map { it.id })
+    }
 }

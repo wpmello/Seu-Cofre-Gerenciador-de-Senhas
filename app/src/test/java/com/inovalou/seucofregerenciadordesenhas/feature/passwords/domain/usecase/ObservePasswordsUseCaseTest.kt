@@ -38,6 +38,11 @@ class ObservePasswordsUseCaseTest {
                 override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
 
                 override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+                override suspend fun hasPasswordDuplicate(
+                    password: String,
+                    excludePasswordId: Long?
+                ): Boolean = false
             }
         )
 

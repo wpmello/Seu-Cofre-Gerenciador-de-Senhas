@@ -12,6 +12,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.AnalyzePasswordSecurityUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GetPasswordDetailsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordResult
@@ -56,6 +58,29 @@ class EditPasswordViewModelTest {
         assertFalse(state.isIdentityCardEditing)
         assertEquals(1_700_000_000_000L, state.createdAt)
         assertEquals(1_710_000_000_000L, state.updatedAt)
+    }
+
+    @Test
+    fun givenPersistedPassword_whenViewModelLoads_thenExposesAnalyzedSecuritySection() = runTest {
+        val viewModel = buildViewModel()
+
+        advanceUntilIdle()
+
+        val securitySection = viewModel.uiState.value.securitySection
+        assertEquals(35, securitySection.scorePercent)
+        assertEquals(
+            EditPasswordSecurityVisualState.HighRisk,
+            securitySection.visualState
+        )
+        assertEquals(
+            R.string.edit_password_security_title,
+            securitySection.riskTitleResId
+        )
+        assertEquals(listOf(R.string.edit_password_security_tag_weak), securitySection.tagResIds)
+        assertEquals(
+            R.string.edit_password_security_alert_high,
+            securitySection.alertResId
+        )
     }
 
     @Test
@@ -195,6 +220,31 @@ class EditPasswordViewModelTest {
     }
 
     @Test
+    fun givenPasswordEdition_whenHandled_thenRefreshesSecuritySectionFromRealAnalysis() = runTest {
+        val viewModel = buildViewModel(duplicatePasswords = setOf("S7!mQ2#vN9@tL4\$z"))
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("S7!mQ2#vN9@tL4\$z"))
+        advanceUntilIdle()
+
+        val securitySection = viewModel.uiState.value.securitySection
+        assertEquals(80, securitySection.scorePercent)
+        assertEquals(
+            EditPasswordSecurityVisualState.MediumRisk,
+            securitySection.visualState
+        )
+        assertEquals(
+            listOf(R.string.edit_password_security_tag_duplicate),
+            securitySection.tagResIds
+        )
+        assertEquals(
+            R.string.edit_password_security_alert_medium,
+            securitySection.alertResId
+        )
+    }
+
+    @Test
     fun givenCopyEmailAction_whenHandled_thenEmitsCopyEffectAndMarksState() = runTest {
         val viewModel = buildViewModel(passwordDetails = persistedPassword(login = "copy@vault.com"))
         advanceUntilIdle()
@@ -317,7 +367,8 @@ class EditPasswordViewModelTest {
         passwordId: Long? = 8L,
         passwordDetails: PasswordDetails? = persistedPassword(),
         updatePasswordUseCase: FakeUpdatePasswordUseCase = FakeUpdatePasswordUseCase(),
-        categoryRepository: FakeCategoryRepository = FakeCategoryRepository()
+        categoryRepository: FakeCategoryRepository = FakeCategoryRepository(),
+        duplicatePasswords: Set<String> = emptySet()
     ): EditPasswordViewModel = EditPasswordViewModel(
         savedStateHandle = SavedStateHandle(
             buildMap {
@@ -327,9 +378,19 @@ class EditPasswordViewModelTest {
             }
         ),
         getPasswordDetailsUseCase = GetPasswordDetailsUseCase(
-            FakePasswordRepository(passwordDetails)
+            FakePasswordRepository(
+                passwordDetails = passwordDetails,
+                duplicatePasswords = duplicatePasswords
+            )
         ),
         observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
+        analyzePasswordSecurityUseCase = AnalyzePasswordSecurityUseCase(
+            passwordRepository = FakePasswordRepository(
+                passwordDetails = passwordDetails,
+                duplicatePasswords = duplicatePasswords
+            ),
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+        ),
         updatePasswordUseCase = UpdatePasswordUseCase(
             passwordRepository = updatePasswordUseCase,
             categoryRepository = categoryRepository,
@@ -357,7 +418,8 @@ class EditPasswordViewModelTest {
     )
 
     private class FakePasswordRepository(
-        private val passwordDetails: PasswordDetails?
+        private val passwordDetails: PasswordDetails?,
+        private val duplicatePasswords: Set<String> = emptySet()
     ) : PasswordRepository {
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
@@ -372,6 +434,11 @@ class EditPasswordViewModelTest {
         override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = passwordDetails
 
         override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+        override suspend fun hasPasswordDuplicate(
+            password: String,
+            excludePasswordId: Long?
+        ): Boolean = duplicatePasswords.contains(password)
     }
 
     private class FakeUpdatePasswordUseCase(
@@ -421,6 +488,11 @@ class EditPasswordViewModelTest {
                 error("update failure")
             }
         }
+
+        override suspend fun hasPasswordDuplicate(
+            password: String,
+            excludePasswordId: Long?
+        ): Boolean = false
     }
 
     private class FakeCategoryRepository(

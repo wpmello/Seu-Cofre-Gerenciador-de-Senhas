@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.reposito
 
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordFingerprintGenerator
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper.toDetailsDomain
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.map
 class PasswordRepositoryImpl @Inject constructor(
     private val localDataSource: PasswordsLocalDataSource,
     private val passwordCipher: PasswordCipher,
+    private val passwordFingerprintGenerator: PasswordFingerprintGenerator,
     private val timeProvider: TimeProvider
 ) : PasswordRepository {
 
@@ -48,6 +50,7 @@ class PasswordRepositoryImpl @Inject constructor(
                 passwordCipherVersion = encryptedPassword.version,
                 iconKey = "",
                 note = password.note,
+                passwordFingerprint = passwordFingerprintGenerator.generate(password.password),
                 createdAt = persistedAt,
                 updatedAt = updatedAt
             )
@@ -61,6 +64,12 @@ class PasswordRepositoryImpl @Inject constructor(
             iv = entity.passwordIv,
             version = entity.passwordCipherVersion
         )
+        if (entity.passwordFingerprint.isNullOrBlank()) {
+            localDataSource.updatePasswordFingerprint(
+                passwordId = entity.id,
+                passwordFingerprint = passwordFingerprintGenerator.generate(plainPassword)
+            )
+        }
         return entity.toDetailsDomain(password = plainPassword)
     }
 
@@ -78,9 +87,33 @@ class PasswordRepositoryImpl @Inject constructor(
                 passwordCipherVersion = encryptedPassword.version,
                 iconKey = password.iconKey,
                 note = password.note,
+                passwordFingerprint = passwordFingerprintGenerator.generate(password.password),
                 createdAt = password.createdAt,
                 updatedAt = password.updatedAt
             )
         )
+    }
+
+    override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean {
+        backfillMissingFingerprints()
+        val fingerprint = passwordFingerprintGenerator.generate(password)
+        return localDataSource.countPasswordsWithFingerprint(
+            passwordFingerprint = fingerprint,
+            excludePasswordId = excludePasswordId
+        ) > 0
+    }
+
+    private suspend fun backfillMissingFingerprints() {
+        localDataSource.getPasswordsMissingFingerprint().forEach { entity ->
+            val plainPassword = passwordCipher.decrypt(
+                cipherText = entity.encryptedPassword,
+                iv = entity.passwordIv,
+                version = entity.passwordCipherVersion
+            )
+            localDataSource.updatePasswordFingerprint(
+                passwordId = entity.id,
+                passwordFingerprint = passwordFingerprintGenerator.generate(plainPassword)
+            )
+        }
     }
 }
