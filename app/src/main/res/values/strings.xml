@@ -128,6 +128,8 @@
     <string name="edit_password_security_tag_duplicate">Senha duplicada</string>
     <string name="edit_password_security_tag_safe">Senha segura</string>
     <string name="edit_password_security_index_label">Índice</string>
+    <string name="edit_password_security_alert_label">Alerta de Segurança:</string>
+    <string name="edit_password_security_safe_label">Senha Segura:</string>
     <string name="edit_password_security_alert_high">Senhas curtas, comuns ou reutilizadas aumentam muito o risco. Prefira uma senha mais longa, difícil de adivinhar e exclusiva para esta credencial.</string>
     <string name="edit_password_security_alert_medium">A senha já oferece alguma resistência, mas ainda pode ser melhorada. Aumente o comprimento e evite padrões previsíveis ou reutilização.</string>
     <string name="edit_password_security_alert_safe">A senha atende aos critérios locais atuais do app. Isso não elimina todo risco, então continue priorizando senhas longas e únicas.</string>

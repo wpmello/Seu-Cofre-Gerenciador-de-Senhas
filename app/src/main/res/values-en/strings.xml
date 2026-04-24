@@ -128,6 +128,8 @@
     <string name="edit_password_security_tag_duplicate">Duplicate password</string>
     <string name="edit_password_security_tag_safe">Safe password</string>
     <string name="edit_password_security_index_label">Index</string>
+    <string name="edit_password_security_alert_label">Security Alert:</string>
+    <string name="edit_password_security_safe_label">Safe Password:</string>
     <string name="edit_password_security_alert_high">Short, common, or reused passwords sharply increase risk. Prefer a longer password that is harder to guess and unique to this credential.</string>
     <string name="edit_password_security_alert_medium">The password already offers some resistance, but it can still be improved. Increase the length and avoid predictable patterns or reuse.</string>
     <string name="edit_password_security_alert_safe">The password meets the app\'s current local criteria. This does not remove all risk, so keep prioritizing long, unique passwords.</string>
