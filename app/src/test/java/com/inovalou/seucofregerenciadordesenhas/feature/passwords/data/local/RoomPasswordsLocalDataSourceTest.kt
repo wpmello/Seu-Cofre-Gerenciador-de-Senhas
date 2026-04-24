@@ -157,6 +157,59 @@ class RoomPasswordsLocalDataSourceTest {
     }
 
     @Test
+    fun givenFingerprintLookup_whenCountingDuplicates_thenDelegatesQueryToDao() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()), duplicateCount = 2)
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val count = dataSource.countPasswordsWithFingerprint(
+            passwordFingerprint = "fp-123",
+            excludePasswordId = 9L
+        )
+
+        assertEquals(2, count)
+        assertEquals("fp-123", dao.lastDuplicateFingerprint)
+        assertEquals(9L, dao.lastDuplicateExcludedId)
+    }
+
+    @Test
+    fun givenMissingFingerprints_whenRequested_thenDelegatesLookupToDao() = runTest {
+        val expected = listOf(
+            PasswordEntity(
+                id = 21L,
+                title = "Legacy",
+                login = "legacy@vault.com",
+                category = "Work",
+                categoryId = 3L,
+                encryptedPassword = "cipher",
+                passwordIv = "iv",
+                passwordCipherVersion = 1,
+                iconKey = "",
+                createdAt = 10L,
+                updatedAt = 20L,
+                note = null,
+                passwordFingerprint = null
+            )
+        )
+        val dao = FakePasswordDao(flowOf(emptyList()), passwordsMissingFingerprint = expected)
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val missing = dataSource.getPasswordsMissingFingerprint()
+
+        assertEquals(expected, missing)
+    }
+
+    @Test
+    fun givenFingerprintUpdate_whenPersistingFingerprint_thenDelegatesUpdateToDao() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()))
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        dataSource.updatePasswordFingerprint(passwordId = 11L, passwordFingerprint = "fp-11")
+
+        assertEquals(11L, dao.lastUpdatedFingerprintPasswordId)
+        assertEquals("fp-11", dao.lastUpdatedFingerprint)
+    }
+
+    @Test
     fun givenDaoFailure_whenObservingPasswords_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("database unavailable")
         val dataSource = RoomPasswordsLocalDataSource(
@@ -182,13 +235,19 @@ class RoomPasswordsLocalDataSourceTest {
         private val passwordsFlow: Flow<List<PasswordEntity>>,
         private val passwordsByCategoryFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
         private val passwordCount: Int = 0,
-        private val passwordById: PasswordEntity? = null
+        private val passwordById: PasswordEntity? = null,
+        private val duplicateCount: Int = 0,
+        private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList()
     ) : PasswordDao {
 
         var insertedEntity: PasswordEntity? = null
         var updatedEntity: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
         var lastRequestedPasswordId: Long? = null
+        var lastDuplicateFingerprint: String? = null
+        var lastDuplicateExcludedId: Long? = null
+        var lastUpdatedFingerprintPasswordId: Long? = null
+        var lastUpdatedFingerprint: String? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
@@ -212,5 +271,22 @@ class RoomPasswordsLocalDataSourceTest {
         }
 
         override suspend fun countPasswords(): Int = passwordCount
+
+        override suspend fun countPasswordsWithFingerprint(
+            passwordFingerprint: String,
+            excludePasswordId: Long?
+        ): Int {
+            lastDuplicateFingerprint = passwordFingerprint
+            lastDuplicateExcludedId = excludePasswordId
+            return duplicateCount
+        }
+
+        override suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity> =
+            passwordsMissingFingerprint
+
+        override suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String) {
+            lastUpdatedFingerprintPasswordId = passwordId
+            lastUpdatedFingerprint = passwordFingerprint
+        }
     }
 }

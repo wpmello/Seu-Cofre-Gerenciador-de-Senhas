@@ -51,6 +51,29 @@ class EditPasswordScreenTest {
     }
 
     @Test
+    fun givenSafeSecuritySection_whenRendered_thenDisplaysSafeStateContent() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditPasswordScreen(
+                    uiState = editPasswordUiState().copy(
+                        securitySection = EditPasswordSecuritySectionUiState(
+                            scorePercent = 100,
+                            visualState = EditPasswordSecurityVisualState.Safe,
+                            riskTitleResId = R.string.edit_password_security_safe_title,
+                            tagResIds = listOf(R.string.edit_password_security_tag_safe),
+                            alertResId = R.string.edit_password_security_alert_safe
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Senha Segura").assertIsDisplayed()
+        composeRule.onNodeWithText("A senha atende aos critérios locais atuais do app.").assertIsDisplayed()
+    }
+
+    @Test
     fun givenEmptyNote_whenRendered_thenDisplaysFallbackHint() {
         composeRule.setContent {
             SeuCofreGerenciadorDeSenhasTheme {

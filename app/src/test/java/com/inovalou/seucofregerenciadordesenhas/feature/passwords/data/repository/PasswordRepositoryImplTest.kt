@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.reposito
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.EncryptedPasswordPayload
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordFingerprintGenerator
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
@@ -22,8 +23,8 @@ class PasswordRepositoryImplTest {
     @Test
     fun givenLocalEntities_whenObservingPasswords_thenMapsEntitiesToDomainModels() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(
-            listOf(
-                PasswordEntity(
+            initialPasswords = listOf(
+                passwordEntity(
                     id = 1L,
                     title = "Netflix",
                     login = "joao@email.com",
@@ -31,12 +32,10 @@ class PasswordRepositoryImplTest {
                     categoryId = 3L,
                     encryptedPassword = "cipher-1",
                     passwordIv = "iv-1",
-                    passwordCipherVersion = 1,
-                    iconKey = "",
                     createdAt = 100L,
                     updatedAt = 200L
                 ),
-                PasswordEntity(
+                passwordEntity(
                     id = 2L,
                     title = "GitHub",
                     login = "jsilva_dev",
@@ -44,18 +43,12 @@ class PasswordRepositoryImplTest {
                     categoryId = null,
                     encryptedPassword = "cipher-2",
                     passwordIv = "iv-2",
-                    passwordCipherVersion = 1,
-                    iconKey = "",
                     createdAt = 300L,
                     updatedAt = 400L
                 )
             )
         )
-        val repository = PasswordRepositoryImpl(
-            localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
-        )
+        val repository = buildRepository(localDataSource = localDataSource)
 
         val observed = repository.observePasswords().first()
 
@@ -82,16 +75,12 @@ class PasswordRepositoryImplTest {
 
     @Test
     fun givenLocalUpdates_whenObservingPasswords_thenEmitsMappedUpdatesReactively() = runTest {
-        val localDataSource = FakePasswordsLocalDataSource(emptyList())
-        val repository = PasswordRepositoryImpl(
-            localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
-        )
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
+        val repository = buildRepository(localDataSource = localDataSource)
 
         localDataSource.emit(
             listOf(
-                PasswordEntity(
+                passwordEntity(
                     id = 8L,
                     title = "Spotify",
                     login = "premium_family_admin",
@@ -99,8 +88,6 @@ class PasswordRepositoryImplTest {
                     categoryId = 12L,
                     encryptedPassword = "cipher",
                     passwordIv = "iv",
-                    passwordCipherVersion = 1,
-                    iconKey = "",
                     createdAt = 500L,
                     updatedAt = 600L
                 )
@@ -124,13 +111,14 @@ class PasswordRepositoryImplTest {
     }
 
     @Test
-    fun givenNewPassword_whenCreating_thenEncryptsBeforePersisting() = runTest {
-        val localDataSource = FakePasswordsLocalDataSource(emptyList())
+    fun givenNewPassword_whenCreating_thenEncryptsAndFingerprintsBeforePersisting() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
         val passwordCipher = FakePasswordCipher()
-        val repository = PasswordRepositoryImpl(
+        val fingerprintGenerator = FakePasswordFingerprintGenerator()
+        val repository = buildRepository(
             localDataSource = localDataSource,
             passwordCipher = passwordCipher,
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+            passwordFingerprintGenerator = fingerprintGenerator
         )
 
         repository.createPassword(
@@ -148,18 +136,20 @@ class PasswordRepositoryImplTest {
 
         assertEquals("enc::plain-secret", localDataSource.insertedPassword?.encryptedPassword)
         assertEquals("iv::plain-secret", localDataSource.insertedPassword?.passwordIv)
+        assertEquals("fp::plain-secret", localDataSource.insertedPassword?.passwordFingerprint)
         assertEquals(11L, localDataSource.insertedPassword?.categoryId)
         assertEquals("Work", localDataSource.insertedPassword?.category)
         assertEquals("Conta usada pelo time de plataforma", localDataSource.insertedPassword?.note)
         assertEquals(1_700_000_000_000L, localDataSource.insertedPassword?.createdAt)
         assertEquals(1_700_000_000_000L, localDataSource.insertedPassword?.updatedAt)
         assertEquals("plain-secret", passwordCipher.lastEncryptedPlainText)
+        assertEquals("plain-secret", fingerprintGenerator.lastFingerprintedPassword)
     }
 
     @Test
     fun givenCipherFailure_whenCreating_thenPropagatesErrorWithoutPersistingPlainText() = runTest {
-        val localDataSource = FakePasswordsLocalDataSource(emptyList())
-        val repository = PasswordRepositoryImpl(
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
+        val repository = buildRepository(
             localDataSource = localDataSource,
             passwordCipher = object : PasswordCipher {
                 override fun encrypt(plainText: String): EncryptedPasswordPayload {
@@ -169,8 +159,7 @@ class PasswordRepositoryImplTest {
                 override fun decrypt(cipherText: String, iv: String, version: Int): String {
                     error("unused")
                 }
-            },
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+            }
         )
 
         val thrown = try {
@@ -197,10 +186,11 @@ class PasswordRepositoryImplTest {
 
     @Test
     fun givenCountRequest_whenQueryingRepository_thenDelegatesToLocalDataSource() = runTest {
-        val repository = PasswordRepositoryImpl(
-            localDataSource = FakePasswordsLocalDataSource(emptyList(), passwordCount = 5),
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+        val repository = buildRepository(
+            localDataSource = FakePasswordsLocalDataSource(
+                initialPasswords = emptyList(),
+                passwordCount = 5
+            )
         )
 
         assertEquals(5, repository.getPasswordCount())
@@ -208,15 +198,11 @@ class PasswordRepositoryImplTest {
 
     @Test
     fun givenCategoryId_whenObservingPasswordsByCategory_thenDelegatesReactiveFilterToLocalDataSource() = runTest {
-        val localDataSource = FakePasswordsLocalDataSource(emptyList())
-        val repository = PasswordRepositoryImpl(
-            localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
-        )
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
+        val repository = buildRepository(localDataSource = localDataSource)
         localDataSource.emitByCategory(
             listOf(
-                PasswordEntity(
+                passwordEntity(
                     id = 21L,
                     title = "Notion",
                     login = "time@team.com",
@@ -224,8 +210,6 @@ class PasswordRepositoryImplTest {
                     categoryId = 7L,
                     encryptedPassword = "cipher",
                     passwordIv = "iv",
-                    passwordCipherVersion = 1,
-                    iconKey = "",
                     createdAt = 700L,
                     updatedAt = 800L
                 )
@@ -243,8 +227,8 @@ class PasswordRepositoryImplTest {
     @Test
     fun givenLocalDataSourceFailure_whenObservingPasswords_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("local source failure")
-        val repository = PasswordRepositoryImpl(
-            object : PasswordsLocalDataSource {
+        val repository = buildRepository(
+            localDataSource = object : PasswordsLocalDataSource {
                 override fun observePasswords(): Flow<List<PasswordEntity>> = flow {
                     throw expected
                 }
@@ -259,9 +243,19 @@ class PasswordRepositoryImplTest {
                 override suspend fun updatePassword(password: PasswordEntity) = Unit
 
                 override suspend fun getPasswordCount(): Int = 0
-            },
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+
+                override suspend fun countPasswordsWithFingerprint(
+                    passwordFingerprint: String,
+                    excludePasswordId: Long?
+                ): Int = 0
+
+                override suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity> = emptyList()
+
+                override suspend fun updatePasswordFingerprint(
+                    passwordId: Long,
+                    passwordFingerprint: String
+                ) = Unit
+            }
         )
 
         val thrown = try {
@@ -279,7 +273,7 @@ class PasswordRepositoryImplTest {
     fun givenPersistedEncryptedPassword_whenRequestingDetails_thenDecryptsAndMapsFullModel() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(
             initialPasswords = emptyList(),
-            passwordById = PasswordEntity(
+            passwordById = passwordEntity(
                 id = 31L,
                 title = "Spotify",
                 login = "premium@vault.com",
@@ -287,18 +281,14 @@ class PasswordRepositoryImplTest {
                 categoryId = 7L,
                 encryptedPassword = "cipher",
                 passwordIv = "iv",
-                passwordCipherVersion = 2,
                 iconKey = "sp",
                 createdAt = 1_700_000_000_000L,
                 updatedAt = 1_710_000_000_000L,
-                note = "Renovar no fim do trimestre"
+                note = "Renovar no fim do trimestre",
+                passwordFingerprint = null
             )
         )
-        val repository = PasswordRepositoryImpl(
-            localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_700_000_000_000L)
-        )
+        val repository = buildRepository(localDataSource = localDataSource)
 
         val result = repository.getPasswordDetails(31L)
 
@@ -309,24 +299,22 @@ class PasswordRepositoryImplTest {
                 login = "premium@vault.com",
                 password = "plain::cipher",
                 categoryId = 7L,
-                    categoryName = "Music",
-                    iconKey = "sp",
-                    note = "Renovar no fim do trimestre",
-                    createdAt = 1_700_000_000_000L,
-                    updatedAt = 1_710_000_000_000L
-                ),
+                categoryName = "Music",
+                iconKey = "sp",
+                note = "Renovar no fim do trimestre",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_710_000_000_000L
+            ),
             result
         )
+        assertEquals(31L, localDataSource.lastFingerprintUpdatePasswordId)
+        assertEquals("fp::plain::cipher", localDataSource.lastFingerprintUpdateValue)
     }
 
     @Test
-    fun givenUpdatedPassword_whenPersisting_thenReEncryptsAndPreservesCreatedAt() = runTest {
+    fun givenUpdatedPassword_whenPersisting_thenReEncryptsFingerprintsAndPreservesCreatedAt() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
-        val repository = PasswordRepositoryImpl(
-            localDataSource = localDataSource,
-            passwordCipher = FakePasswordCipher(),
-            timeProvider = FixedTimeProvider(1_760_000_000_000L)
-        )
+        val repository = buildRepository(localDataSource = localDataSource)
 
         repository.updatePassword(
             PasswordDetails(
@@ -345,15 +333,93 @@ class PasswordRepositoryImplTest {
 
         assertEquals("enc::new-secret", localDataSource.updatedPassword?.encryptedPassword)
         assertEquals("iv::new-secret", localDataSource.updatedPassword?.passwordIv)
+        assertEquals("fp::new-secret", localDataSource.updatedPassword?.passwordFingerprint)
         assertEquals("Conta rotacionada em janeiro", localDataSource.updatedPassword?.note)
         assertEquals(1_700_000_000_000L, localDataSource.updatedPassword?.createdAt)
         assertEquals(1_760_000_000_000L, localDataSource.updatedPassword?.updatedAt)
     }
 
+    @Test
+    fun givenDuplicateLookup_whenMissingFingerprintsExist_thenBackfillsBeforeCounting() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            duplicateCount = 1,
+            passwordsMissingFingerprint = listOf(
+                passwordEntity(
+                    id = 5L,
+                    title = "Legacy",
+                    login = "legacy@vault.com",
+                    category = "Legacy",
+                    categoryId = null,
+                    encryptedPassword = "enc::legacy-secret",
+                    passwordIv = "iv::legacy-secret",
+                    createdAt = 100L,
+                    updatedAt = 200L,
+                    passwordFingerprint = null
+                )
+            )
+        )
+        val repository = buildRepository(localDataSource = localDataSource)
+
+        val duplicate = repository.hasPasswordDuplicate(
+            password = "legacy-secret",
+            excludePasswordId = 8L
+        )
+
+        assertTrue(duplicate)
+        assertEquals(5L, localDataSource.lastFingerprintUpdatePasswordId)
+        assertEquals("fp::plain::enc::legacy-secret", localDataSource.lastFingerprintUpdateValue)
+        assertEquals("fp::legacy-secret", localDataSource.lastDuplicateFingerprint)
+        assertEquals(8L, localDataSource.lastDuplicateExcludedId)
+    }
+
+    private fun buildRepository(
+        localDataSource: PasswordsLocalDataSource,
+        passwordCipher: PasswordCipher = FakePasswordCipher(),
+        passwordFingerprintGenerator: PasswordFingerprintGenerator = FakePasswordFingerprintGenerator(),
+        timeProvider: TimeProvider = FixedTimeProvider(1_700_000_000_000L)
+    ) = PasswordRepositoryImpl(
+        localDataSource = localDataSource,
+        passwordCipher = passwordCipher,
+        passwordFingerprintGenerator = passwordFingerprintGenerator,
+        timeProvider = timeProvider
+    )
+
+    private fun passwordEntity(
+        id: Long,
+        title: String,
+        login: String,
+        category: String,
+        categoryId: Long?,
+        encryptedPassword: String,
+        passwordIv: String,
+        iconKey: String = "",
+        createdAt: Long,
+        updatedAt: Long,
+        note: String? = null,
+        passwordFingerprint: String? = "fp::stored"
+    ) = PasswordEntity(
+        id = id,
+        title = title,
+        login = login,
+        category = category,
+        categoryId = categoryId,
+        encryptedPassword = encryptedPassword,
+        passwordIv = passwordIv,
+        passwordCipherVersion = 1,
+        iconKey = iconKey,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        note = note,
+        passwordFingerprint = passwordFingerprint
+    )
+
     private class FakePasswordsLocalDataSource(
         initialPasswords: List<PasswordEntity>,
         private val passwordCount: Int = 0,
-        private val passwordById: PasswordEntity? = null
+        private val passwordById: PasswordEntity? = null,
+        private val duplicateCount: Int = 0,
+        private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList()
     ) : PasswordsLocalDataSource {
 
         private val passwordsFlow = MutableStateFlow(initialPasswords)
@@ -361,6 +427,10 @@ class PasswordRepositoryImplTest {
         var insertedPassword: PasswordEntity? = null
         var updatedPassword: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
+        var lastDuplicateFingerprint: String? = null
+        var lastDuplicateExcludedId: Long? = null
+        var lastFingerprintUpdatePasswordId: Long? = null
+        var lastFingerprintUpdateValue: String? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
@@ -381,6 +451,23 @@ class PasswordRepositoryImplTest {
         }
 
         override suspend fun getPasswordCount(): Int = passwordCount
+
+        override suspend fun countPasswordsWithFingerprint(
+            passwordFingerprint: String,
+            excludePasswordId: Long?
+        ): Int {
+            lastDuplicateFingerprint = passwordFingerprint
+            lastDuplicateExcludedId = excludePasswordId
+            return duplicateCount
+        }
+
+        override suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity> =
+            passwordsMissingFingerprint
+
+        override suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String) {
+            lastFingerprintUpdatePasswordId = passwordId
+            lastFingerprintUpdateValue = passwordFingerprint
+        }
 
         fun emit(passwords: List<PasswordEntity>) {
             passwordsFlow.value = passwords
@@ -404,6 +491,15 @@ class PasswordRepositoryImplTest {
 
         override fun decrypt(cipherText: String, iv: String, version: Int): String {
             return "plain::$cipherText"
+        }
+    }
+
+    private class FakePasswordFingerprintGenerator : PasswordFingerprintGenerator {
+        var lastFingerprintedPassword: String? = null
+
+        override fun generate(password: String): String {
+            lastFingerprintedPassword = password
+            return "fp::$password"
         }
     }
 

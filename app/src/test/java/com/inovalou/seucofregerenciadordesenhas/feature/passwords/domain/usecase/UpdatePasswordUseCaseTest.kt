@@ -259,6 +259,11 @@ class UpdatePasswordUseCaseTest {
             }
             updatedPassword = password
         }
+
+        override suspend fun hasPasswordDuplicate(
+            password: String,
+            excludePasswordId: Long?
+        ): Boolean = false
     }
 
     private class FakeCategoryRepository(
