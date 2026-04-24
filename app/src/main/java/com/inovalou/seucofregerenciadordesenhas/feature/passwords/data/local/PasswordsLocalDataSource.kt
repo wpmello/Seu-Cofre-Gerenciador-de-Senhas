@@ -16,6 +16,15 @@ interface PasswordsLocalDataSource {
     suspend fun updatePassword(password: PasswordEntity)
 
     suspend fun getPasswordCount(): Int
+
+    suspend fun countPasswordsWithFingerprint(
+        passwordFingerprint: String,
+        excludePasswordId: Long?
+    ): Int
+
+    suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity>
+
+    suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String)
 }
 
 class RoomPasswordsLocalDataSource @Inject constructor(
@@ -37,4 +46,16 @@ class RoomPasswordsLocalDataSource @Inject constructor(
     }
 
     override suspend fun getPasswordCount(): Int = passwordDao.countPasswords()
+
+    override suspend fun countPasswordsWithFingerprint(
+        passwordFingerprint: String,
+        excludePasswordId: Long?
+    ): Int = passwordDao.countPasswordsWithFingerprint(passwordFingerprint, excludePasswordId)
+
+    override suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity> =
+        passwordDao.getPasswordsMissingFingerprint()
+
+    override suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String) {
+        passwordDao.updatePasswordFingerprint(passwordId, passwordFingerprint)
+    }
 }

@@ -17,7 +17,10 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local.Ca
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index(value = ["category_id"])]
+    indices = [
+        Index(value = ["category_id"]),
+        Index(value = ["password_fingerprint"])
+    ]
 )
 data class PasswordEntity(
     @PrimaryKey(autoGenerate = true)
@@ -43,5 +46,7 @@ data class PasswordEntity(
     @ColumnInfo(name = "updated_at")
     val updatedAt: Long,
     @ColumnInfo(name = "note")
-    val note: String? = null
+    val note: String? = null,
+    @ColumnInfo(name = "password_fingerprint")
+    val passwordFingerprint: String? = null
 )

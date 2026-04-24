@@ -158,4 +158,18 @@ object SeuCofreDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                ALTER TABLE passwords
+                ADD COLUMN password_fingerprint TEXT
+                """.trimIndent()
+            )
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_passwords_password_fingerprint ON passwords(password_fingerprint)"
+            )
+        }
+    }
 }

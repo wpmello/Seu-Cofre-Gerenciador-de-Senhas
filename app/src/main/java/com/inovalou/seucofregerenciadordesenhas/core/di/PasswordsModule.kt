@@ -1,7 +1,9 @@
 package com.inovalou.seucofregerenciadordesenhas.core.di
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.AndroidKeystorePasswordCipher
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.AndroidKeystorePasswordFingerprintGenerator
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordFingerprintGenerator
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.RoomPasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.repository.PasswordRepositoryImpl
@@ -21,6 +23,12 @@ abstract class PasswordsModule {
     abstract fun bindPasswordCipher(
         passwordCipher: AndroidKeystorePasswordCipher
     ): PasswordCipher
+
+    @Binds
+    @Singleton
+    abstract fun bindPasswordFingerprintGenerator(
+        passwordFingerprintGenerator: AndroidKeystorePasswordFingerprintGenerator
+    ): PasswordFingerprintGenerator
 
     @Binds
     abstract fun bindPasswordsLocalDataSource(

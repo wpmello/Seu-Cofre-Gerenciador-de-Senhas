@@ -12,6 +12,7 @@ Registrar a estratégia mínima adotada para salvar novas credenciais na feature
   - `encrypted_password`
   - `password_iv`
   - `password_cipher_version`
+  - `password_fingerprint`
 - o valor em texto claro não é salvo no banco;
 - o banco do cofre foi explicitamente excluído do backup automático e da transferência entre dispositivos.
 
@@ -20,6 +21,7 @@ Registrar a estratégia mínima adotada para salvar novas credenciais na feature
 - o projeto exige proteção em repouso para dados altamente sensíveis;
 - a responsabilidade criptográfica precisava ficar fora da UI e antes da fronteira do Room;
 - o Android Keystore oferece o mecanismo mais adequado e alinhado às diretrizes de segurança já documentadas no projeto;
+- a detecção local de duplicidade exigia uma comparação determinística segura, sem descriptografar o cofre inteiro a cada análise da tela;
 - armazenar IV e versão da cifra prepara a base para futuras leituras/descriptografias e possíveis evoluções de formato.
 
 ## Alternativas consideradas
@@ -39,7 +41,9 @@ Rejeitada porque a plataforma já cobre o caso com APIs oficiais, e a feature pr
 ## Impactos
 
 - Room recebeu migration `3 -> 4` para os campos criptografados;
+- Room recebeu migration `8 -> 9` para a coluna `password_fingerprint`, preenchida de forma preguiçosa para registros legados;
 - o fluxo de detalhe/edição descriptografa a senha apenas no ponto de leitura da tela de edição e recriptografa antes de persistir qualquer alteração;
+- a fingerprint é um HMAC-SHA256 gerado localmente com chave não exportável do Android Keystore, usado apenas para detectar duplicidade exata sem expor a senha em texto puro;
 - Room recebeu migration `6 -> 7` para os campos `created_at` e `updated_at`, com backfill de registros legados no momento da migração;
 - `PasswordRepository` passou a concentrar a orquestração de criptografia + persistência;
 - a tela `Nova Senha` salva credenciais reais com timestamps locais de criação/modificação e a `PasswordsScreen` reflete o novo item via `Flow`;

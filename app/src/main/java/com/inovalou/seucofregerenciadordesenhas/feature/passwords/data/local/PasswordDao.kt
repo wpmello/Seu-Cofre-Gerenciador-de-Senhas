@@ -22,6 +22,7 @@ interface PasswordDao {
             passwords.password_cipher_version,
             passwords.icon_key,
             passwords.note,
+            passwords.password_fingerprint,
             passwords.created_at,
             passwords.updated_at
         FROM passwords
@@ -44,6 +45,7 @@ interface PasswordDao {
             passwords.password_cipher_version,
             passwords.icon_key,
             passwords.note,
+            passwords.password_fingerprint,
             passwords.created_at,
             passwords.updated_at
         FROM passwords
@@ -67,6 +69,7 @@ interface PasswordDao {
             passwords.password_cipher_version,
             passwords.icon_key,
             passwords.note,
+            passwords.password_fingerprint,
             passwords.created_at,
             passwords.updated_at
         FROM passwords
@@ -85,4 +88,49 @@ interface PasswordDao {
 
     @Query("SELECT COUNT(*) FROM passwords")
     suspend fun countPasswords(): Int
+
+    @Query(
+        """
+        SELECT COUNT(*)
+        FROM passwords
+        WHERE password_fingerprint = :passwordFingerprint
+            AND (:excludePasswordId IS NULL OR id != :excludePasswordId)
+        """
+    )
+    suspend fun countPasswordsWithFingerprint(
+        passwordFingerprint: String,
+        excludePasswordId: Long?
+    ): Int
+
+    @Query(
+        """
+        SELECT
+            passwords.id,
+            passwords.title,
+            passwords.login,
+            COALESCE(categories.name, passwords.category) AS category,
+            passwords.category_id,
+            passwords.encrypted_password,
+            passwords.password_iv,
+            passwords.password_cipher_version,
+            passwords.icon_key,
+            passwords.note,
+            passwords.password_fingerprint,
+            passwords.created_at,
+            passwords.updated_at
+        FROM passwords
+        LEFT JOIN categories ON categories.id = passwords.category_id
+        WHERE passwords.password_fingerprint IS NULL OR passwords.password_fingerprint = ''
+        """
+    )
+    suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity>
+
+    @Query(
+        """
+        UPDATE passwords
+        SET password_fingerprint = :passwordFingerprint
+        WHERE id = :passwordId
+        """
+    )
+    suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String)
 }
