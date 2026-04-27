@@ -56,9 +56,20 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
 
 private val HeroGradient = Brush.linearGradient(
     colors = listOf(ElectricBlue, NeonPink)
+)
+private val PoorSecurityGradient = Brush.linearGradient(
+    colors = listOf(Color(0xFFFF716C), Color(0xFF9F0519))
+)
+private val ModerateSecurityGradient = Brush.linearGradient(
+    colors = listOf(VaultAmber, Color(0xFFFFE39A))
+)
+private val GoodSecurityGradient = Brush.linearGradient(
+    colors = listOf(VaultGreen, Color(0xFF9AFFC4))
 )
 private val HighlightedCategoryGradient = Brush.linearGradient(
     colors = listOf(ElectricBlue, Color(0xFF0F6DF3))
@@ -228,6 +239,13 @@ private fun SecuritySummaryCard(
     encryptedIndicator: EncryptedIndicatorUiModel,
     modifier: Modifier = Modifier
 ) {
+    val cardBrush = when (summary.visualState) {
+        SecuritySummaryVisualState.Poor -> PoorSecurityGradient
+        SecuritySummaryVisualState.Moderate -> ModerateSecurityGradient
+        SecuritySummaryVisualState.Good -> GoodSecurityGradient
+        SecuritySummaryVisualState.Excellent -> HeroGradient
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -237,9 +255,10 @@ private fun SecuritySummaryCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = HeroGradient,
+                    brush = cardBrush,
                     shape = RoundedCornerShape(24.dp)
                 )
+                .testTag("categories_security_summary_card")
                 .padding(horizontal = 20.dp, vertical = 28.dp)
         ) {
             Box(
@@ -272,7 +291,8 @@ private fun SecuritySummaryCard(
                         color = MidnightBlue,
                         fontSize = 48.sp,
                         lineHeight = 48.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.testTag("categories_security_summary_status")
                     )
                 }
 

@@ -5,7 +5,9 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Assert.assertTrue
@@ -155,6 +157,34 @@ class CategoriesScreenTest {
         composeRule.onNodeWithTag("highlighted_category_card").performClick()
 
         assertTrue(clickedCategoryId == 7L)
+    }
+
+    @Test
+    fun givenSecuritySummaryStatus_whenRendered_thenDisplaysMappedStatusText() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        securitySummary = SecuritySummaryUiModel(
+                            statusResId = R.string.categories_security_good,
+                            totalItems = 2,
+                            visualState = SecuritySummaryVisualState.Good
+                        ),
+                        categoriesState = CategoriesContentUiState.Empty
+                    ),
+                    onAction = {},
+                    onCategoryClick = {},
+                    onViewAllClick = {},
+                    onAddCategoryClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("categories_security_summary_card").assertIsDisplayed()
+        composeRule.onNodeWithTag("categories_security_summary_status").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.categories_security_good)).assertIsDisplayed()
     }
 
     private fun sampleCategories() = listOf(

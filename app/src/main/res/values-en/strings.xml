@@ -19,6 +19,9 @@
     <string name="app_brand_name">Your vault</string>
     <string name="categories_search">Search</string>
     <string name="categories_security_status">SECURITY STATUS</string>
+    <string name="categories_security_poor">Poor</string>
+    <string name="categories_security_moderate">Moderate</string>
+    <string name="categories_security_good">Good</string>
     <string name="categories_security_excellent">Excellent</string>
     <string name="categories_total_items_label">ITEMS\nTOTAL</string>
     <string name="categories_encrypted_indicator">ENCRYPTED VAULT</string>

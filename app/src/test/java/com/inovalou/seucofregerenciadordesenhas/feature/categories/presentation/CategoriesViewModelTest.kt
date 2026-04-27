@@ -7,10 +7,18 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.reposi
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObserveVaultSecuritySummaryUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -27,11 +35,7 @@ class CategoriesViewModelTest {
 
     @Test
     fun givenNoCategories_whenObservingState_thenEmitsEmptyState() = runTest {
-        val repository = FakeCategoryRepository(emptyList())
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
-        )
+        val viewModel = buildViewModel(categories = emptyList())
         backgroundScope.launch { viewModel.uiState.collect { } }
 
         advanceUntilIdle()
@@ -41,15 +45,11 @@ class CategoriesViewModelTest {
 
     @Test
     fun givenCategoriesFlow_whenObservingState_thenMapsToContentUiState() = runTest {
-        val repository = FakeCategoryRepository(
-            listOf(
+        val viewModel = buildViewModel(
+            categories = listOf(
                 Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
                 Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L)
             )
-        )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -67,18 +67,14 @@ class CategoriesViewModelTest {
 
     @Test
     fun givenMoreThanFourCategories_whenObservingState_thenKeepsOnlyFourPreviewCards() = runTest {
-        val repository = FakeCategoryRepository(
-            listOf(
+        val viewModel = buildViewModel(
+            categories = listOf(
                 Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
                 Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L),
                 Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12, lastModifiedAt = 30L),
                 Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21, lastModifiedAt = 40L),
                 Category(id = 5, name = "Privado", iconKey = "ic_directory", itemCount = 3, lastModifiedAt = 50L)
             )
-        )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -97,17 +93,13 @@ class CategoriesViewModelTest {
 
     @Test
     fun givenFourOrFewerCategories_whenObservingState_thenHidesBottomViewAllButton() = runTest {
-        val repository = FakeCategoryRepository(
-            listOf(
+        val viewModel = buildViewModel(
+            categories = listOf(
                 Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
                 Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L),
                 Category(id = 3, name = "Saúde", iconKey = "ic_directory", itemCount = 12, lastModifiedAt = 30L),
                 Category(id = 4, name = "Viagens", iconKey = "ic_directory", itemCount = 21, lastModifiedAt = 40L)
             )
-        )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -119,14 +111,10 @@ class CategoriesViewModelTest {
 
     @Test
     fun givenUnknownIconKey_whenObservingState_thenUsesSafeFallbackIcon() = runTest {
-        val repository = FakeCategoryRepository(
-            listOf(
+        val viewModel = buildViewModel(
+            categories = listOf(
                 Category(id = 3, name = "Legado", iconKey = "ic_unknown_legacy", itemCount = 2, lastModifiedAt = 10L)
             )
-        )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -146,10 +134,7 @@ class CategoriesViewModelTest {
                 Category(id = 5, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 8, lastModifiedAt = 10L)
             )
         )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
-        )
+        val viewModel = buildViewModel(categoryRepository = repository)
         backgroundScope.launch { viewModel.uiState.collect { } }
 
         repository.emit(
@@ -174,10 +159,7 @@ class CategoriesViewModelTest {
                 Category(id = 6, name = "Pessoal", iconKey = "ic_directory", itemCount = 1, lastModifiedAt = 10L)
             )
         )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
-        )
+        val viewModel = buildViewModel(categoryRepository = repository)
         backgroundScope.launch { viewModel.uiState.collect { } }
 
         repository.emit(emptyList())
@@ -203,10 +185,7 @@ class CategoriesViewModelTest {
                 throw IllegalStateException("repository failure")
             }
         }
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
-        )
+        val viewModel = buildViewModel(categoryRepository = repository)
         backgroundScope.launch { viewModel.uiState.collect { } }
 
         advanceUntilIdle()
@@ -217,16 +196,12 @@ class CategoriesViewModelTest {
 
     @Test
     fun givenCategoriesWithDifferentLastModifiedAt_whenObservingState_thenHighlightsMostRecentlyChangedCategory() = runTest {
-        val repository = FakeCategoryRepository(
-            listOf(
+        val viewModel = buildViewModel(
+            categories = listOf(
                 Category(id = 1, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 42, lastModifiedAt = 10L),
                 Category(id = 7, name = "Pessoal", iconKey = "ic_directory", itemCount = 3, lastModifiedAt = 200L),
                 Category(id = 2, name = "Educação", iconKey = "ic_home_2", itemCount = 15, lastModifiedAt = 20L)
             )
-        )
-        val viewModel = CategoriesViewModel(
-            observeCategoriesUseCase = ObserveCategoriesUseCase(repository),
-            categoryIconCatalog = FakeCategoryIconCatalog()
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -235,6 +210,37 @@ class CategoriesViewModelTest {
         assertEquals(7L, viewModel.uiState.value.currentCategory?.id)
         assertEquals("Pessoal", viewModel.uiState.value.currentCategory?.name)
     }
+
+    @Test
+    fun givenVaultSecuritySummary_whenObservingState_thenMapsStatusAndTotalToSecurityCard() = runTest {
+        val passwordRepository = FakePasswordRepository(
+            listOf(
+                PasswordSecuritySnapshot(password = "R8!kLm2@Qp7#", fingerprint = "fp-1"),
+                PasswordSecuritySnapshot(password = "Ab1!cd2@", fingerprint = "fp-2")
+            )
+        )
+        val viewModel = buildViewModel(passwordRepository = passwordRepository)
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.uiState.value.securitySummary.totalItems)
+        assertEquals(R.string.categories_security_good, viewModel.uiState.value.securitySummary.statusResId)
+        assertEquals(SecuritySummaryVisualState.Good, viewModel.uiState.value.securitySummary.visualState)
+    }
+
+    private fun buildViewModel(
+        categories: List<Category> = emptyList(),
+        categoryRepository: CategoryRepository = FakeCategoryRepository(categories),
+        passwordRepository: PasswordRepository = FakePasswordRepository(emptyList())
+    ) = CategoriesViewModel(
+        observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
+        observeVaultSecuritySummaryUseCase = ObserveVaultSecuritySummaryUseCase(
+            repository = passwordRepository,
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+        ),
+        categoryIconCatalog = FakeCategoryIconCatalog()
+    )
 
     private class FakeCategoryRepository(
         categories: List<Category>
@@ -259,18 +265,55 @@ class CategoriesViewModelTest {
         }
     }
 
+    private class FakePasswordRepository(
+        snapshots: List<PasswordSecuritySnapshot>
+    ) : PasswordRepository {
+
+        private val snapshotsFlow = MutableStateFlow(snapshots)
+
+        override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(emptyList())
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            flowOf(emptyList())
+
+        override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
+            snapshotsFlow
+
+        override suspend fun getPasswordCount(): Int = snapshotsFlow.value.size
+
+        override suspend fun createPassword(password: NewPassword): Long = 0L
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+        override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
+            false
+    }
+
     private class FakeCategoryIconCatalog : CategoryIconCatalog {
-        private val icons = listOf(
-            CategoryIconOption("ic_work_bag_add_category", R.drawable.ic_work_bag_add_category),
-            CategoryIconOption("ic_home_2", R.drawable.ic_home_2),
-            CategoryIconOption("ic_directory", R.drawable.ic_directory)
+        override fun all(): List<CategoryIconOption> = emptyList()
+
+        override fun resolve(iconKey: String): CategoryIconOption = when (iconKey) {
+            "ic_work_bag_add_category" -> CategoryIconOption(
+                iconKey = iconKey,
+                drawableResId = R.drawable.ic_work_bag_add_category,
+            )
+
+            "ic_home_2" -> CategoryIconOption(
+                iconKey = iconKey,
+                drawableResId = R.drawable.ic_home_2,
+            )
+
+            else -> CategoryIconOption(
+                iconKey = iconKey,
+                drawableResId = R.drawable.ic_directory,
+            )
+        }
+
+        override fun default(): CategoryIconOption = CategoryIconOption(
+            iconKey = "ic_directory",
+            drawableResId = R.drawable.ic_directory
         )
-
-        override fun all(): List<CategoryIconOption> = icons
-
-        override fun resolve(iconKey: String): CategoryIconOption =
-            icons.firstOrNull { icon -> icon.iconKey == iconKey } ?: icons.last()
-
-        override fun default(): CategoryIconOption = icons.first()
     }
 }

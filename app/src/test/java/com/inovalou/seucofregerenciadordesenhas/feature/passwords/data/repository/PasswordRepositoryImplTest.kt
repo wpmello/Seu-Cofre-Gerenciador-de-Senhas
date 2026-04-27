@@ -8,6 +8,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.Pas
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,6 +109,60 @@ class PasswordRepositoryImplTest {
             ),
             observed
         )
+    }
+
+    @Test
+    fun givenEncryptedPasswords_whenObservingSecuritySnapshots_thenDecryptsAndResolvesFingerprints() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = listOf(
+                passwordEntity(
+                    id = 1L,
+                    title = "Netflix",
+                    login = "joao@email.com",
+                    category = "Streaming",
+                    categoryId = 3L,
+                    encryptedPassword = "cipher-1",
+                    passwordIv = "iv-1",
+                    createdAt = 100L,
+                    updatedAt = 200L,
+                    passwordFingerprint = "fp::stored-1"
+                ),
+                passwordEntity(
+                    id = 2L,
+                    title = "GitHub",
+                    login = "jsilva_dev",
+                    category = "Work",
+                    categoryId = null,
+                    encryptedPassword = "cipher-2",
+                    passwordIv = "iv-2",
+                    createdAt = 300L,
+                    updatedAt = 400L,
+                    passwordFingerprint = null
+                )
+            )
+        )
+        val fingerprintGenerator = FakePasswordFingerprintGenerator()
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordFingerprintGenerator = fingerprintGenerator
+        )
+
+        val observed = repository.observePasswordSecuritySnapshots().first()
+
+        assertEquals(
+            listOf(
+                PasswordSecuritySnapshot(
+                    password = "plain::cipher-1",
+                    fingerprint = "fp::stored-1"
+                ),
+                PasswordSecuritySnapshot(
+                    password = "plain::cipher-2",
+                    fingerprint = "fp::plain::cipher-2"
+                )
+            ),
+            observed
+        )
+        assertEquals("plain::cipher-2", fingerprintGenerator.lastFingerprintedPassword)
     }
 
     @Test
