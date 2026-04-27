@@ -14,8 +14,16 @@ data class CategoriesUiState(
 data class SecuritySummaryUiModel(
     @StringRes val titleResId: Int = R.string.categories_security_status,
     @StringRes val statusResId: Int = R.string.categories_security_excellent,
-    val totalItems: Int = 0
+    val totalItems: Int = 0,
+    val visualState: SecuritySummaryVisualState = SecuritySummaryVisualState.Excellent
 )
+
+enum class SecuritySummaryVisualState {
+    Poor,
+    Moderate,
+    Good,
+    Excellent
+}
 
 data class EncryptedIndicatorUiModel(
     @StringRes val labelResId: Int = R.string.categories_encrypted_indicator,

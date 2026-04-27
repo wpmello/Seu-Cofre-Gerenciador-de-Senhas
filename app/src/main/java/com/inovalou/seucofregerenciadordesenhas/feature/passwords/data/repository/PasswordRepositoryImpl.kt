@@ -9,6 +9,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper.to
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper.toDomain
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import javax.inject.Inject
@@ -30,6 +31,23 @@ class PasswordRepositoryImpl @Inject constructor(
     override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
         localDataSource.observePasswordsByCategoryId(categoryId).map { entities ->
             entities.map { entity -> entity.toDomain() }
+        }
+
+    override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
+        localDataSource.observePasswords().map { entities ->
+            entities.map { entity ->
+                val plainPassword = passwordCipher.decrypt(
+                    cipherText = entity.encryptedPassword,
+                    iv = entity.passwordIv,
+                    version = entity.passwordCipherVersion
+                )
+                PasswordSecuritySnapshot(
+                    password = plainPassword,
+                    fingerprint = entity.passwordFingerprint
+                        ?.takeIf { it.isNotBlank() }
+                        ?: passwordFingerprintGenerator.generate(plainPassword)
+                )
+            }
         }
 
     override suspend fun getPasswordCount(): Int = localDataSource.getPasswordCount()

@@ -19,6 +19,9 @@
     <string name="app_brand_name">Seu cofre</string>
     <string name="categories_search">Buscar</string>
     <string name="categories_security_status">STATUS DE SEGURANÇA</string>
+    <string name="categories_security_poor">Ruim</string>
+    <string name="categories_security_moderate">Moderado</string>
+    <string name="categories_security_good">Bom</string>
     <string name="categories_security_excellent">Excelente</string>
     <string name="categories_total_items_label">ITEMS\nTOTAL</string>
     <string name="categories_encrypted_indicator">COFRE CRIPTOGRAFADO</string>
