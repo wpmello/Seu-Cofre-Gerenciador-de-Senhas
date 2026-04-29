@@ -2,9 +2,9 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Base64
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
-import java.util.Base64
 import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -20,10 +20,11 @@ class AndroidKeystorePasswordCipher @Inject constructor() : PasswordCipher {
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
 
         return EncryptedPasswordPayload(
-            cipherText = Base64.getEncoder().encodeToString(
-                cipher.doFinal(plainText.toByteArray(StandardCharsets.UTF_8))
+            cipherText = Base64.encodeToString(
+                cipher.doFinal(plainText.toByteArray(StandardCharsets.UTF_8)),
+                Base64.NO_WRAP
             ),
-            iv = Base64.getEncoder().encodeToString(cipher.iv),
+            iv = Base64.encodeToString(cipher.iv, Base64.NO_WRAP),
             version = CURRENT_VERSION
         )
     }
@@ -39,13 +40,13 @@ class AndroidKeystorePasswordCipher @Inject constructor() : PasswordCipher {
             getOrCreateSecretKey(),
             javax.crypto.spec.GCMParameterSpec(
                 GCM_TAG_LENGTH_BITS,
-                Base64.getDecoder().decode(iv)
+                Base64.decode(iv, Base64.NO_WRAP)
             )
         )
 
         return try {
             String(
-                cipher.doFinal(Base64.getDecoder().decode(cipherText)),
+                cipher.doFinal(Base64.decode(cipherText, Base64.NO_WRAP)),
                 StandardCharsets.UTF_8
             )
         } catch (error: AEADBadTagException) {

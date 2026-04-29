@@ -78,6 +78,8 @@
     <string name="passwords_search_empty_message">Try another app, site or login search.</string>
     <string name="passwords_load_error">Could not load passwords.</string>
     <string name="passwords_create_fab">Add password</string>
+    <string name="passwords_strength_weak_flag">WEAK</string>
+    <string name="passwords_strength_moderate_flag">MODERATE</string>
     <string name="new_password_back">Go back</string>
     <string name="new_password_title">New Password</string>
     <string name="new_password_description">Protect your digital identity with military-grade encryption.</string>

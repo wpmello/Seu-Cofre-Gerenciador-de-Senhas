@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -120,5 +121,52 @@ class PasswordsScreenTest {
         composeRule.onNodeWithTag("password_item_11").performClick()
 
         assertTrue(wasClicked)
+    }
+
+    @Test
+    fun givenPasswordStrengthLevels_whenRendered_thenShowsFlagsOnlyForWeakAndModeratePasswords() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                PasswordsScreen(
+                    uiState = PasswordsUiState(
+                        filteredPasswords = listOf(
+                            PasswordListItemUiModel(
+                                id = 1L,
+                                title = "Spotify",
+                                supportingText = "premium_family_admin",
+                                initials = "S",
+                                securityLevel = PasswordListItemSecurityLevel.Weak
+                            ),
+                            PasswordListItemUiModel(
+                                id = 2L,
+                                title = "GitHub",
+                                supportingText = "jsilva_dev",
+                                initials = "G",
+                                securityLevel = PasswordListItemSecurityLevel.Moderate
+                            ),
+                            PasswordListItemUiModel(
+                                id = 3L,
+                                title = "Netflix",
+                                supportingText = "joao@email.com",
+                                initials = "N",
+                                securityLevel = PasswordListItemSecurityLevel.Safe
+                            )
+                        ),
+                        totalPasswords = 3,
+                        contentState = PasswordsContentState.Content
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("FRACA").assertIsDisplayed()
+        composeRule.onNodeWithText("MODERADA").assertIsDisplayed()
+        composeRule.onNodeWithTag("password_strength_dot_1").assertIsDisplayed()
+        composeRule.onNodeWithTag("password_strength_dot_2").assertIsDisplayed()
+        composeRule.onNodeWithTag("password_strength_dot_3").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("password_strength_flag_1").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("password_strength_flag_2").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("password_strength_flag_3").assertCountEquals(0)
     }
 }

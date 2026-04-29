@@ -42,6 +42,7 @@ class PasswordRepositoryImpl @Inject constructor(
                     version = entity.passwordCipherVersion
                 )
                 PasswordSecuritySnapshot(
+                    passwordId = entity.id,
                     password = plainPassword,
                     fingerprint = entity.passwordFingerprint
                         ?.takeIf { it.isNotBlank() }

@@ -152,10 +152,12 @@ class PasswordRepositoryImplTest {
         assertEquals(
             listOf(
                 PasswordSecuritySnapshot(
+                    passwordId = 1L,
                     password = "plain::cipher-1",
                     fingerprint = "fp::stored-1"
                 ),
                 PasswordSecuritySnapshot(
+                    passwordId = 2L,
                     password = "plain::cipher-2",
                     fingerprint = "fp::plain::cipher-2"
                 )

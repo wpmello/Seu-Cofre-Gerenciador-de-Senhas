@@ -2,10 +2,10 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Base64
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
 import java.text.Normalizer
-import java.util.Base64
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
 import javax.crypto.SecretKey
@@ -20,7 +20,7 @@ class AndroidKeystorePasswordFingerprintGenerator @Inject constructor() : Passwo
         val mac = Mac.getInstance(HMAC_ALGORITHM)
         mac.init(getOrCreateSecretKey())
         val digest = mac.doFinal(normalizedPassword.toByteArray(StandardCharsets.UTF_8))
-        return Base64.getEncoder().encodeToString(digest)
+        return Base64.encodeToString(digest, Base64.NO_WRAP)
     }
 
     private fun getOrCreateSecretKey(): SecretKey {

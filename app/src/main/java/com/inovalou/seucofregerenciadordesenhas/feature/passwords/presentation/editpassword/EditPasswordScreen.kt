@@ -88,9 +88,9 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun EditPasswordRoute(
@@ -1102,9 +1102,11 @@ private fun Long.toDateLabel(): String {
         return "--/--/----"
     }
 
-    return DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        .format(Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()))
+    return SimpleDateFormat(DATE_LABEL_PATTERN, Locale.getDefault())
+        .format(Date(this))
 }
+
+private const val DATE_LABEL_PATTERN = "dd/MM/yyyy"
 
 private fun Context.copyToClipboard(
     value: String,

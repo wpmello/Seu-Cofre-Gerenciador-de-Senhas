@@ -2,6 +2,8 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecas
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import kotlinx.coroutines.flow.Flow
@@ -14,8 +16,8 @@ import org.junit.Test
 class ObservePasswordsUseCaseTest {
 
     @Test
-    fun givenRepositoryStream_whenInvoked_thenReturnsObservedPasswords() = runTest {
-        val expected = listOf(
+    fun givenRepositoryStream_whenInvoked_thenReturnsObservedPasswordsWithSecurityRisk() = runTest {
+        val passwords = listOf(
             PasswordSummary(
                 id = 3L,
                 title = "Instagram",
@@ -25,27 +27,132 @@ class ObservePasswordsUseCaseTest {
             )
         )
         val useCase = ObservePasswordsUseCase(
-            repository = object : PasswordRepository {
-                override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(expected)
-
-                override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
-                    flowOf(expected)
-
-                override suspend fun getPasswordCount(): Int = expected.size
-
-                override suspend fun createPassword(password: NewPassword): Long = 0L
-
-                override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
-
-                override suspend fun updatePassword(password: PasswordDetails) = Unit
-
-                override suspend fun hasPasswordDuplicate(
-                    password: String,
-                    excludePasswordId: Long?
-                ): Boolean = false
-            }
+            repository = FakePasswordRepository(
+                passwords = passwords,
+                snapshots = listOf(
+                    PasswordSecuritySnapshot(
+                        passwordId = 3L,
+                        password = "VeryStrongCredential!2026",
+                        fingerprint = "instagram"
+                    )
+                )
+            ),
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
         )
 
-        assertEquals(expected, useCase().first())
+        val result = useCase().first()
+
+        assertEquals(passwords.single().title, result.single().title)
+        assertEquals(PasswordSecurityRiskLevel.Low, result.single().securityRiskLevel)
+    }
+
+    @Test
+    fun givenPasswordsWithDifferentSecurityScores_whenInvoked_thenMapsRiskLevelPerPassword() = runTest {
+        val useCase = ObservePasswordsUseCase(
+            repository = FakePasswordRepository(
+                passwords = listOf(
+                    PasswordSummary(
+                        id = 1L,
+                        title = "Spotify",
+                        login = "premium_family_admin",
+                        categoryId = 1L,
+                        categoryName = "Streaming"
+                    ),
+                    PasswordSummary(
+                        id = 2L,
+                        title = "GitHub",
+                        login = "jsilva_dev",
+                        categoryId = 2L,
+                        categoryName = "Work"
+                    ),
+                    PasswordSummary(
+                        id = 3L,
+                        title = "Netflix",
+                        login = "joao@email.com",
+                        categoryId = 1L,
+                        categoryName = "Streaming"
+                    )
+                ),
+                snapshots = listOf(
+                    PasswordSecuritySnapshot(
+                        passwordId = 1L,
+                        password = "123456",
+                        fingerprint = "spotify"
+                    ),
+                    PasswordSecuritySnapshot(
+                        passwordId = 2L,
+                        password = "Qr7!Lp2@Mz9#",
+                        fingerprint = "github"
+                    ),
+                    PasswordSecuritySnapshot(
+                        passwordId = 3L,
+                        password = "VeryStrongCredential!2026",
+                        fingerprint = "netflix"
+                    )
+                )
+            ),
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+        )
+
+        val result = useCase().first()
+
+        assertEquals(
+            listOf(
+                PasswordSecurityRiskLevel.High,
+                PasswordSecurityRiskLevel.Medium,
+                PasswordSecurityRiskLevel.Low
+            ),
+            result.map { it.securityRiskLevel }
+        )
+    }
+
+    @Test
+    fun givenPasswordWithoutSecuritySnapshot_whenInvoked_thenKeepsHighRiskFallback() = runTest {
+        val useCase = ObservePasswordsUseCase(
+            repository = FakePasswordRepository(
+                passwords = listOf(
+                    PasswordSummary(
+                        id = 9L,
+                        title = "Legacy",
+                        login = "legacy@email.com",
+                        categoryId = null,
+                        categoryName = null
+                    )
+                ),
+                snapshots = emptyList()
+            ),
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+        )
+
+        val result = useCase().first()
+
+        assertEquals(PasswordSecurityRiskLevel.High, result.single().securityRiskLevel)
+    }
+
+    private class FakePasswordRepository(
+        private val passwords: List<PasswordSummary>,
+        private val snapshots: List<PasswordSecuritySnapshot>
+    ) : PasswordRepository {
+
+        override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(passwords)
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            flowOf(passwords)
+
+        override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
+            flowOf(snapshots)
+
+        override suspend fun getPasswordCount(): Int = passwords.size
+
+        override suspend fun createPassword(password: NewPassword): Long = 0L
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+        override suspend fun hasPasswordDuplicate(
+            password: String,
+            excludePasswordId: Long?
+        ): Boolean = false
     }
 }

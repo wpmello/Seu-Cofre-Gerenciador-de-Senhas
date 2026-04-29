@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,7 +81,8 @@ private fun List<PasswordSummary>.toUiState(
             id = password.id,
             title = password.title,
             supportingText = password.login,
-            initials = password.title.toInitials()
+            initials = password.title.toInitials(),
+            securityLevel = password.securityRiskLevel.toListItemSecurityLevel()
         )
     }
     val normalizedQuery = query.trim()
@@ -126,3 +128,10 @@ private fun String.toInitials(): String {
         append(parts.last().take(1))
     }.uppercase()
 }
+
+private fun PasswordSecurityRiskLevel.toListItemSecurityLevel(): PasswordListItemSecurityLevel =
+    when (this) {
+        PasswordSecurityRiskLevel.High -> PasswordListItemSecurityLevel.Weak
+        PasswordSecurityRiskLevel.Medium -> PasswordListItemSecurityLevel.Moderate
+        PasswordSecurityRiskLevel.Low -> PasswordListItemSecurityLevel.Safe
+    }

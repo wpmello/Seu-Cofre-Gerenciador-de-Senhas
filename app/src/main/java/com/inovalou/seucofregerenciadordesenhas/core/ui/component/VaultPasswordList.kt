@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
@@ -17,23 +19,37 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
 
 data class VaultPasswordListItemModel(
     val id: Long,
     val title: String,
     val supportingText: String,
-    val initials: String? = null
+    val initials: String? = null,
+    val securityLevel: VaultPasswordListSecurityLevel? = null
 )
+
+enum class VaultPasswordListSecurityLevel {
+    Weak,
+    Moderate,
+    Safe
+}
 
 @Composable
 fun VaultPasswordListColumn(
@@ -78,34 +94,55 @@ fun VaultPasswordListItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(
-                        color = DeepNavy,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = password.initials?.takeIf { it.isNotBlank() } ?: password.title.toInitials(),
-                    color = SoftWhite,
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = DeepNavy,
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = password.initials?.takeIf { it.isNotBlank() } ?: password.title.toInitials(),
+                        color = SoftWhite,
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+
+                password.securityLevel?.let { securityLevel ->
+                    PasswordStrengthDot(
+                        securityLevel = securityLevel,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 8.dp, y = (-8).dp)
+                            .testTag("password_strength_dot_${password.id}")
+                    )
+                }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = password.title,
                     color = SoftWhite,
                     fontSize = 16.sp,
                     lineHeight = 24.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (password.supportingText.isNotBlank()) {
                     Text(
@@ -113,20 +150,70 @@ fun VaultPasswordListItem(
                         color = MistText,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
         }
 
         if (showTrailingIndicator) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                contentDescription = null,
-                tint = GhostOutline,
-                modifier = Modifier.size(16.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                password.securityLevel?.let { securityLevel ->
+                    val flagResId = securityLevel.flagResId()
+                    if (flagResId != null) {
+                        Text(
+                            text = stringResource(flagResId),
+                            color = securityLevel.accentColor(),
+                            fontSize = 10.sp,
+                            lineHeight = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.5).sp,
+                            modifier = Modifier.testTag("password_strength_flag_${password.id}")
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    contentDescription = null,
+                    tint = GhostOutline,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun PasswordStrengthDot(
+    securityLevel: VaultPasswordListSecurityLevel,
+    modifier: Modifier = Modifier
+) {
+    val accentColor = securityLevel.accentColor()
+
+    Box(
+        modifier = modifier
+            .size(20.dp)
+            .drawBehind {
+                drawCircle(
+                    color = accentColor.copy(alpha = 0.5f),
+                    radius = size.maxDimension / 2f
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .background(
+                    color = accentColor,
+                    shape = CircleShape
+                )
+        )
     }
 }
 
@@ -147,4 +234,16 @@ private fun String.toInitials(): String {
         append(parts.first().take(1))
         append(parts.last().take(1))
     }.uppercase()
+}
+
+private fun VaultPasswordListSecurityLevel.flagResId(): Int? = when (this) {
+    VaultPasswordListSecurityLevel.Weak -> R.string.passwords_strength_weak_flag
+    VaultPasswordListSecurityLevel.Moderate -> R.string.passwords_strength_moderate_flag
+    VaultPasswordListSecurityLevel.Safe -> null
+}
+
+private fun VaultPasswordListSecurityLevel.accentColor(): Color = when (this) {
+    VaultPasswordListSecurityLevel.Weak -> Color(0xFFFF716C)
+    VaultPasswordListSecurityLevel.Moderate -> VaultAmber
+    VaultPasswordListSecurityLevel.Safe -> VaultGreen
 }

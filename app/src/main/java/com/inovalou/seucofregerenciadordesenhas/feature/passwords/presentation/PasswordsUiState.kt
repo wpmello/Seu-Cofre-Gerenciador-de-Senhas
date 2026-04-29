@@ -15,8 +15,15 @@ data class PasswordListItemUiModel(
     val id: Long,
     val title: String,
     val supportingText: String,
-    val initials: String
+    val initials: String,
+    val securityLevel: PasswordListItemSecurityLevel = PasswordListItemSecurityLevel.Weak
 )
+
+enum class PasswordListItemSecurityLevel {
+    Weak,
+    Moderate,
+    Safe
+}
 
 sealed interface PasswordsContentState {
     data object Loading : PasswordsContentState

@@ -15,6 +15,7 @@ data class VaultSecuritySummary(
 }
 
 data class PasswordSecuritySnapshot(
+    val passwordId: Long = 0L,
     val password: String,
     val fingerprint: String
 )

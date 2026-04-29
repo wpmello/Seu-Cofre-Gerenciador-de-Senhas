@@ -4,8 +4,10 @@ import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -163,6 +165,34 @@ class PasswordsViewModelTest {
     }
 
     @Test
+    fun givenPasswordSecuritySnapshots_whenObservingState_thenExposesListSecurityLevels() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                PasswordSummary(id = 1L, title = "Spotify", login = "premium_family_admin", categoryId = 3L, categoryName = "Music"),
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", categoryId = 2L, categoryName = "Work"),
+                PasswordSummary(id = 3L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming")
+            ),
+            securitySnapshots = listOf(
+                PasswordSecuritySnapshot(passwordId = 1L, password = "123456", fingerprint = "spotify"),
+                PasswordSecuritySnapshot(passwordId = 2L, password = "Qr7!Lp2@Mz9#", fingerprint = "github"),
+                PasswordSecuritySnapshot(passwordId = 3L, password = "VeryStrongCredential!2026", fingerprint = "netflix")
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(
+                PasswordListItemSecurityLevel.Weak,
+                PasswordListItemSecurityLevel.Moderate,
+                PasswordListItemSecurityLevel.Safe
+            ),
+            viewModel.uiState.value.filteredPasswords.map { it.securityLevel }
+        )
+    }
+
+    @Test
     fun givenPasswordItemClicked_whenActionIsHandled_thenEmitsOpenDetailsEffect() = runTest {
         val viewModel = buildViewModel()
         val effect = async { viewModel.effects.first() }
@@ -199,7 +229,10 @@ class PasswordsViewModelTest {
             ): Boolean = false
         }
         val viewModel = PasswordsViewModel(
-            observePasswordsUseCase = ObservePasswordsUseCase(repository)
+            observePasswordsUseCase = ObservePasswordsUseCase(
+                repository = repository,
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
 
@@ -212,7 +245,10 @@ class PasswordsViewModelTest {
     fun givenRepositoryEmitsNewPassword_whenObserved_thenScreenStateReflectsInsertedCredential() = runTest {
         val repository = FakePasswordRepository(emptyList())
         val viewModel = PasswordsViewModel(
-            observePasswordsUseCase = ObservePasswordsUseCase(repository)
+            observePasswordsUseCase = ObservePasswordsUseCase(
+                repository = repository,
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
         advanceUntilIdle()
@@ -238,21 +274,33 @@ class PasswordsViewModelTest {
     private fun buildViewModel(
         passwords: List<PasswordSummary> = listOf(
             PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming")
-        )
+        ),
+        securitySnapshots: List<PasswordSecuritySnapshot> = passwords.toSafeSecuritySnapshots()
     ): PasswordsViewModel = PasswordsViewModel(
-        observePasswordsUseCase = ObservePasswordsUseCase(FakePasswordRepository(passwords))
+        observePasswordsUseCase = ObservePasswordsUseCase(
+            repository = FakePasswordRepository(
+                passwords = passwords,
+                securitySnapshots = securitySnapshots
+            ),
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+        )
     )
 
     private class FakePasswordRepository(
-        passwords: List<PasswordSummary>
+        passwords: List<PasswordSummary>,
+        securitySnapshots: List<PasswordSecuritySnapshot> = passwords.toSafeSecuritySnapshots()
     ) : PasswordRepository {
 
         private val passwordsFlow = MutableStateFlow(passwords)
+        private val securitySnapshotsFlow = MutableStateFlow(securitySnapshots)
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = passwordsFlow
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
             passwordsFlow
+
+        override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
+            securitySnapshotsFlow
 
         override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 
@@ -267,8 +315,21 @@ class PasswordsViewModelTest {
             excludePasswordId: Long?
         ): Boolean = false
 
-        fun emit(passwords: List<PasswordSummary>) {
+        fun emit(
+            passwords: List<PasswordSummary>,
+            securitySnapshots: List<PasswordSecuritySnapshot> = passwords.toSafeSecuritySnapshots()
+        ) {
             passwordsFlow.value = passwords
+            securitySnapshotsFlow.value = securitySnapshots
         }
     }
 }
+
+private fun List<PasswordSummary>.toSafeSecuritySnapshots(): List<PasswordSecuritySnapshot> =
+    map { password ->
+        PasswordSecuritySnapshot(
+            passwordId = password.id,
+            password = "VeryStrongCredential!${password.id}2026",
+            fingerprint = "password-${password.id}"
+        )
+    }

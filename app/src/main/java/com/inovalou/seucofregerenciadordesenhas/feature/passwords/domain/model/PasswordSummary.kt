@@ -5,5 +5,6 @@ data class PasswordSummary(
     val title: String,
     val login: String,
     val categoryId: Long?,
-    val categoryName: String?
+    val categoryName: String?,
+    val securityRiskLevel: PasswordSecurityRiskLevel = PasswordSecurityRiskLevel.High
 )
