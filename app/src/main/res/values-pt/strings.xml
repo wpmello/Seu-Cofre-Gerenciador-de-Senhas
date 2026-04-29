@@ -78,6 +78,8 @@
     <string name="passwords_search_empty_message">Tente buscar por outro nome de app, site ou login.</string>
     <string name="passwords_load_error">Não foi possível carregar as senhas.</string>
     <string name="passwords_create_fab">Adicionar senha</string>
+    <string name="passwords_strength_weak_flag">FRACA</string>
+    <string name="passwords_strength_moderate_flag">MODERADA</string>
     <string name="new_password_back">Voltar</string>
     <string name="new_password_title">Nova Senha</string>
     <string name="new_password_description">Proteja sua identidade digital com criptografia de nível militar.</string>

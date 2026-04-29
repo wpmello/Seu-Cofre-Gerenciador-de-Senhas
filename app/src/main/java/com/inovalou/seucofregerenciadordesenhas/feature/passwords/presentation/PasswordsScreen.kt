@@ -31,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItem
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
@@ -261,5 +262,13 @@ private fun PasswordListItemUiModel.toVaultListItemModel(): VaultPasswordListIte
         id = id,
         title = title,
         supportingText = supportingText,
-        initials = initials
+        initials = initials,
+        securityLevel = securityLevel.toVaultPasswordListSecurityLevel()
     )
+
+private fun PasswordListItemSecurityLevel.toVaultPasswordListSecurityLevel(): VaultPasswordListSecurityLevel =
+    when (this) {
+        PasswordListItemSecurityLevel.Weak -> VaultPasswordListSecurityLevel.Weak
+        PasswordListItemSecurityLevel.Moderate -> VaultPasswordListSecurityLevel.Moderate
+        PasswordListItemSecurityLevel.Safe -> VaultPasswordListSecurityLevel.Safe
+    }

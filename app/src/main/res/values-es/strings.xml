@@ -78,6 +78,8 @@
     <string name="passwords_search_empty_message">Prueba con otra búsqueda de app, sitio o acceso.</string>
     <string name="passwords_load_error">No se pudieron cargar las claves.</string>
     <string name="passwords_create_fab">Agregar clave</string>
+    <string name="passwords_strength_weak_flag">DÉBIL</string>
+    <string name="passwords_strength_moderate_flag">MODERADA</string>
     <string name="new_password_back">Volver</string>
     <string name="new_password_title">Nueva Clave</string>
     <string name="new_password_description">Protege tu identidad digital con cifrado de nivel militar.</string>
