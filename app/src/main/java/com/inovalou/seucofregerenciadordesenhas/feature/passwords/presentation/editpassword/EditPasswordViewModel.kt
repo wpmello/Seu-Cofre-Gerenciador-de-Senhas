@@ -37,6 +37,9 @@ class EditPasswordViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val passwordId = savedStateHandle.get<Long>(EditPasswordDestination.passwordIdArg)
+    private val openedFrom = EditPasswordOpenedFrom.fromRouteValue(
+        savedStateHandle.get<String>(EditPasswordDestination.openedFromArg)
+    )
 
     private val _uiState = MutableStateFlow(EditPasswordUiState())
     val uiState: StateFlow<EditPasswordUiState> = _uiState.asStateFlow()
@@ -131,7 +134,7 @@ class EditPasswordViewModel @Inject constructor(
 
     private fun navigateBack() {
         viewModelScope.launch {
-            _effects.emit(EditPasswordEffect.NavigateBack)
+            _effects.emit(EditPasswordEffect.NavigateBackToOrigin(openedFrom))
         }
     }
 
@@ -292,7 +295,7 @@ class EditPasswordViewModel @Inject constructor(
             ) {
                 UpdatePasswordResult.Success -> {
                     _uiState.update { it.copy(isSaving = false) }
-                    _effects.emit(EditPasswordEffect.NavigateBack)
+                    _effects.emit(EditPasswordEffect.NavigateBackToOrigin(openedFrom))
                 }
 
                 UpdatePasswordResult.NotFound -> {

@@ -13,6 +13,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecas
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.UpdateCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySelectableIconUiModel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -75,6 +76,7 @@ class EditCategoryViewModel @Inject constructor(
                 _uiState.update { it.copy(isIconPickerVisible = false) }
             }
             is EditCategoryAction.OnIconSelected -> onIconSelected(action.iconKey)
+            is EditCategoryAction.OnPasswordClick -> openPassword(action.passwordId)
             EditCategoryAction.OnSaveClick -> saveCategory()
             EditCategoryAction.OnDeleteClick -> {
                 _uiState.update {
@@ -157,6 +159,12 @@ class EditCategoryViewModel @Inject constructor(
                     icon.copy(isSelected = icon.iconKey == iconKey)
                 }
             )
+        }
+    }
+
+    private fun openPassword(passwordId: Long) {
+        viewModelScope.launch {
+            _effects.emit(EditCategoryEffect.OpenPassword(passwordId))
         }
     }
 
@@ -283,8 +291,16 @@ private fun List<PasswordSummary>.toPasswordsSectionState(): CategoryPasswordsSe
             CategoryPasswordItemUiModel(
                 id = password.id,
                 title = password.title,
-                supportingText = password.login
+                supportingText = password.login,
+                securityLevel = password.securityRiskLevel.toCategoryPasswordItemSecurityLevel()
             )
         }
     )
 }
+
+private fun PasswordSecurityRiskLevel.toCategoryPasswordItemSecurityLevel(): CategoryPasswordItemSecurityLevel =
+    when (this) {
+        PasswordSecurityRiskLevel.High -> CategoryPasswordItemSecurityLevel.Weak
+        PasswordSecurityRiskLevel.Medium -> CategoryPasswordItemSecurityLevel.Moderate
+        PasswordSecurityRiskLevel.Low -> CategoryPasswordItemSecurityLevel.Safe
+    }

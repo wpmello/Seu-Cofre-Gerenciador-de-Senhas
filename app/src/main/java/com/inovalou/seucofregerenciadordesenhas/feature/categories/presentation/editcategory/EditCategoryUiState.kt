@@ -35,10 +35,18 @@ sealed interface CategoryPasswordsSectionUiState {
 data class CategoryPasswordItemUiModel(
     val id: Long,
     val title: String,
-    val supportingText: String
+    val supportingText: String,
+    val securityLevel: CategoryPasswordItemSecurityLevel = CategoryPasswordItemSecurityLevel.Weak
 )
+
+enum class CategoryPasswordItemSecurityLevel {
+    Weak,
+    Moderate,
+    Safe
+}
 
 sealed interface EditCategoryEffect {
     data class NavigateBackToOrigin(val openedFrom: EditCategoryOpenedFrom) : EditCategoryEffect
+    data class OpenPassword(val passwordId: Long) : EditCategoryEffect
     data object NavigateToCategories : EditCategoryEffect
 }

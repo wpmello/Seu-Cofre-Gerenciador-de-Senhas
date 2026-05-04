@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,15 +42,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
-import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListColumn
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.vaultPasswordListItems
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryValidationText
@@ -64,6 +67,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 fun EditCategoryEntry(
     onNavigateBackToOrigin: (EditCategoryOpenedFrom) -> Unit,
     onNavigateToCategories: () -> Unit,
+    onOpenPassword: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EditCategoryViewModel = hiltViewModel()
 ) {
@@ -74,6 +78,7 @@ fun EditCategoryEntry(
             when (effect) {
                 EditCategoryEffect.NavigateToCategories -> onNavigateToCategories()
                 is EditCategoryEffect.NavigateBackToOrigin -> onNavigateBackToOrigin(effect.openedFrom)
+                is EditCategoryEffect.OpenPassword -> onOpenPassword(effect.passwordId)
             }
         }
     }
@@ -143,7 +148,10 @@ fun EditCategoryScreen(
                         onEditIconClick = { onAction(EditCategoryAction.OnEditIconClick) }
                     )
 
-                    CategoryPasswordsSection(state = uiState.passwordsSectionState)
+                    CategoryPasswordsSection(
+                        state = uiState.passwordsSectionState,
+                        onAction = onAction
+                    )
 
                     uiState.submitErrorResId?.let { errorResId ->
                         CategoryValidationText(errorResId = errorResId)
@@ -349,6 +357,7 @@ private fun CategoryEditCard(
 @Composable
 private fun CategoryPasswordsSection(
     state: CategoryPasswordsSectionUiState,
+    onAction: (EditCategoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -388,26 +397,66 @@ private fun CategoryPasswordsSection(
                 }
             }
             is CategoryPasswordsSectionUiState.Content -> {
-                VaultPasswordListColumn(
-                    passwords = state.passwords.map { password ->
-                        password.toVaultPasswordListItemModel()
-                    },
+                val passwords = state.passwords.map { password ->
+                    password.toVaultPasswordListItemModel()
+                }
+
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(categoryPasswordsListHeight(passwords.size))
                         .background(
                             color = DeepNavy,
                             shape = RoundedCornerShape(20.dp)
                         )
                         .padding(20.dp)
-                )
+                        .clip(RoundedCornerShape(16.dp))
+                        .testTag("edit_category_passwords_list"),
+                    verticalArrangement = Arrangement.spacedBy(CategoryPasswordsListItemSpacing)
+                ) {
+                    vaultPasswordListItems(
+                        passwords = passwords,
+                        onItemClick = { passwordId ->
+                            onAction(EditCategoryAction.OnPasswordClick(passwordId))
+                        }
+                    )
+                }
             }
         }
     }
+}
+
+internal fun categoryPasswordsVisibleItemCount(passwordCount: Int): Int =
+    passwordCount.coerceIn(
+        minimumValue = 0,
+        maximumValue = CategoryPasswordsMaxVisibleItems
+    )
+
+private fun categoryPasswordsListHeight(passwordCount: Int): Dp {
+    val visibleItemCount = categoryPasswordsVisibleItemCount(passwordCount)
+    val visibleSpacingCount = (visibleItemCount - 1).coerceAtLeast(0)
+
+    return (CategoryPasswordsListItemHeight * visibleItemCount) +
+        (CategoryPasswordsListItemSpacing * visibleSpacingCount) +
+        CategoryPasswordsListVerticalPadding
 }
 
 private fun CategoryPasswordItemUiModel.toVaultPasswordListItemModel(): VaultPasswordListItemModel =
     VaultPasswordListItemModel(
         id = id,
         title = title,
-        supportingText = supportingText
+        supportingText = supportingText,
+        securityLevel = securityLevel.toVaultPasswordListSecurityLevel()
     )
+
+private fun CategoryPasswordItemSecurityLevel.toVaultPasswordListSecurityLevel(): VaultPasswordListSecurityLevel =
+    when (this) {
+        CategoryPasswordItemSecurityLevel.Weak -> VaultPasswordListSecurityLevel.Weak
+        CategoryPasswordItemSecurityLevel.Moderate -> VaultPasswordListSecurityLevel.Moderate
+        CategoryPasswordItemSecurityLevel.Safe -> VaultPasswordListSecurityLevel.Safe
+    }
+
+private const val CategoryPasswordsMaxVisibleItems = 7
+private val CategoryPasswordsListItemHeight = 80.dp
+private val CategoryPasswordsListItemSpacing = 16.dp
+private val CategoryPasswordsListVerticalPadding = 40.dp

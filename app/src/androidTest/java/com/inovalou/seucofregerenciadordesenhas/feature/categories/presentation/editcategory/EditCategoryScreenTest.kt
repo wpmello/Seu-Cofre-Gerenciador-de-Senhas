@@ -1,9 +1,15 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySelectableIconUiModel
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
@@ -57,7 +63,8 @@ class EditCategoryScreenTest {
                                 CategoryPasswordItemUiModel(
                                     id = 9L,
                                     title = "GitHub",
-                                    supportingText = "dev@empresa.com"
+                                    supportingText = "dev@empresa.com",
+                                    securityLevel = CategoryPasswordItemSecurityLevel.Moderate
                                 )
                             )
                         )
@@ -68,8 +75,97 @@ class EditCategoryScreenTest {
         }
 
         composeRule.onNodeWithTag("password_item_9").assertIsDisplayed()
+        composeRule.onNodeWithTag("password_strength_dot_9").assertIsDisplayed()
         composeRule.onNodeWithText("GitHub").assertIsDisplayed()
         composeRule.onNodeWithText("dev@empresa.com").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenSafeAssociatedPassword_whenRendered_thenDoesNotDisplayWeakStrengthFlag() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditCategoryScreen(
+                    uiState = editCategoryUiState(
+                        passwordsSectionState = CategoryPasswordsSectionUiState.Content(
+                            passwords = listOf(
+                                CategoryPasswordItemUiModel(
+                                    id = 9L,
+                                    title = "Banco",
+                                    supportingText = "conta@banco.com",
+                                    securityLevel = CategoryPasswordItemSecurityLevel.Safe
+                                )
+                            )
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("password_strength_dot_9").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("password_strength_flag_9").assertCountEquals(0)
+    }
+
+    @Test
+    fun givenMoreThanSevenAssociatedPasswords_whenRendered_thenPasswordListScrollsInternally() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditCategoryScreen(
+                    uiState = editCategoryUiState(
+                        passwordsSectionState = CategoryPasswordsSectionUiState.Content(
+                            passwords = (1L..12L).map { id ->
+                                CategoryPasswordItemUiModel(
+                                    id = id,
+                                    title = "Senha $id",
+                                    supportingText = "login$id@empresa.com"
+                                )
+                            }
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_category_passwords_list").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_category_passwords_list").performScrollToIndex(11)
+        composeRule.onNodeWithTag("password_item_12").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_category_passwords_list").performTouchInput {
+            swipeUp()
+        }
+        composeRule.onNodeWithTag("edit_category_save_button").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenAssociatedPasswordClick_whenRendered_thenDispatchesPasswordClickAction() {
+        var clickedPasswordId: Long? = null
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditCategoryScreen(
+                    uiState = editCategoryUiState(
+                        passwordsSectionState = CategoryPasswordsSectionUiState.Content(
+                            passwords = listOf(
+                                CategoryPasswordItemUiModel(
+                                    id = 9L,
+                                    title = "GitHub",
+                                    supportingText = "dev@empresa.com"
+                                )
+                            )
+                        )
+                    ),
+                    onAction = { action ->
+                        if (action is EditCategoryAction.OnPasswordClick) {
+                            clickedPasswordId = action.passwordId
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("password_item_9").performClick()
+
+        org.junit.Assert.assertEquals(9L, clickedPasswordId)
     }
 
     private fun editCategoryUiState(

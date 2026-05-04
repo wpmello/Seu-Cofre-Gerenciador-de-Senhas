@@ -28,6 +28,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.PasswordsRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordDestination
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordRoute
@@ -90,15 +91,27 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 arguments = listOf(
                     navArgument(EditPasswordDestination.passwordIdArg) {
                         type = NavType.LongType
+                    },
+                    navArgument(EditPasswordDestination.openedFromArg) {
+                        type = NavType.StringType
+                        defaultValue = EditPasswordOpenedFrom.Passwords.routeValue
                     }
                 )
             ) {
                 EditPasswordRoute(
-                    onNavigateBack = {
-                        navController.popBackStack(
-                            AppBottomDestination.Passwords.route,
-                            inclusive = false
-                        )
+                    onNavigateBackToOrigin = { openedFrom ->
+                        when (openedFrom) {
+                            EditPasswordOpenedFrom.Passwords -> {
+                                navController.popBackStack(
+                                    AppBottomDestination.Passwords.route,
+                                    inclusive = false
+                                )
+                            }
+
+                            EditPasswordOpenedFrom.EditCategory -> {
+                                navController.popBackStack()
+                            }
+                        }
                     }
                 )
             }
@@ -207,6 +220,14 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         navController.popBackStack(
                             AppBottomDestination.Categories.route,
                             inclusive = false
+                        )
+                    },
+                    onOpenPassword = { passwordId ->
+                        navController.navigate(
+                            EditPasswordDestination.createRoute(
+                                passwordId = passwordId,
+                                openedFrom = EditPasswordOpenedFrom.EditCategory
+                            )
                         )
                     }
                 )

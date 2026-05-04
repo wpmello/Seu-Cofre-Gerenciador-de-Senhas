@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -70,6 +72,23 @@ fun VaultPasswordListColumn(
                 showTrailingIndicator = showTrailingIndicator
             )
         }
+    }
+}
+
+fun LazyListScope.vaultPasswordListItems(
+    passwords: List<VaultPasswordListItemModel>,
+    onItemClick: ((Long) -> Unit)? = null,
+    showTrailingIndicator: Boolean = onItemClick != null
+) {
+    items(
+        items = passwords,
+        key = { password -> password.id }
+    ) { password ->
+        VaultPasswordListItem(
+            password = password,
+            onClick = onItemClick?.let { click -> { click(password.id) } },
+            showTrailingIndicator = showTrailingIndicator
+        )
     }
 }
 

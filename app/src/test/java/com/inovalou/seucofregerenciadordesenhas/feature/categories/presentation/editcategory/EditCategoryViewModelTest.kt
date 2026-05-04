@@ -13,8 +13,10 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -66,6 +68,25 @@ class EditCategoryViewModelTest {
                     login = "dev@empresa.com",
                     categoryId = 9L,
                     categoryName = "Trabalho"
+                ),
+                PasswordSummary(
+                    id = 101L,
+                    title = "Banco",
+                    login = "conta@banco.com",
+                    categoryId = 9L,
+                    categoryName = "Trabalho"
+                )
+            ),
+            passwordSecuritySnapshots = listOf(
+                PasswordSecuritySnapshot(
+                    passwordId = 100L,
+                    password = "Qr7!Lp2@Mz9#",
+                    fingerprint = "github"
+                ),
+                PasswordSecuritySnapshot(
+                    passwordId = 101L,
+                    password = "VeryStrongCredential!2026",
+                    fingerprint = "bank"
                 )
             )
         )
@@ -75,8 +96,15 @@ class EditCategoryViewModelTest {
         val state = viewModel.uiState.value.passwordsSectionState
         assertTrue(state is CategoryPasswordsSectionUiState.Content)
         state as CategoryPasswordsSectionUiState.Content
-        assertEquals("GitHub", state.passwords.single().title)
-        assertEquals("dev@empresa.com", state.passwords.single().supportingText)
+        assertEquals("GitHub", state.passwords.first().title)
+        assertEquals("dev@empresa.com", state.passwords.first().supportingText)
+        assertEquals(
+            listOf(
+                CategoryPasswordItemSecurityLevel.Moderate,
+                CategoryPasswordItemSecurityLevel.Safe
+            ),
+            state.passwords.map { password -> password.securityLevel }
+        )
     }
 
     @Test
@@ -99,6 +127,17 @@ class EditCategoryViewModelTest {
         assertTrue(state is CategoryPasswordsSectionUiState.Content)
         state as CategoryPasswordsSectionUiState.Content
         assertEquals("", state.passwords.single().supportingText)
+    }
+
+    @Test
+    fun givenAssociatedPasswordClick_whenHandled_thenEmitsOpenPasswordEffect() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditCategoryAction.OnPasswordClick(100L))
+
+        assertEquals(EditCategoryEffect.OpenPassword(100L), effect.await())
     }
 
     @Test
@@ -264,6 +303,7 @@ class EditCategoryViewModelTest {
             lastModifiedAt = 0L
         ),
         passwords: List<PasswordSummary> = emptyList(),
+        passwordSecuritySnapshots: List<PasswordSecuritySnapshot> = emptyList(),
         openedFrom: EditCategoryOpenedFrom = EditCategoryOpenedFrom.Categories,
         updateCategoryUseCase: FakeUpdateCategoryUseCase = FakeUpdateCategoryUseCase(),
         deleteCategoryUseCase: FakeDeleteCategoryUseCase = FakeDeleteCategoryUseCase()
@@ -276,7 +316,11 @@ class EditCategoryViewModelTest {
         ),
         getCategoryByIdUseCase = GetCategoryByIdUseCase(FakeCategoryLookupRepository(category)),
         observePasswordsByCategoryUseCase = ObservePasswordsByCategoryUseCase(
-            FakePasswordRepository(passwords)
+            repository = FakePasswordRepository(
+                passwords = passwords,
+                snapshots = passwordSecuritySnapshots
+            ),
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
         ),
         updateCategoryUseCase = UpdateCategoryUseCase(updateCategoryUseCase),
         deleteCategoryUseCase = DeleteCategoryUseCase(deleteCategoryUseCase),
@@ -360,7 +404,8 @@ class EditCategoryViewModelTest {
     }
 
     private class FakePasswordRepository(
-        passwords: List<PasswordSummary>
+        passwords: List<PasswordSummary>,
+        private val snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
 
         private val passwordsFlow = MutableStateFlow(passwords)
@@ -369,6 +414,9 @@ class EditCategoryViewModelTest {
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
             passwordsFlow
+
+        override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
+            kotlinx.coroutines.flow.flowOf(snapshots)
 
         override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 

@@ -6,6 +6,7 @@ sealed interface EditCategoryAction {
     data object OnEditIconClick : EditCategoryAction
     data object OnIconPickerDismissed : EditCategoryAction
     data class OnIconSelected(val iconKey: String) : EditCategoryAction
+    data class OnPasswordClick(val passwordId: Long) : EditCategoryAction
     data object OnSaveClick : EditCategoryAction
     data object OnDeleteClick : EditCategoryAction
     data object OnDeleteDismissed : EditCategoryAction
