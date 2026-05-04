@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,13 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItem
+import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
-import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.vaultPasswordListItems
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
@@ -136,17 +135,14 @@ fun PasswordsScreen(
                     }
 
                     PasswordsContentState.Content -> {
-                        items(
-                            items = uiState.filteredPasswords,
-                            key = { password -> password.id }
-                        ) { password ->
-                            VaultPasswordListItem(
-                                password = password.toVaultListItemModel(),
-                                onClick = {
-                                    onAction(PasswordsAction.OnPasswordClick(password.id))
-                                }
-                            )
-                        }
+                        vaultPasswordListItems(
+                            passwords = uiState.filteredPasswords.map { password ->
+                                password.toVaultListItemModel()
+                            },
+                            onItemClick = { passwordId ->
+                                onAction(PasswordsAction.OnPasswordClick(passwordId))
+                            }
+                        )
                     }
 
                     PasswordsContentState.EmptyPasswords -> {
