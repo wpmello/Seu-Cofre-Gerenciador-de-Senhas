@@ -288,7 +288,24 @@ class EditPasswordViewModelTest {
 
         viewModel.onAction(EditPasswordAction.OnBackClick)
 
-        assertEquals(EditPasswordEffect.NavigateBack, effect.await())
+        assertEquals(
+            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.Passwords),
+            effect.await()
+        )
+    }
+
+    @Test
+    fun givenEditCategoryOrigin_whenBackActionIsHandled_thenNavigatesBackToEditCategoryOrigin() = runTest {
+        val viewModel = buildViewModel(openedFrom = EditPasswordOpenedFrom.EditCategory)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditPasswordAction.OnBackClick)
+
+        assertEquals(
+            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.EditCategory),
+            effect.await()
+        )
     }
 
     @Test
@@ -314,7 +331,27 @@ class EditPasswordViewModelTest {
         assertEquals("Music", updateUseCase.lastCategoryName)
         assertEquals("new-secret", updateUseCase.lastPassword)
         assertEquals("Atualizar após renovação anual.", updateUseCase.lastNote)
-        assertEquals(EditPasswordEffect.NavigateBack, effect.await())
+        assertEquals(
+            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.Passwords),
+            effect.await()
+        )
+    }
+
+    @Test
+    fun givenEditCategoryOrigin_whenSavingValidChanges_thenNavigatesBackToEditCategoryOrigin() = runTest {
+        val viewModel = buildViewModel(openedFrom = EditPasswordOpenedFrom.EditCategory)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+        advanceUntilIdle()
+
+        assertEquals(
+            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.EditCategory),
+            effect.await()
+        )
     }
 
     @Test
@@ -365,6 +402,7 @@ class EditPasswordViewModelTest {
 
     private fun buildViewModel(
         passwordId: Long? = 8L,
+        openedFrom: EditPasswordOpenedFrom = EditPasswordOpenedFrom.Passwords,
         passwordDetails: PasswordDetails? = persistedPassword(),
         updatePasswordUseCase: FakeUpdatePasswordUseCase = FakeUpdatePasswordUseCase(),
         categoryRepository: FakeCategoryRepository = FakeCategoryRepository(),
@@ -375,6 +413,7 @@ class EditPasswordViewModelTest {
                 if (passwordId != null) {
                     put(EditPasswordDestination.passwordIdArg, passwordId)
                 }
+                put(EditPasswordDestination.openedFromArg, openedFrom.routeValue)
             }
         ),
         getPasswordDetailsUseCase = GetPasswordDetailsUseCase(

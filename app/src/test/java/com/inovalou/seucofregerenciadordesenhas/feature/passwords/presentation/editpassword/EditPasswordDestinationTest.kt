@@ -8,8 +8,19 @@ class EditPasswordDestinationTest {
     @Test
     fun givenPasswordId_whenCreatingRoute_thenEmbedsThatArgument() {
         assertEquals(
-            "passwords/25/edit",
+            "passwords/25/edit?openedFrom=passwords",
             EditPasswordDestination.createRoute(passwordId = 25L)
+        )
+    }
+
+    @Test
+    fun givenEditCategoryOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "passwords/25/edit?openedFrom=edit_category",
+            EditPasswordDestination.createRoute(
+                passwordId = 25L,
+                openedFrom = EditPasswordOpenedFrom.EditCategory
+            )
         )
     }
 }
