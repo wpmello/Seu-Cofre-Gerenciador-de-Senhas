@@ -100,7 +100,7 @@ Isso **não** muda a lógica de força; muda apenas a forma de armazenamento do 
 
 ### 3.1 Definições
 
-- **Senha segura**  
+- **Senha forte**
   Uma senha suficientemente difícil de adivinhar segundo as regras atuais do app, que não está duplicada no cofre e não é conhecida como comprometida nem obviamente baseada em contexto.
 
 - **Senha fraca**  
@@ -155,7 +155,7 @@ Mapear a nota base do estimador (0-4) para uma porcentagem inicial:
 Justificativa:
 - preserva o significado do estimador, de “muito fraca” a “muito forte”,
 - mantém as faixas da UI do app simples,
-- reserva 81-100 para senhas realmente fortes dentro da política do projeto.
+- reserva 91-100 para senhas realmente fortes dentro da política do projeto.
 
 ### 5.2 Penalidades obrigatórias
 
@@ -215,8 +215,8 @@ então:
 O app deve usar estas faixas de UI:
 
 - **0% a 49%** -> **vermelho** -> **risco alto**
-- **50% a 80%** -> **amarelo/âmbar** -> **risco médio**
-- **81% a 100%** -> **verde** -> **segura**
+- **50% a 90%** -> **amarelo/âmbar** -> **risco médio / moderada**
+- **91% a 100%** -> **verde** -> **excelente / senha forte**
 
 ### 6.2 Área de cabeçalho/status
 
@@ -225,15 +225,15 @@ O app deve usar estas faixas de UI:
 - ícone: **atenção/alerta**
 - título: **Risco de Segurança**
 
-#### Risco médio (50-80)
+#### Risco médio / moderada (50-90)
 - cor: **amarela/âmbar**
 - ícone: **atenção/alerta**
 - título: **Risco Moderado**
 
-#### Segura (81-100)
+#### Excelente / senha forte (91-100)
 - cor: **verde**
 - ícone: **bolinha verde**
-- título: **Senha Segura**
+- título: **Senha Forte**
 
 ### 6.3 Área de tags
 
@@ -249,11 +249,11 @@ Mostrar esta tag se qualquer uma das condições abaixo for verdadeira:
 #### Mostrar `Senha duplicada`
 Mostrar esta tag se a senha estiver reutilizada por outro item do cofre.
 
-#### Mostrar `Senha segura`
+#### Mostrar `Senha forte`
 Mostrar esta tag **somente se**:
 - `Senha fraca` estiver ausente
 - `Senha duplicada` estiver ausente
-- nota final >= 81
+- nota final >= 91
 
 #### Combinações de tags
 Combinações permitidas:
@@ -262,7 +262,7 @@ Combinações permitidas:
 - `Senha fraca` + `Senha duplicada`
 
 Não permitido:
-- `Senha segura` junto com qualquer tag de alerta
+- `Senha forte` junto com qualquer tag de alerta
 
 ### 6.4 Área de texto informativo
 
@@ -374,12 +374,12 @@ Ao implementar a lógica de força de senha deste projeto, o Codex deve seguir e
    - senha específica de contexto.
 4. Mapear o resultado final nas três faixas de UI do app:
    - 0-49 vermelho,
-   - 50-80 amarelo,
-   - 81-100 verde.
+   - 50-90 amarelo,
+   - 91-100 verde.
 5. As tags devem funcionar exatamente assim:
    - mostrar `Senha fraca` quando a senha for fraca,
    - mostrar `Senha duplicada` quando a senha estiver reutilizada,
-   - mostrar `Senha segura` somente quando não houver nenhuma tag de alerta.
+   - mostrar `Senha forte` somente quando não houver nenhuma tag de alerta.
 6. “100%” significa **melhor nota dentro da política atual do app**, e não “absolutamente segura”.
 7. Manter o armazenamento do cofre alinhado ao modelo de criptografia do projeto.
 8. Não inventar regras extras, a menos que este arquivo seja atualizado.
