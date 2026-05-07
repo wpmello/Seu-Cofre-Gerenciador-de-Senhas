@@ -2,7 +2,8 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 enum class EditPasswordOpenedFrom(val routeValue: String) {
     Passwords("passwords"),
-    EditCategory("edit_category");
+    EditCategory("edit_category"),
+    SecurityDetails("security_details");
 
     companion object {
         fun fromRouteValue(routeValue: String?): EditPasswordOpenedFrom =

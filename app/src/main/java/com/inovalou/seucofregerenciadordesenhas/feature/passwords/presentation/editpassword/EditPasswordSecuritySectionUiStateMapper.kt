@@ -18,7 +18,7 @@ internal fun PasswordSecurityAnalysis.toEditPasswordSecuritySectionUiState():
         riskTitleResId = when (riskLevel) {
             PasswordSecurityRiskLevel.High -> R.string.edit_password_security_title
             PasswordSecurityRiskLevel.Medium -> R.string.edit_password_security_moderate_title
-            PasswordSecurityRiskLevel.Low -> R.string.edit_password_security_safe_title
+            PasswordSecurityRiskLevel.Low -> R.string.edit_password_security_strong_title
         },
         tagResIds = tags.map { tag ->
             when (tag) {

@@ -21,7 +21,6 @@ data class SecuritySummaryUiModel(
 enum class SecuritySummaryVisualState {
     Poor,
     Moderate,
-    Good,
     Excellent
 }
 

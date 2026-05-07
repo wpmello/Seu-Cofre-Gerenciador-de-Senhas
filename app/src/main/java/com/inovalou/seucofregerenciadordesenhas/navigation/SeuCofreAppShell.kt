@@ -32,6 +32,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.e
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsDestination
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsRoute
 
 @Composable
 fun SeuCofreAppShell(modifier: Modifier = Modifier) {
@@ -44,18 +46,20 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            SeuCofreBottomBar(
-                currentDestination = currentDestination,
-                onDestinationSelected = { destination ->
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            currentDestination?.let { destination ->
+                SeuCofreBottomBar(
+                    currentDestination = destination,
+                    onDestinationSelected = { selectedDestination ->
+                        navController.navigate(selectedDestination.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -111,6 +115,13 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                             EditPasswordOpenedFrom.EditCategory -> {
                                 navController.popBackStack()
                             }
+
+                            EditPasswordOpenedFrom.SecurityDetails -> {
+                                navController.popBackStack(
+                                    SecurityDetailsDestination.route,
+                                    inclusive = false
+                                )
+                            }
                         }
                     }
                 )
@@ -127,6 +138,24 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         navController.navigate(
                             NewCategoryDestination.createRoute(
                                 openedFrom = NewCategoryOpenedFrom.Categories
+                            )
+                        )
+                    },
+                    onSecuritySummaryClick = {
+                        navController.navigate(SecurityDetailsDestination.route)
+                    }
+                )
+            }
+            composable(SecurityDetailsDestination.route) {
+                SecurityDetailsRoute(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenPassword = { passwordId ->
+                        navController.navigate(
+                            EditPasswordDestination.createRoute(
+                                passwordId = passwordId,
+                                openedFrom = EditPasswordOpenedFrom.SecurityDetails
                             )
                         )
                     }

@@ -52,23 +52,19 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
 
-private val HeroGradient = Brush.linearGradient(
-    colors = listOf(ElectricBlue, NeonPink)
-)
 private val PoorSecurityGradient = Brush.linearGradient(
     colors = listOf(Color(0xFFFF716C), Color(0xFF9F0519))
 )
 private val ModerateSecurityGradient = Brush.linearGradient(
     colors = listOf(VaultAmber, Color(0xFFFFE39A))
 )
-private val GoodSecurityGradient = Brush.linearGradient(
+private val ExcellentSecurityGradient = Brush.linearGradient(
     colors = listOf(VaultGreen, Color(0xFF9AFFC4))
 )
 private val HighlightedCategoryGradient = Brush.linearGradient(
@@ -81,6 +77,7 @@ fun CategoriesRoute(
     onCategoryClick: (Long) -> Unit,
     onViewAllClick: () -> Unit,
     onAddCategoryClick: () -> Unit,
+    onSecuritySummaryClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoriesViewModel = hiltViewModel()
 ) {
@@ -92,6 +89,7 @@ fun CategoriesRoute(
         onCategoryClick = onCategoryClick,
         onViewAllClick = onViewAllClick,
         onAddCategoryClick = onAddCategoryClick,
+        onSecuritySummaryClick = onSecuritySummaryClick,
         modifier = modifier
     )
 }
@@ -103,6 +101,7 @@ fun CategoriesScreen(
     onCategoryClick: (Long) -> Unit,
     onViewAllClick: () -> Unit,
     onAddCategoryClick: () -> Unit,
+    onSecuritySummaryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -136,7 +135,8 @@ fun CategoriesScreen(
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     SecuritySummaryCard(
                         summary = uiState.securitySummary,
-                        encryptedIndicator = uiState.encryptedIndicator
+                        encryptedIndicator = uiState.encryptedIndicator,
+                        onClick = onSecuritySummaryClick
                     )
                 }
 
@@ -237,13 +237,13 @@ private fun CategoriesHeader(
 private fun SecuritySummaryCard(
     summary: SecuritySummaryUiModel,
     encryptedIndicator: EncryptedIndicatorUiModel,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val cardBrush = when (summary.visualState) {
         SecuritySummaryVisualState.Poor -> PoorSecurityGradient
         SecuritySummaryVisualState.Moderate -> ModerateSecurityGradient
-        SecuritySummaryVisualState.Good -> GoodSecurityGradient
-        SecuritySummaryVisualState.Excellent -> HeroGradient
+        SecuritySummaryVisualState.Excellent -> ExcellentSecurityGradient
     }
 
     Box(
@@ -254,6 +254,8 @@ private fun SecuritySummaryCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .clickable(onClick = onClick)
                 .background(
                     brush = cardBrush,
                     shape = RoundedCornerShape(24.dp)
@@ -306,7 +308,7 @@ private fun SecuritySummaryCard(
                     )
                     Text(
                         text = stringResource(R.string.categories_total_items_label),
-                        color = SoftWhite.copy(alpha = 0.72f),
+                        color = MidnightBlue,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
                         textAlign = TextAlign.End
@@ -507,7 +509,8 @@ private fun CategoriesScreenPreview() {
             onAction = {},
             onCategoryClick = {},
             onViewAllClick = {},
-            onAddCategoryClick = {}
+            onAddCategoryClick = {},
+            onSecuritySummaryClick = {}
         )
     }
 }

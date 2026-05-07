@@ -24,10 +24,11 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 
 @Composable
 fun VaultBackHeader(
+    modifier: Modifier = Modifier,
     title: String,
+    titleFontSize: Int = 28,
     navigationContentDescription: String,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
     testTag: String? = null
 ) {
     Row(
@@ -61,7 +62,7 @@ fun VaultBackHeader(
         Text(
             text = title,
             color = SoftWhite,
-            fontSize = 28.sp,
+            fontSize = titleFontSize.sp,
             lineHeight = 32.sp,
             fontWeight = FontWeight.Bold
         )

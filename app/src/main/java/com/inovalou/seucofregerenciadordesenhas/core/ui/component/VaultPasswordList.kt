@@ -44,7 +44,9 @@ data class VaultPasswordListItemModel(
     val title: String,
     val supportingText: String,
     val initials: String? = null,
-    val securityLevel: VaultPasswordListSecurityLevel? = null
+    val securityLevel: VaultPasswordListSecurityLevel? = null,
+    val scorePercent: Int? = null,
+    val tagResIds: List<Int> = emptyList()
 )
 
 enum class VaultPasswordListSecurityLevel {
@@ -174,37 +176,85 @@ fun VaultPasswordListItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                if (password.tagResIds.isNotEmpty()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        password.tagResIds.take(2).forEach { tagResId ->
+                            PasswordSecurityTag(
+                                labelResId = tagResId,
+                                accentColor = tagResId.securityTagAccentColor()
+                            )
+                        }
+                    }
+                }
             }
         }
 
-        if (showTrailingIndicator) {
+        if (showTrailingIndicator || password.scorePercent != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                password.securityLevel?.let { securityLevel ->
-                    val flagResId = securityLevel.flagResId()
-                    if (flagResId != null) {
-                        Text(
-                            text = stringResource(flagResId),
-                            color = securityLevel.accentColor(),
-                            fontSize = 10.sp,
-                            lineHeight = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = (-0.5).sp,
-                            modifier = Modifier.testTag("password_strength_flag_${password.id}")
-                        )
+                if (password.scorePercent != null) {
+                    Text(
+                        text = "${password.scorePercent}%",
+                        color = password.securityLevel?.accentColor() ?: MistText,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.testTag("password_score_${password.id}")
+                    )
+                } else {
+                    password.securityLevel?.let { securityLevel ->
+                        val flagResId = securityLevel.flagResId()
+                        if (flagResId != null) {
+                            Text(
+                                text = stringResource(flagResId),
+                                color = securityLevel.accentColor(),
+                                fontSize = 10.sp,
+                                lineHeight = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.5).sp,
+                                modifier = Modifier.testTag("password_strength_flag_${password.id}")
+                            )
+                        }
                     }
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                    contentDescription = null,
-                    tint = GhostOutline,
-                    modifier = Modifier.size(16.dp)
-                )
+                if (showTrailingIndicator) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                        contentDescription = null,
+                        tint = GhostOutline,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun PasswordSecurityTag(
+    labelResId: Int,
+    accentColor: Color
+) {
+    Text(
+        text = stringResource(labelResId).uppercase(),
+        color = accentColor,
+        fontSize = 9.sp,
+        lineHeight = 14.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.45.sp,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .background(
+                color = accentColor.copy(alpha = 0.14f),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    )
 }
 
 @Composable
@@ -265,4 +315,10 @@ private fun VaultPasswordListSecurityLevel.accentColor(): Color = when (this) {
     VaultPasswordListSecurityLevel.Weak -> Color(0xFFFF716C)
     VaultPasswordListSecurityLevel.Moderate -> VaultAmber
     VaultPasswordListSecurityLevel.Safe -> VaultGreen
+}
+
+private fun Int.securityTagAccentColor(): Color = when (this) {
+    R.string.edit_password_security_tag_weak -> Color(0xFFFF716C)
+    R.string.edit_password_security_tag_safe -> VaultGreen
+    else -> MistText
 }

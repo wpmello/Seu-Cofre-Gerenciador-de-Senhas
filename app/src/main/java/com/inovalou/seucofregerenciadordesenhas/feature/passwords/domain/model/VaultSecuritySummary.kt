@@ -23,6 +23,5 @@ data class PasswordSecuritySnapshot(
 enum class VaultSecurityStatus {
     Poor,
     Moderate,
-    Good,
     Excellent
 }
