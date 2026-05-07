@@ -55,7 +55,6 @@ class EditPasswordViewModelTest {
         assertEquals("Conta principal da família.", state.note)
         assertEquals(2L, state.selectedCategoryId)
         assertEquals("Music", state.selectedCategoryName)
-        assertFalse(state.isIdentityCardEditing)
         assertEquals(1_700_000_000_000L, state.createdAt)
         assertEquals(1_710_000_000_000L, state.updatedAt)
     }
@@ -105,7 +104,6 @@ class EditPasswordViewModelTest {
         )
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
 
         assertTrue(viewModel.uiState.value.isCategoryDialogVisible)
@@ -119,7 +117,6 @@ class EditPasswordViewModelTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
 
         val selectionState = viewModel.uiState.value.categorySelectionState
@@ -137,7 +134,6 @@ class EditPasswordViewModelTest {
         )
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnCategorySelected(2L))
 
         assertEquals(2L, viewModel.uiState.value.selectedCategoryId)
@@ -151,14 +147,13 @@ class EditPasswordViewModelTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
 
         assertEquals("Spotify Family", viewModel.uiState.value.title)
     }
 
     @Test
-    fun givenIdentityCardReadMode_whenProtectedFieldsAndNoteAreHandled_thenKeepsProtectedFieldsReadOnlyAndAllowsNote() = runTest {
+    fun givenEditableIdentityCardFields_whenHandled_thenUpdatesFieldsAndOpensCategoryDialog() = runTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
 
@@ -167,26 +162,14 @@ class EditPasswordViewModelTest {
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
         viewModel.onAction(EditPasswordAction.OnNoteChanged("Nova anotação"))
         viewModel.onAction(EditPasswordAction.OnCategoryFieldClick)
-
-        val state = viewModel.uiState.value
-        assertEquals("Spotify", state.title)
-        assertEquals("premium@vault.com", state.email)
-        assertEquals("plain-secret", state.password)
-        assertEquals("Nova anotação", state.note)
-        assertFalse(state.isCategoryDialogVisible)
-    }
-
-    @Test
-    fun givenIdentityCardEditMode_whenCardSaveIsHandled_thenKeepsDraftInStateAndExitsEditMode() = runTest {
-        val viewModel = buildViewModel()
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
-        viewModel.onAction(EditPasswordAction.OnTitleChanged("Netflix"))
-        viewModel.onAction(EditPasswordAction.OnIdentityCardSaveClick)
-
-        assertEquals("Netflix", viewModel.uiState.value.title)
-        assertFalse(viewModel.uiState.value.isIdentityCardEditing)
+        val state = viewModel.uiState.value
+        assertEquals("Netflix", state.title)
+        assertEquals("new@vault.com", state.email)
+        assertEquals("new-secret", state.password)
+        assertEquals("Nova anotação", state.note)
+        assertTrue(state.isCategoryDialogVisible)
     }
 
     @Test
@@ -224,7 +207,6 @@ class EditPasswordViewModelTest {
         val viewModel = buildViewModel(duplicatePasswords = setOf("S7!mQ2#vN9@tL4\$z"))
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("S7!mQ2#vN9@tL4\$z"))
         advanceUntilIdle()
 
@@ -315,7 +297,6 @@ class EditPasswordViewModelTest {
         advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnTitleChanged("  Spotify Family  "))
         viewModel.onAction(EditPasswordAction.OnEmailChanged("  updated@vault.com  "))
         viewModel.onAction(EditPasswordAction.OnCategorySelected(2L))
@@ -343,7 +324,6 @@ class EditPasswordViewModelTest {
         advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
         viewModel.onAction(EditPasswordAction.OnSaveClick)
         advanceUntilIdle()
@@ -361,7 +341,6 @@ class EditPasswordViewModelTest {
         )
         advanceUntilIdle()
 
-        viewModel.onAction(EditPasswordAction.OnIdentityCardEditClick)
         viewModel.onAction(EditPasswordAction.OnPasswordChanged("   "))
         viewModel.onAction(EditPasswordAction.OnSaveClick)
         advanceUntilIdle()

@@ -51,7 +51,7 @@ class ObserveVaultSecuritySummaryUseCaseTest {
     }
 
     @Test
-    fun givenAverageBetweenTwentySixAndFifty_whenObservingVaultSecurity_thenReturnsModerateStatus() = runTest {
+    fun givenAverageBelowFifty_whenObservingVaultSecurity_thenReturnsPoorStatus() = runTest {
         val useCase = ObserveVaultSecuritySummaryUseCase(
             repository = FakePasswordRepository(
                 listOf(
@@ -66,11 +66,11 @@ class ObserveVaultSecuritySummaryUseCaseTest {
 
         assertEquals(2, result.totalPasswords)
         assertEquals(35, result.averageScorePercent)
-        assertEquals(VaultSecurityStatus.Moderate, result.status)
+        assertEquals(VaultSecurityStatus.Poor, result.status)
     }
 
     @Test
-    fun givenAverageBetweenFiftyOneAndSeventyFive_whenObservingVaultSecurity_thenReturnsGoodStatus() = runTest {
+    fun givenAverageBetweenFiftyAndNinety_whenObservingVaultSecurity_thenReturnsModerateStatus() = runTest {
         val useCase = ObserveVaultSecuritySummaryUseCase(
             repository = FakePasswordRepository(
                 listOf(
@@ -85,11 +85,11 @@ class ObserveVaultSecuritySummaryUseCaseTest {
 
         assertEquals(2, result.totalPasswords)
         assertEquals(58, result.averageScorePercent)
-        assertEquals(VaultSecurityStatus.Good, result.status)
+        assertEquals(VaultSecurityStatus.Moderate, result.status)
     }
 
     @Test
-    fun givenAverageAboveSeventyFive_whenObservingVaultSecurity_thenReturnsExcellentStatus() = runTest {
+    fun givenAverageAboveNinety_whenObservingVaultSecurity_thenReturnsExcellentStatus() = runTest {
         val useCase = ObserveVaultSecuritySummaryUseCase(
             repository = FakePasswordRepository(
                 listOf(
@@ -122,7 +122,7 @@ class ObserveVaultSecuritySummaryUseCaseTest {
         val result = useCase().first()
 
         assertEquals(80, result.averageScorePercent)
-        assertEquals(VaultSecurityStatus.Excellent, result.status)
+        assertEquals(VaultSecurityStatus.Moderate, result.status)
     }
 
     private class FakePasswordRepository(

@@ -30,7 +30,8 @@ class CategoriesScreenTest {
                     onAction = {},
                     onCategoryClick = {},
                     onViewAllClick = {},
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
@@ -51,7 +52,8 @@ class CategoriesScreenTest {
                     onAction = {},
                     onCategoryClick = {},
                     onViewAllClick = {},
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
@@ -73,7 +75,8 @@ class CategoriesScreenTest {
                     onAction = {},
                     onCategoryClick = {},
                     onViewAllClick = {},
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
@@ -95,7 +98,8 @@ class CategoriesScreenTest {
                     onAction = {},
                     onCategoryClick = {},
                     onViewAllClick = {},
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
@@ -119,7 +123,8 @@ class CategoriesScreenTest {
                     onAction = {},
                     onCategoryClick = {},
                     onViewAllClick = { wasClicked = true },
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
@@ -149,7 +154,8 @@ class CategoriesScreenTest {
                     onAction = {},
                     onCategoryClick = { clickedCategoryId = it },
                     onViewAllClick = {},
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
@@ -168,23 +174,48 @@ class CategoriesScreenTest {
                 CategoriesScreen(
                     uiState = CategoriesUiState(
                         securitySummary = SecuritySummaryUiModel(
-                            statusResId = R.string.categories_security_good,
+                            statusResId = R.string.categories_security_moderate,
                             totalItems = 2,
-                            visualState = SecuritySummaryVisualState.Good
+                            visualState = SecuritySummaryVisualState.Moderate
                         ),
                         categoriesState = CategoriesContentUiState.Empty
                     ),
                     onAction = {},
                     onCategoryClick = {},
                     onViewAllClick = {},
-                    onAddCategoryClick = {}
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
                 )
             }
         }
 
         composeRule.onNodeWithTag("categories_security_summary_card").assertIsDisplayed()
         composeRule.onNodeWithTag("categories_security_summary_status").assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.categories_security_good)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.categories_security_moderate)).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenSecuritySummaryCard_whenClicked_thenInvokesSecurityDetailsCallback() {
+        var wasClicked = false
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        categoriesState = CategoriesContentUiState.Empty
+                    ),
+                    onAction = {},
+                    onCategoryClick = {},
+                    onViewAllClick = {},
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = { wasClicked = true }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("categories_security_summary_card").performClick()
+
+        assertTrue(wasClicked)
     }
 
     private fun sampleCategories() = listOf(
