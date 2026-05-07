@@ -9,14 +9,12 @@ internal fun VaultSecuritySummary.toCategoriesSecuritySummaryUiModel(): Security
         statusResId = when (status) {
             VaultSecurityStatus.Poor -> R.string.categories_security_poor
             VaultSecurityStatus.Moderate -> R.string.categories_security_moderate
-            VaultSecurityStatus.Good -> R.string.categories_security_good
             VaultSecurityStatus.Excellent -> R.string.categories_security_excellent
         },
         totalItems = totalPasswords,
         visualState = when (status) {
             VaultSecurityStatus.Poor -> SecuritySummaryVisualState.Poor
             VaultSecurityStatus.Moderate -> SecuritySummaryVisualState.Moderate
-            VaultSecurityStatus.Good -> SecuritySummaryVisualState.Good
             VaultSecurityStatus.Excellent -> SecuritySummaryVisualState.Excellent
         }
     )

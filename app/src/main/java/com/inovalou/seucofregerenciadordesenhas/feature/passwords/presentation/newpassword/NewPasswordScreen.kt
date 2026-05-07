@@ -137,7 +137,6 @@ fun NewPasswordScreen(
                     onValueChange = { onAction(NewPasswordAction.OnTitleChanged(it)) },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     testTag = "new_password_title_input",
-                    containerColor = SlateBlue,
                     highlightedLabel = true,
                     showBorder = false
                 )
@@ -152,7 +151,8 @@ fun NewPasswordScreen(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next
                     ),
-                    testTag = "new_password_email_input"
+                    testTag = "new_password_email_input",
+                    highlightedLabel = true
                 )
 
                 CategorySelectionField(
@@ -206,6 +206,7 @@ fun NewPasswordScreen(
 
 @Composable
 private fun PasswordTextField(
+    modifier: Modifier = Modifier,
     label: String?,
     value: String,
     placeholder: String,
@@ -216,8 +217,7 @@ private fun PasswordTextField(
     isPasswordField: Boolean = false,
     isPasswordVisible: Boolean = false,
     onTogglePasswordVisibility: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
-    containerColor: Color = DeepNavy,
+    containerColor: Color = SlateBlue,
     highlightedLabel: Boolean = false,
     showBorder: Boolean = true,
     readOnly: Boolean = false,
@@ -333,7 +333,6 @@ private fun NoteSection(
             ),
             testTag = "new_password_note_input",
             modifier = Modifier.heightIn(min = 168.dp),
-            containerColor = DeepNavy,
             singleLine = false,
             minLines = 6,
             maxLines = 6
@@ -406,7 +405,6 @@ private fun PasswordSection(
             isPasswordVisible = uiState.isPasswordVisible,
             onTogglePasswordVisibility = onTogglePasswordVisibility,
             testTag = "new_password_password_input",
-            containerColor = SlateBlue
         )
 
         uiState.passwordErrorResId?.let { errorResId ->
@@ -477,9 +475,9 @@ private fun CategorySelectionField(
                     )
                 },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = DeepNavy,
-                    unfocusedContainerColor = DeepNavy,
-                    disabledContainerColor = DeepNavy,
+                    focusedContainerColor = SlateBlue,
+                    unfocusedContainerColor = SlateBlue,
+                    disabledContainerColor = SlateBlue,
                     focusedIndicatorColor = GhostOutline.copy(alpha = 0.28f),
                     unfocusedIndicatorColor = GhostOutline.copy(alpha = 0.16f),
                     disabledIndicatorColor = GhostOutline.copy(alpha = 0.16f),

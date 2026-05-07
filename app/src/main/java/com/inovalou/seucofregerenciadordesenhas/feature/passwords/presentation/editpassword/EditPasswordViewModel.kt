@@ -57,8 +57,6 @@ class EditPasswordViewModel @Inject constructor(
     fun onAction(action: EditPasswordAction) {
         when (action) {
             EditPasswordAction.OnBackClick -> navigateBack()
-            EditPasswordAction.OnIdentityCardEditClick -> startIdentityCardEditing()
-            EditPasswordAction.OnIdentityCardSaveClick -> finishIdentityCardEditing()
             is EditPasswordAction.OnTitleChanged -> updateTitle(action.title)
             is EditPasswordAction.OnEmailChanged -> updateEmail(action.email)
             EditPasswordAction.OnCategoryFieldClick -> openCategoryDialog()
@@ -139,10 +137,6 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updateEmail(email: String) {
-        if (!_uiState.value.isIdentityCardEditing) {
-            return
-        }
-
         _uiState.update {
             it.copy(
                 email = email,
@@ -152,10 +146,6 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun openCategoryDialog() {
-        if (!_uiState.value.isIdentityCardEditing) {
-            return
-        }
-
         _uiState.update { state ->
             state.copy(isCategoryDialogVisible = true)
         }
@@ -168,10 +158,6 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun selectCategory(categoryId: Long) {
-        if (!_uiState.value.isIdentityCardEditing) {
-            return
-        }
-
         val selectionState = _uiState.value.categorySelectionState
         if (selectionState !is PasswordCategorySelectionUiState.Content) {
             return
@@ -191,10 +177,6 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updateTitle(title: String) {
-        if (!_uiState.value.isIdentityCardEditing) {
-            return
-        }
-
         _uiState.update {
             it.copy(
                 title = title,
@@ -204,10 +186,6 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updatePassword(password: String) {
-        if (!_uiState.value.isIdentityCardEditing) {
-            return
-        }
-
         _uiState.update {
             it.copy(
                 password = password,
@@ -224,18 +202,6 @@ class EditPasswordViewModel @Inject constructor(
                 note = note,
                 submitErrorResId = null
             )
-        }
-    }
-
-    private fun startIdentityCardEditing() {
-        _uiState.update { state ->
-            state.copy(isIdentityCardEditing = true)
-        }
-    }
-
-    private fun finishIdentityCardEditing() {
-        _uiState.update { state ->
-            state.copy(isIdentityCardEditing = false)
         }
     }
 

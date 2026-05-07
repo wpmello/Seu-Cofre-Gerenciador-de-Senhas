@@ -14,7 +14,6 @@ data class EditPasswordUiState(
         PasswordCategorySelectionUiState.Loading,
     val password: String = "",
     val note: String = "",
-    val isIdentityCardEditing: Boolean = false,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L,
     val isPasswordVisible: Boolean = false,

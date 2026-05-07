@@ -225,8 +225,8 @@ class CategoriesViewModelTest {
         advanceUntilIdle()
 
         assertEquals(2, viewModel.uiState.value.securitySummary.totalItems)
-        assertEquals(R.string.categories_security_good, viewModel.uiState.value.securitySummary.statusResId)
-        assertEquals(SecuritySummaryVisualState.Good, viewModel.uiState.value.securitySummary.visualState)
+        assertEquals(R.string.categories_security_moderate, viewModel.uiState.value.securitySummary.statusResId)
+        assertEquals(SecuritySummaryVisualState.Moderate, viewModel.uiState.value.securitySummary.visualState)
     }
 
     private fun buildViewModel(

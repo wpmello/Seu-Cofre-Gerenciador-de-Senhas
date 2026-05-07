@@ -51,7 +51,7 @@ class EvaluatePasswordSecurityUseCase @Inject constructor() {
 
         val riskLevel = when (scorePercent) {
             in 0..49 -> PasswordSecurityRiskLevel.High
-            in 50..80 -> PasswordSecurityRiskLevel.Medium
+            in 50..90 -> PasswordSecurityRiskLevel.Medium
             else -> PasswordSecurityRiskLevel.Low
         }
 
@@ -67,7 +67,7 @@ class EvaluatePasswordSecurityUseCase @Inject constructor() {
             if (isDuplicate) {
                 add(PasswordSecurityTag.Duplicate)
             }
-            if (isEmpty() && scorePercent >= 81) {
+            if (isEmpty() && scorePercent >= 91) {
                 add(PasswordSecurityTag.Safe)
             }
         }

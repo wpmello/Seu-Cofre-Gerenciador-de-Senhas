@@ -26,4 +26,9 @@ class AppBottomDestinationTest {
     fun givenUnknownRoute_whenResolvingDestination_thenReturnsNull() {
         assertNull(appBottomDestinationForRoute("unknown"))
     }
+
+    @Test
+    fun givenSecurityDetailsRoute_whenResolvingDestination_thenReturnsNull() {
+        assertNull(appBottomDestinationForRoute("security-details"))
+    }
 }

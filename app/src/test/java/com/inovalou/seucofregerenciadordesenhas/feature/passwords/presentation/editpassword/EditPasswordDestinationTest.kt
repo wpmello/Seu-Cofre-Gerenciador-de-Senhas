@@ -23,4 +23,15 @@ class EditPasswordDestinationTest {
             )
         )
     }
+
+    @Test
+    fun givenSecurityDetailsOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "passwords/25/edit?openedFrom=security_details",
+            EditPasswordDestination.createRoute(
+                passwordId = 25L,
+                openedFrom = EditPasswordOpenedFrom.SecurityDetails
+            )
+        )
+    }
 }

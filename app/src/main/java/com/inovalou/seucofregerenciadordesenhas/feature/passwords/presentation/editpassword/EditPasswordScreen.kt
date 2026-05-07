@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,11 +29,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -82,7 +79,6 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
@@ -180,11 +176,8 @@ fun EditPasswordScreen(
                         categoryName = uiState.selectedCategoryName.orEmpty(),
                         categoryErrorResId = uiState.categoryErrorResId,
                         password = uiState.password,
-                        isEditing = uiState.isIdentityCardEditing,
                         isPasswordVisible = uiState.isPasswordVisible,
                         passwordErrorResId = uiState.passwordErrorResId,
-                        onEditClick = { onAction(EditPasswordAction.OnIdentityCardEditClick) },
-                        onCardSaveClick = { onAction(EditPasswordAction.OnIdentityCardSaveClick) },
                         onTitleChanged = { onAction(EditPasswordAction.OnTitleChanged(it)) },
                         onEmailChanged = { onAction(EditPasswordAction.OnEmailChanged(it)) },
                         onCategoryClick = { onAction(EditPasswordAction.OnCategoryFieldClick) },
@@ -312,11 +305,8 @@ private fun PasswordIdentityCard(
     categoryName: String,
     categoryErrorResId: Int?,
     password: String,
-    isEditing: Boolean,
     isPasswordVisible: Boolean,
     passwordErrorResId: Int?,
-    onEditClick: () -> Unit,
-    onCardSaveClick: () -> Unit,
     onTitleChanged: (String) -> Unit,
     onEmailChanged: (String) -> Unit,
     onCategoryClick: () -> Unit,
@@ -332,20 +322,10 @@ private fun PasswordIdentityCard(
         tonalElevation = 0.dp
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            IdentityCardModeButton(
-                isEditing = isEditing,
-                onEditClick = onEditClick,
-                onSaveClick = onCardSaveClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 18.dp, end = 20.dp)
-                    .testTag("edit_password_identity_card_mode_button")
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 28.dp, top = 56.dp, end = 28.dp, bottom = 28.dp),
+                    .padding(28.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Column(
@@ -368,27 +348,14 @@ private fun PasswordIdentityCard(
                         )
                     }
 
-                    if (isEditing) {
-                        CredentialField(
-                            label = stringResource(R.string.edit_password_app_name_label),
-                            value = title,
-                            onValueChange = onTitleChanged,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                            trailingContent = {},
-                            testTag = "edit_password_title_input"
-                        )
-                    } else {
-                        Text(
-                            text = title.ifBlank {
-                                stringResource(R.string.edit_password_app_name_placeholder)
-                            },
-                            modifier = Modifier.testTag("edit_password_title_text"),
-                            color = SoftWhite,
-                            fontSize = 30.sp,
-                            lineHeight = 36.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    }
+                    CredentialField(
+                        label = stringResource(R.string.edit_password_app_name_label),
+                        value = title,
+                        onValueChange = onTitleChanged,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        trailingContent = {},
+                        testTag = "edit_password_title_input"
+                    )
                 }
 
                 CredentialField(
@@ -411,8 +378,7 @@ private fun PasswordIdentityCard(
                             )
                         }
                     },
-                    testTag = "edit_password_email_input",
-                    readOnly = !isEditing
+                    testTag = "edit_password_email_input"
                 )
 
                 CredentialField(
@@ -462,8 +428,7 @@ private fun PasswordIdentityCard(
                             }
                         }
                     },
-                    testTag = "edit_password_password_input",
-                    readOnly = !isEditing
+                    testTag = "edit_password_password_input"
                 )
 
                 CategoryField(
@@ -472,8 +437,7 @@ private fun PasswordIdentityCard(
                     placeholder = stringResource(R.string.edit_password_category_placeholder),
                     errorResId = categoryErrorResId,
                     onClick = onCategoryClick,
-                    testTag = "edit_password_category_field",
-                    enabled = isEditing
+                    testTag = "edit_password_category_field"
                 )
 
                 passwordErrorResId?.let { errorResId ->
@@ -489,76 +453,13 @@ private fun PasswordIdentityCard(
 }
 
 @Composable
-private fun IdentityCardModeButton(
-    isEditing: Boolean,
-    onEditClick: () -> Unit,
-    onSaveClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (isEditing) {
-        Surface(
-            modifier = modifier
-                .widthIn(min = 88.dp)
-                .height(34.dp)
-                .clickable(onClick = onSaveClick),
-            shape = RoundedCornerShape(999.dp),
-            color = Color.Transparent
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(ElectricBlue, NeonPink)
-                        ),
-                        shape = RoundedCornerShape(999.dp)
-                    )
-                    .padding(horizontal = 14.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.edit_password_identity_card_save),
-                    color = SoftWhite,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-        }
-    } else {
-        Row(
-            modifier = modifier
-                .clip(RoundedCornerShape(999.dp))
-                .clickable(onClick = onEditClick)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.edit_password_identity_card_edit),
-                color = ElectricBlue,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Icon(
-                imageVector = Icons.Outlined.Edit,
-                contentDescription = null,
-                tint = ElectricBlue,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-    }
-}
-
-@Composable
 private fun CategoryField(
     label: String,
     value: String,
     placeholder: String,
     errorResId: Int?,
     onClick: () -> Unit,
-    testTag: String,
-    enabled: Boolean
+    testTag: String
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -574,7 +475,6 @@ private fun CategoryField(
                 .fillMaxWidth()
                 .testTag(testTag)
                 .clickable(
-                    enabled = enabled,
                     onClick = onClick,
                     role = Role.Button
                 )
@@ -691,7 +591,7 @@ private fun SecuritySection(
     val alertLabel = when (state.visualState) {
         EditPasswordSecurityVisualState.HighRisk,
         EditPasswordSecurityVisualState.MediumRisk -> stringResource(R.string.edit_password_security_alert_label)
-        EditPasswordSecurityVisualState.Safe -> stringResource(R.string.edit_password_security_safe_label)
+        EditPasswordSecurityVisualState.Safe -> stringResource(R.string.edit_password_security_strong_label)
     }
 
     Surface(
@@ -973,7 +873,7 @@ private fun NotesCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
-        color = DeepNavy.copy(alpha = 0.8f),
+        color = SlateBlue.copy(alpha = 0.82f),
         border = BorderStroke(1.dp, GhostOutline.copy(alpha = 0.18f))
     ) {
         Column(
@@ -997,6 +897,7 @@ private fun NotesCard(
                     .fillMaxWidth()
                     .heightIn(min = 140.dp)
                     .testTag("edit_password_note_input"),
+                shape = RoundedCornerShape(20.dp),
                 singleLine = false,
                 minLines = 5,
                 maxLines = 5,
@@ -1007,12 +908,12 @@ private fun NotesCard(
                     )
                 },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = DeepNavy.copy(alpha = 0.3f),
-                    unfocusedContainerColor = DeepNavy.copy(alpha = 0.3f),
+                    focusedContainerColor = DeepNavy.copy(alpha = 0.55f),
+                    unfocusedContainerColor = DeepNavy.copy(alpha = 0.55f),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = MistText,
-                    unfocusedTextColor = MistText,
+                    focusedTextColor = SoftWhite,
+                    unfocusedTextColor = SoftWhite,
                     cursorColor = ElectricBlue
                 )
             )
