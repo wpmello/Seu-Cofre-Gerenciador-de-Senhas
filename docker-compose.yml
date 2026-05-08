@@ -8,6 +8,23 @@ services:
       ANDROID_SDK_ROOT: /opt/android-sdk
     volumes:
       - .:/workspace
+      - codex_home_conta2:/codex-home
+    stdin_open: true
+    tty: true
+    init: true
+    security_opt:
+      - seccomp=unconfined
+    entrypoint: ["codex"]
+
+  codex-conta1:
+    build: .
+    working_dir: /workspace
+    environment:
+      CODEX_HOME: /codex-home
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      ANDROID_SDK_ROOT: /opt/android-sdk
+    volumes:
+      - .:/workspace
       - codex_home:/codex-home
     stdin_open: true
     tty: true
@@ -18,3 +35,4 @@ services:
 
 volumes:
   codex_home:
+  codex_home_conta2:
