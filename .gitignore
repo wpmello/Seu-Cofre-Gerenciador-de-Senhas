@@ -10,3 +10,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+.codex-host-conta2/
+.codex-conta-2/
+.codex/
+/codex-home/
