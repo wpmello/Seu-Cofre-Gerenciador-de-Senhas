@@ -6,6 +6,17 @@ import org.junit.Test
 class EditCategoryRouteTest {
 
     @Test
+    fun givenVaultOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "categories/9/edit?openedFrom=vault",
+            EditCategoryRoute.createRoute(
+                categoryId = 9L,
+                openedFrom = EditCategoryOpenedFrom.Vault
+            )
+        )
+    }
+
+    @Test
     fun givenAllCategoriesOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
         assertEquals(
             "categories/9/edit?openedFrom=all_categories",

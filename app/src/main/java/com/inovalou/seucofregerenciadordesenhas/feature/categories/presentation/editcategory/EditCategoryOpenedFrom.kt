@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory
 
 enum class EditCategoryOpenedFrom(val routeValue: String) {
+    Vault("vault"),
     Categories("categories"),
     AllCategories("all_categories");
 
