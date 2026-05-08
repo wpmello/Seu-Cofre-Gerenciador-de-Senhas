@@ -56,6 +56,38 @@ interface PasswordDao {
     )
     fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>>
 
+    @Query("SELECT COUNT(*) FROM passwords")
+    fun observePasswordCount(): Flow<Int>
+
+    @Query(
+        """
+        SELECT
+            passwords.id,
+            passwords.title,
+            passwords.login,
+            COALESCE(categories.name, passwords.category) AS category,
+            passwords.category_id,
+            passwords.encrypted_password,
+            passwords.password_iv,
+            passwords.password_cipher_version,
+            passwords.icon_key,
+            passwords.note,
+            passwords.password_fingerprint,
+            passwords.created_at,
+            passwords.updated_at
+        FROM passwords
+        LEFT JOIN categories ON categories.id = passwords.category_id
+        ORDER BY
+            CASE
+                WHEN passwords.updated_at > passwords.created_at THEN passwords.updated_at
+                ELSE passwords.created_at
+            END DESC,
+            passwords.id DESC
+        LIMIT :limit
+        """
+    )
+    fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>>
+
     @Query(
         """
         SELECT

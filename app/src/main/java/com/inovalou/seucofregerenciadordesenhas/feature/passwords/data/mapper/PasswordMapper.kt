@@ -9,7 +9,9 @@ fun PasswordEntity.toDomain(): PasswordSummary = PasswordSummary(
     title = title,
     login = login,
     categoryId = categoryId,
-    categoryName = category.ifBlank { null }
+    categoryName = category.ifBlank { null },
+    createdAt = createdAt,
+    updatedAt = updatedAt
 )
 
 fun PasswordEntity.toDetailsDomain(password: String): PasswordDetails = PasswordDetails(

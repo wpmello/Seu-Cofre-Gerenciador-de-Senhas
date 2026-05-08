@@ -128,6 +128,35 @@ class PasswordDaoTest {
     }
 
     @Test
+    fun givenPersistedPasswords_whenObservingRecent_thenOrdersByLatestCreatedOrUpdatedDateAndLimits() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (1, 'Old', 'old@vault.com', 'Misc', NULL, 'cipher-old', 'iv-old', 1, '', NULL, 10, 11)
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (2, 'Updated', 'updated@vault.com', 'Misc', NULL, 'cipher-updated', 'iv-updated', 1, '', NULL, 20, 90)
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (3, 'Created', 'created@vault.com', 'Misc', NULL, 'cipher-created', 'iv-created', 1, '', NULL, 80, 30)
+            """.trimIndent()
+        )
+
+        val recent = passwordDao.observeRecentPasswords(limit = 2).first()
+
+        assertEquals(listOf("Updated", "Created"), recent.map { it.title })
+    }
+
+    @Test
     fun givenMatchingFingerprints_whenCountingDuplicates_thenIgnoresExcludedPassword() = runTest {
         database.openHelper.writableDatabase.execSQL(
             """

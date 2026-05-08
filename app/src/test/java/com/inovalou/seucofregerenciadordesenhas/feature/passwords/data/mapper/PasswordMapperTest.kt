@@ -31,7 +31,9 @@ class PasswordMapperTest {
                 title = "GitHub",
                 login = "joao@empresa.com",
                 categoryId = 7L,
-                categoryName = "Work"
+                categoryName = "Work",
+                createdAt = 1_710_000_000_000L,
+                updatedAt = 1_720_000_000_000L
             ),
             entity.toDomain()
         )

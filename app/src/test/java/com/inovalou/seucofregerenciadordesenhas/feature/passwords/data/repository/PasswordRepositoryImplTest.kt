@@ -60,14 +60,18 @@ class PasswordRepositoryImplTest {
                     title = "Netflix",
                     login = "joao@email.com",
                     categoryId = 3L,
-                    categoryName = "Streaming"
+                    categoryName = "Streaming",
+                    createdAt = 100L,
+                    updatedAt = 200L
                 ),
                 PasswordSummary(
                     id = 2L,
                     title = "GitHub",
                     login = "jsilva_dev",
                     categoryId = null,
-                    categoryName = "Work"
+                    categoryName = "Work",
+                    createdAt = 300L,
+                    updatedAt = 400L
                 )
             ),
             observed
@@ -104,11 +108,52 @@ class PasswordRepositoryImplTest {
                     title = "Spotify",
                     login = "premium_family_admin",
                     categoryId = 12L,
-                    categoryName = "Music"
+                    categoryName = "Music",
+                    createdAt = 500L,
+                    updatedAt = 600L
                 )
             ),
             observed
         )
+    }
+
+    @Test
+    fun givenLocalRecentPasswords_whenObservingRecent_thenDelegatesLimitAndMapsDates() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
+        localDataSource.emitRecent(
+            listOf(
+                passwordEntity(
+                    id = 12L,
+                    title = "Banco",
+                    login = "conta@bank.com",
+                    category = "Financeiro",
+                    categoryId = 4L,
+                    encryptedPassword = "cipher",
+                    passwordIv = "iv",
+                    createdAt = 700L,
+                    updatedAt = 900L
+                )
+            )
+        )
+        val repository = buildRepository(localDataSource = localDataSource)
+
+        val observed = repository.observeRecentPasswords(limit = 4).first()
+
+        assertEquals(4, localDataSource.lastRecentLimit)
+        assertEquals("Banco", observed.single().title)
+        assertEquals(700L, observed.single().createdAt)
+        assertEquals(900L, observed.single().updatedAt)
+    }
+
+    @Test
+    fun givenPasswordCountFlow_whenObservingCount_thenDelegatesToLocalDataSource() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            observedPasswordCount = 7
+        )
+        val repository = buildRepository(localDataSource = localDataSource)
+
+        assertEquals(7, repository.observePasswordCount().first())
     }
 
     @Test
@@ -301,6 +346,11 @@ class PasswordRepositoryImplTest {
 
                 override suspend fun getPasswordCount(): Int = 0
 
+                override fun observePasswordCount(): Flow<Int> = flow { emit(0) }
+
+                override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> =
+                    flow { emit(emptyList()) }
+
                 override suspend fun countPasswordsWithFingerprint(
                     passwordFingerprint: String,
                     excludePasswordId: Long?
@@ -474,6 +524,7 @@ class PasswordRepositoryImplTest {
     private class FakePasswordsLocalDataSource(
         initialPasswords: List<PasswordEntity>,
         private val passwordCount: Int = 0,
+        private val observedPasswordCount: Int = passwordCount,
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
         private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList()
@@ -481,9 +532,11 @@ class PasswordRepositoryImplTest {
 
         private val passwordsFlow = MutableStateFlow(initialPasswords)
         private val passwordsByCategoryFlow = MutableStateFlow<List<PasswordEntity>>(emptyList())
+        private val recentPasswordsFlow = MutableStateFlow<List<PasswordEntity>>(emptyList())
         var insertedPassword: PasswordEntity? = null
         var updatedPassword: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
+        var lastRecentLimit: Int? = null
         var lastDuplicateFingerprint: String? = null
         var lastDuplicateExcludedId: Long? = null
         var lastFingerprintUpdatePasswordId: Long? = null
@@ -494,6 +547,13 @@ class PasswordRepositoryImplTest {
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> {
             lastObservedCategoryId = categoryId
             return passwordsByCategoryFlow
+        }
+
+        override fun observePasswordCount(): Flow<Int> = MutableStateFlow(observedPasswordCount)
+
+        override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> {
+            lastRecentLimit = limit
+            return recentPasswordsFlow
         }
 
         override suspend fun createPassword(password: PasswordEntity): Long {
@@ -532,6 +592,10 @@ class PasswordRepositoryImplTest {
 
         fun emitByCategory(passwords: List<PasswordEntity>) {
             passwordsByCategoryFlow.value = passwords
+        }
+
+        fun emitRecent(passwords: List<PasswordEntity>) {
+            recentPasswordsFlow.value = passwords
         }
     }
 

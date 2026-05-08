@@ -33,6 +33,13 @@ class PasswordRepositoryImpl @Inject constructor(
             entities.map { entity -> entity.toDomain() }
         }
 
+    override fun observePasswordCount(): Flow<Int> = localDataSource.observePasswordCount()
+
+    override fun observeRecentPasswords(limit: Int): Flow<List<PasswordSummary>> =
+        localDataSource.observeRecentPasswords(limit).map { entities ->
+            entities.map { entity -> entity.toDomain() }
+        }
+
     override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
         localDataSource.observePasswords().map { entities ->
             entities.map { entity ->

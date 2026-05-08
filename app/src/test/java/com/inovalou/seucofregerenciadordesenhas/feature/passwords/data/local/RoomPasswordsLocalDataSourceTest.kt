@@ -110,6 +110,47 @@ class RoomPasswordsLocalDataSourceTest {
     }
 
     @Test
+    fun givenDaoCountFlow_whenObservingPasswordCount_thenDelegatesToDao() = runTest {
+        val dataSource = RoomPasswordsLocalDataSource(
+            passwordDao = FakePasswordDao(
+                passwordsFlow = flowOf(emptyList()),
+                passwordCountFlow = flowOf(6)
+            )
+        )
+
+        assertEquals(6, dataSource.observePasswordCount().first())
+    }
+
+    @Test
+    fun givenRecentPasswordQuery_whenObservingRecentPasswords_thenDelegatesLimitToDao() = runTest {
+        val expected = listOf(
+            PasswordEntity(
+                id = 31L,
+                title = "Banco",
+                login = "conta@bank.com",
+                category = "Financeiro",
+                categoryId = 3L,
+                encryptedPassword = "cipher",
+                passwordIv = "iv",
+                passwordCipherVersion = 1,
+                iconKey = "",
+                createdAt = 700L,
+                updatedAt = 900L
+            )
+        )
+        val dao = FakePasswordDao(
+            passwordsFlow = flowOf(emptyList()),
+            recentPasswordsFlow = flowOf(expected)
+        )
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val observed = dataSource.observeRecentPasswords(limit = 4).first()
+
+        assertEquals(4, dao.lastRecentLimit)
+        assertEquals(expected, observed)
+    }
+
+    @Test
     fun givenPasswordId_whenQueryingDetails_thenDelegatesLookupToDao() = runTest {
         val expected = PasswordEntity(
             id = 11L,
@@ -234,6 +275,8 @@ class RoomPasswordsLocalDataSourceTest {
     private class FakePasswordDao(
         private val passwordsFlow: Flow<List<PasswordEntity>>,
         private val passwordsByCategoryFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
+        private val passwordCountFlow: Flow<Int> = flowOf(0),
+        private val recentPasswordsFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
         private val passwordCount: Int = 0,
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
@@ -243,6 +286,7 @@ class RoomPasswordsLocalDataSourceTest {
         var insertedEntity: PasswordEntity? = null
         var updatedEntity: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
+        var lastRecentLimit: Int? = null
         var lastRequestedPasswordId: Long? = null
         var lastDuplicateFingerprint: String? = null
         var lastDuplicateExcludedId: Long? = null
@@ -254,6 +298,13 @@ class RoomPasswordsLocalDataSourceTest {
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> {
             lastObservedCategoryId = categoryId
             return passwordsByCategoryFlow
+        }
+
+        override fun observePasswordCount(): Flow<Int> = passwordCountFlow
+
+        override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> {
+            lastRecentLimit = limit
+            return recentPasswordsFlow
         }
 
         override suspend fun insert(password: PasswordEntity): Long {
