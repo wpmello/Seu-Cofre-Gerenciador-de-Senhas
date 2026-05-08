@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultEncryptedIndicator
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
@@ -54,7 +54,6 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
 
@@ -70,7 +69,6 @@ private val ExcellentSecurityGradient = Brush.linearGradient(
 private val HighlightedCategoryGradient = Brush.linearGradient(
     colors = listOf(ElectricBlue, Color(0xFF0F6DF3))
 )
-private val EncryptedGreen = Color(0xFF3FFF8B)
 
 @Composable
 fun CategoriesRoute(
@@ -317,33 +315,12 @@ private fun SecuritySummaryCard(
             }
         }
 
-        Row(
+        VaultEncryptedIndicator(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 24.dp)
-                .background(
-                    color = SurfaceBright.copy(alpha = 0.72f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(EncryptedGreen, CircleShape)
-                    .shadow(8.dp, CircleShape, ambientColor = EncryptedGreen, spotColor = EncryptedGreen)
-            )
-            Text(
-                text = stringResource(encryptedIndicator.labelResId),
-                color = SoftWhite,
-                fontSize = 10.sp,
-                lineHeight = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.sp
-            )
-        }
+                .padding(end = 24.dp),
+            labelResId = encryptedIndicator.labelResId
+        )
     }
 }
 

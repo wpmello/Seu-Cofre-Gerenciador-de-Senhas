@@ -1,0 +1,64 @@
+package com.inovalou.seucofregerenciadordesenhas.core.ui.component
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
+
+@Composable
+fun VaultEncryptedIndicator(
+    modifier: Modifier = Modifier,
+    @StringRes labelResId: Int = R.string.vault_encrypted_indicator,
+    container: Boolean = true
+) {
+    val rowModifier = if (container) {
+        modifier
+            .background(
+                color = SurfaceBright.copy(alpha = 0.72f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    } else {
+        modifier
+    }
+
+    Row(
+        modifier = rowModifier.testTag("vault_encrypted_indicator"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(VaultGreen, CircleShape)
+                .shadow(8.dp, CircleShape, ambientColor = VaultGreen, spotColor = VaultGreen)
+        )
+        Text(
+            text = stringResource(labelResId),
+            color = SoftWhite,
+            fontSize = 10.sp,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.sp
+        )
+    }
+}
