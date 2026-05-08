@@ -12,7 +12,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.AppBottomDestination
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.SeuCofreBottomBar
 import com.inovalou.seucofregerenciadordesenhas.core.navigation.appBottomDestinationForRoute
@@ -25,7 +24,6 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
-import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
 import com.inovalou.seucofregerenciadordesenhas.feature.home.presentation.VaultHomeRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.PasswordsRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordDestination
@@ -35,6 +33,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.n
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.settings.presentation.SettingsRoute
 
 @Composable
 fun SeuCofreAppShell(modifier: Modifier = Modifier) {
@@ -303,7 +302,7 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 )
             }
             composable(AppBottomDestination.Settings.route) {
-                PlaceholderTabScreen(titleResId = R.string.placeholder_settings)
+                SettingsRoute()
             }
         }
     }
