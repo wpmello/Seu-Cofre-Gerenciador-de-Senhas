@@ -4,7 +4,18 @@
     <string name="splash_subtitle">YOUR SECURE DIGITAL VAULT</string>
     <string name="splash_loading">Loading…</string>
     <string name="splash_encryption_hint">END-TO-END ENCRYPTED</string>
-    <string name="home_title">HomeScreen</string>
+    <string name="home_title">Vault</string>
+    <string name="vault_home_total_passwords_label">Total passwords</string>
+    <plurals name="vault_home_weak_passwords">
+        <item quantity="one">%1$d Weak</item>
+        <item quantity="other">%1$d Weak</item>
+    </plurals>
+    <string name="vault_home_other_categories">Other</string>
+    <string name="vault_home_recent_title">Recent</string>
+    <string name="vault_home_view_all">View all</string>
+    <string name="vault_home_categories_empty">Saved categories will appear here.</string>
+    <string name="vault_home_recent_empty">Recently created or updated passwords will appear here.</string>
+    <string name="vault_home_load_error">Could not load the vault.</string>
     <string name="onboarding_brand">Your vault</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_existing_account">Already have an account? </string>

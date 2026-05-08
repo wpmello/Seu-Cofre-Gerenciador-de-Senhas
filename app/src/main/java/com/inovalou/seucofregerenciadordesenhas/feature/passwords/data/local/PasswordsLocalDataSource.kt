@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface PasswordsLocalDataSource {
@@ -8,6 +9,15 @@ interface PasswordsLocalDataSource {
     fun observePasswords(): Flow<List<PasswordEntity>>
 
     fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>>
+
+    fun observePasswordCount(): Flow<Int> = observePasswords().map { passwords ->
+        passwords.size
+    }
+
+    fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> =
+        observePasswords().map { passwords ->
+            passwords.sortedByMostRecentChange().take(limit)
+        }
 
     suspend fun createPassword(password: PasswordEntity): Long
 
@@ -36,6 +46,11 @@ class RoomPasswordsLocalDataSource @Inject constructor(
     override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordEntity>> =
         passwordDao.observePasswordsByCategoryId(categoryId)
 
+    override fun observePasswordCount(): Flow<Int> = passwordDao.observePasswordCount()
+
+    override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> =
+        passwordDao.observeRecentPasswords(limit)
+
     override suspend fun createPassword(password: PasswordEntity): Long = passwordDao.insert(password)
 
     override suspend fun getPasswordById(passwordId: Long): PasswordEntity? =
@@ -59,3 +74,10 @@ class RoomPasswordsLocalDataSource @Inject constructor(
         passwordDao.updatePasswordFingerprint(passwordId, passwordFingerprint)
     }
 }
+
+private fun List<PasswordEntity>.sortedByMostRecentChange(): List<PasswordEntity> =
+    sortedWith(
+        compareByDescending<PasswordEntity> { password ->
+            maxOf(password.createdAt, password.updatedAt)
+        }.thenByDescending { password -> password.id }
+    )

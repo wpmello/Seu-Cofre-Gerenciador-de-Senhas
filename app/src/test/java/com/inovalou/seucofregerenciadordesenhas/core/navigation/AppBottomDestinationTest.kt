@@ -7,6 +7,14 @@ import org.junit.Test
 class AppBottomDestinationTest {
 
     @Test
+    fun givenVaultRoute_whenResolvingDestination_thenReturnsVaultTab() {
+        assertEquals(
+            AppBottomDestination.Vault,
+            appBottomDestinationForRoute("vault")
+        )
+    }
+
+    @Test
     fun givenCategoriesRoute_whenResolvingDestination_thenReturnsCategoriesTab() {
         assertEquals(
             AppBottomDestination.Categories,

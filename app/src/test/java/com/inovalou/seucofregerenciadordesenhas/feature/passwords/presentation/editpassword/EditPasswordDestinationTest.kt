@@ -6,6 +6,17 @@ import org.junit.Test
 class EditPasswordDestinationTest {
 
     @Test
+    fun givenVaultOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "passwords/12/edit?openedFrom=vault",
+            EditPasswordDestination.createRoute(
+                passwordId = 12L,
+                openedFrom = EditPasswordOpenedFrom.Vault
+            )
+        )
+    }
+
+    @Test
     fun givenPasswordId_whenCreatingRoute_thenEmbedsThatArgument() {
         assertEquals(
             "passwords/25/edit?openedFrom=passwords",

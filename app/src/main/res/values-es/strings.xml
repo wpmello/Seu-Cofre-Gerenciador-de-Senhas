@@ -4,7 +4,18 @@
     <string name="splash_subtitle">TU COFRE DIGITAL SEGURO</string>
     <string name="splash_loading">Cargando…</string>
     <string name="splash_encryption_hint">CIFRADO DE EXTREMO A EXTREMO</string>
-    <string name="home_title">HomeScreen</string>
+    <string name="home_title">Cofre</string>
+    <string name="vault_home_total_passwords_label">Total de claves</string>
+    <plurals name="vault_home_weak_passwords">
+        <item quantity="one">%1$d Débil</item>
+        <item quantity="other">%1$d Débiles</item>
+    </plurals>
+    <string name="vault_home_other_categories">Otros</string>
+    <string name="vault_home_recent_title">Recientes</string>
+    <string name="vault_home_view_all">Ver todo</string>
+    <string name="vault_home_categories_empty">Las categorías guardadas aparecerán aquí.</string>
+    <string name="vault_home_recent_empty">Las claves creadas o actualizadas recientemente aparecerán aquí.</string>
+    <string name="vault_home_load_error">No se pudo cargar el cofre.</string>
     <string name="onboarding_brand">Tu cofre</string>
     <string name="onboarding_next">Siguiente</string>
     <string name="onboarding_existing_account">¿Ya tienes una cuenta? </string>

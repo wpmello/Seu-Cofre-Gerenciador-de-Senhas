@@ -26,6 +26,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.newcategory.NewCategoryRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.common.presentation.PlaceholderTabScreen
+import com.inovalou.seucofregerenciadordesenhas.feature.home.presentation.VaultHomeRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.PasswordsRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordOpenedFrom
@@ -64,11 +65,43 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppBottomDestination.Categories.route,
+            startDestination = AppBottomDestination.Vault.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(AppBottomDestination.Vault.route) {
-                PlaceholderTabScreen(titleResId = R.string.placeholder_vault)
+                VaultHomeRoute(
+                    onOpenCategory = { categoryId ->
+                        navController.navigate(
+                            EditCategoryRoute.createRoute(
+                                categoryId = categoryId,
+                                openedFrom = EditCategoryOpenedFrom.Vault
+                            )
+                        )
+                    },
+                    onOpenAllCategories = {
+                        navController.navigate(AllCategoriesRoute.route)
+                    },
+                    onOpenPasswords = {
+                        navController.navigate(AppBottomDestination.Passwords.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onOpenPassword = { passwordId ->
+                        navController.navigate(
+                            EditPasswordDestination.createRoute(
+                                passwordId = passwordId,
+                                openedFrom = EditPasswordOpenedFrom.Vault
+                            )
+                        )
+                    },
+                    onAddPassword = {
+                        navController.navigate(NewPasswordDestination.route)
+                    }
+                )
             }
             composable(AppBottomDestination.Passwords.route) {
                 PasswordsRoute(
@@ -83,10 +116,7 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
             composable(NewPasswordDestination.route) {
                 NewPasswordRoute(
                     onNavigateBack = {
-                        navController.popBackStack(
-                            AppBottomDestination.Passwords.route,
-                            inclusive = false
-                        )
+                        navController.popBackStack()
                     }
                 )
             }
@@ -105,6 +135,13 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 EditPasswordRoute(
                     onNavigateBackToOrigin = { openedFrom ->
                         when (openedFrom) {
+                            EditPasswordOpenedFrom.Vault -> {
+                                navController.popBackStack(
+                                    AppBottomDestination.Vault.route,
+                                    inclusive = false
+                                )
+                            }
+
                             EditPasswordOpenedFrom.Passwords -> {
                                 navController.popBackStack(
                                     AppBottomDestination.Passwords.route,
@@ -164,10 +201,7 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
             composable(AllCategoriesRoute.route) {
                 AllCategoriesEntry(
                     onBackClick = {
-                        navController.popBackStack(
-                            AppBottomDestination.Categories.route,
-                            inclusive = false
-                        )
+                        navController.popBackStack()
                     },
                     onEditCategoryClick = { categoryId, openedFrom ->
                         navController.navigate(
@@ -230,6 +264,13 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 EditCategoryEntry(
                     onNavigateBackToOrigin = { openedFrom ->
                         when (openedFrom) {
+                            EditCategoryOpenedFrom.Vault -> {
+                                navController.popBackStack(
+                                    AppBottomDestination.Vault.route,
+                                    inclusive = false
+                                )
+                            }
+
                             EditCategoryOpenedFrom.Categories -> {
                                 navController.popBackStack(
                                     AppBottomDestination.Categories.route,
