@@ -54,12 +54,14 @@ class VaultHomeViewModelTest {
         assertTrue(state.contentState is VaultHomeContentState.Empty)
         assertEquals(0, state.totalPasswords)
         assertEquals(0, state.weakPasswords)
+        assertEquals(0, state.moderatePasswords)
+        assertEquals(0, state.strongPasswords)
         assertTrue(state.categories.isEmpty())
         assertTrue(state.recentPasswords.isEmpty())
     }
 
     @Test
-    fun givenHomeData_whenObserved_thenMapsCategoriesRecentPasswordsAndWeakCount() = runTest {
+    fun givenHomeData_whenObserved_thenMapsCategoriesRecentPasswordsAndSecurityCounts() = runTest {
         val viewModel = buildViewModel(
             categories = listOf(
                 Category(1L, "Social", "ic_global", 2, 10L),
@@ -68,11 +70,13 @@ class VaultHomeViewModelTest {
             ),
             passwords = listOf(
                 passwordSummary(1L, "Facebook", createdAt = 10L, updatedAt = 20L),
-                passwordSummary(2L, "Banco", createdAt = 30L, updatedAt = 40L)
+                passwordSummary(2L, "Banco", createdAt = 30L, updatedAt = 40L),
+                passwordSummary(3L, "Email", createdAt = 50L, updatedAt = 60L)
             ),
             snapshots = listOf(
                 PasswordSecuritySnapshot(1L, "123456", "weak"),
-                PasswordSecuritySnapshot(2L, "VeryStrongCredential!2026", "safe")
+                PasswordSecuritySnapshot(2L, "Qr7!Lp2@Mz9#", "moderate"),
+                PasswordSecuritySnapshot(3L, "VeryStrongCredential!2026", "safe")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -81,13 +85,19 @@ class VaultHomeViewModelTest {
 
         val state = viewModel.uiState.value
         assertTrue(state.contentState is VaultHomeContentState.Content)
-        assertEquals(2, state.totalPasswords)
+        assertEquals(3, state.totalPasswords)
         assertEquals(1, state.weakPasswords)
+        assertEquals(1, state.moderatePasswords)
+        assertEquals(1, state.strongPasswords)
         assertEquals(listOf("Bancos", "Compras", "Social"), state.categories.map { it.name })
         assertTrue(state.showOtherCategories)
-        assertEquals(listOf("Banco", "Facebook"), state.recentPasswords.map { it.title })
+        assertEquals(listOf("Email", "Banco", "Facebook"), state.recentPasswords.map { it.title })
         assertEquals(
-            listOf(VaultPasswordListSecurityLevel.Safe, VaultPasswordListSecurityLevel.Weak),
+            listOf(
+                VaultPasswordListSecurityLevel.Safe,
+                VaultPasswordListSecurityLevel.Moderate,
+                VaultPasswordListSecurityLevel.Weak
+            ),
             state.recentPasswords.map { it.securityLevel }
         )
         assertEquals(R.drawable.ic_padlock, state.categories.first().iconResId)
