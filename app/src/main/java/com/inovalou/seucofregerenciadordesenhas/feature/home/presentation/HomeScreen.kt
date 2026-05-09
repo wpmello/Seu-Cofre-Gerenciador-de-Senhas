@@ -51,16 +51,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordL
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultHomeRoute(
@@ -99,14 +90,16 @@ fun VaultHomeScreen(
     onAction: (VaultHomeAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MidnightBlue)
+                .background(colors.background)
                 .testTag("vault_home_screen")
         ) {
             LazyColumn(
@@ -183,6 +176,8 @@ fun VaultHomeScreen(
 
 @Composable
 private fun VaultHomeLoading() {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,18 +186,20 @@ private fun VaultHomeLoading() {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.testTag("vault_home_loading"),
-            color = ElectricBlue
+            color = colors.primary
         )
     }
 }
 
 @Composable
 private fun VaultHomeError(contentState: VaultHomeContentState.Error) {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(24.dp)
@@ -211,7 +208,7 @@ private fun VaultHomeError(contentState: VaultHomeContentState.Error) {
     ) {
         Text(
             text = stringResource(contentState.messageResId),
-            color = SoftWhite,
+            color = colors.textPrimary,
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -225,13 +222,15 @@ private fun VaultHomeSummaryCard(
     strongPasswords: Int,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(32.dp))
             .background(
                 brush = Brush.linearGradient(
-                    colors = listOf(ElectricBlue, NeonPink)
+                    colors = listOf(colors.primary, colors.secondary)
                 ),
                 shape = RoundedCornerShape(32.dp)
             )
@@ -251,7 +250,7 @@ private fun VaultHomeSummaryCard(
             Icon(
                 imageVector = Icons.Outlined.Shield,
                 contentDescription = null,
-                tint = MidnightBlue,
+                tint = colors.onAccent,
                 modifier = Modifier.size(34.dp)
             )
         }
@@ -263,7 +262,7 @@ private fun VaultHomeSummaryCard(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = stringResource(R.string.vault_home_total_passwords_label).uppercase(),
-                    color = MidnightBlue.copy(alpha = 0.8f),
+                    color = colors.onAccent.copy(alpha = 0.8f),
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                     fontWeight = FontWeight.Medium,
@@ -271,7 +270,7 @@ private fun VaultHomeSummaryCard(
                 )
                 Text(
                     text = totalPasswords.toString(),
-                    color = MidnightBlue,
+                    color = colors.onAccent,
                     fontSize = 60.sp,
                     lineHeight = 60.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -295,23 +294,24 @@ private fun VaultHomeSecuritySummaryTags(
     strongPasswords: Int,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
     val tags = listOf(
         VaultHomeSecuritySummaryTagUiModel(
             count = weakPasswords,
             labelResId = R.plurals.vault_home_weak_passwords,
-            accentColor = Color(0xFFFF716C),
+            accentColor = colors.danger,
             testTag = "vault_home_weak_passwords"
         ),
         VaultHomeSecuritySummaryTagUiModel(
             count = moderatePasswords,
             labelResId = R.plurals.vault_home_moderate_passwords,
-            accentColor = VaultAmber,
+            accentColor = colors.warning,
             testTag = "vault_home_moderate_passwords"
         ),
         VaultHomeSecuritySummaryTagUiModel(
             count = strongPasswords,
             labelResId = R.plurals.vault_home_strong_passwords,
-            accentColor = VaultGreen,
+            accentColor = colors.success,
             testTag = "vault_home_strong_passwords"
         )
     )
@@ -336,10 +336,12 @@ private fun VaultHomeSecuritySummaryTag(
     tag: VaultHomeSecuritySummaryTagUiModel,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .background(
-                color = MidnightBlue.copy(alpha = 0.1f),
+                color = colors.onAccent.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(999.dp)
             )
             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -360,7 +362,7 @@ private fun VaultHomeSecuritySummaryTag(
                 tag.count,
                 tag.count
             ),
-            color = MidnightBlue,
+            color = colors.onAccent,
             fontSize = 14.sp,
             lineHeight = 20.sp,
             fontWeight = FontWeight.SemiBold,
@@ -383,13 +385,15 @@ private fun VaultHomeCategoriesSection(
     onAction: (VaultHomeAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = stringResource(R.string.categories_title),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 20.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
@@ -451,13 +455,15 @@ private fun VaultHomeCategoryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .height(144.dp)
             .clip(RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .testTag("vault_home_category_${category.id}")
@@ -468,7 +474,7 @@ private fun VaultHomeCategoryCard(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = SlateBlue.copy(alpha = 0.7f),
+                    color = colors.surfaceHigh.copy(alpha = 0.7f),
                     shape = RoundedCornerShape(16.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -476,14 +482,14 @@ private fun VaultHomeCategoryCard(
             Icon(
                 imageVector = ImageVector.vectorResource(category.iconResId),
                 contentDescription = null,
-                tint = SoftWhite,
+                tint = colors.textPrimary,
                 modifier = Modifier.size(22.dp)
             )
         }
 
         Text(
             text = category.name,
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 16.sp,
             lineHeight = 22.sp,
             fontWeight = FontWeight.SemiBold,
@@ -497,13 +503,15 @@ private fun VaultHomeOtherCategoriesCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .height(144.dp)
             .clip(RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .testTag("vault_home_other_categories_card")
@@ -514,7 +522,7 @@ private fun VaultHomeOtherCategoriesCard(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = SurfaceBright.copy(alpha = 0.72f),
+                    color = colors.surfaceBright.copy(alpha = 0.72f),
                     shape = RoundedCornerShape(16.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -522,14 +530,14 @@ private fun VaultHomeOtherCategoriesCard(
             Icon(
                 imageVector = Icons.Rounded.MoreHoriz,
                 contentDescription = null,
-                tint = MistText,
+                tint = colors.textSecondary,
                 modifier = Modifier.size(24.dp)
             )
         }
 
         Text(
             text = stringResource(R.string.vault_home_other_categories),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 16.sp,
             lineHeight = 22.sp,
             fontWeight = FontWeight.SemiBold
@@ -543,6 +551,8 @@ private fun VaultHomeRecentSection(
     onAction: (VaultHomeAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -554,7 +564,7 @@ private fun VaultHomeRecentSection(
         ) {
             Text(
                 text = stringResource(R.string.vault_home_recent_title),
-                color = SoftWhite,
+                color = colors.textPrimary,
                 fontSize = 20.sp,
                 lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold
@@ -562,7 +572,7 @@ private fun VaultHomeRecentSection(
 
             Text(
                 text = stringResource(R.string.vault_home_view_all),
-                color = ElectricBlue,
+                color = colors.primary,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -598,11 +608,13 @@ private fun VaultHomeEmptyCard(
     testTag: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(20.dp)
@@ -610,7 +622,7 @@ private fun VaultHomeEmptyCard(
     ) {
         Text(
             text = message,
-            color = MistText,
+            color = colors.textSecondary,
             fontSize = 14.sp,
             lineHeight = 20.sp
         )

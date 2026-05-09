@@ -18,9 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 sealed interface PasswordCategorySelectionUiState {
     data object Loading : PasswordCategorySelectionUiState
@@ -43,12 +41,14 @@ fun PasswordCategorySelectionDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = stringResource(R.string.new_password_category_dialog_title),
-                color = SoftWhite
+                color = colors.textPrimary
             )
         },
         text = {
@@ -60,14 +60,14 @@ fun PasswordCategorySelectionDialog(
                     PasswordCategorySelectionUiState.Loading -> {
                         Text(
                             text = stringResource(R.string.new_password_category_dialog_loading),
-                            color = MistText
+                            color = colors.textSecondary
                         )
                     }
 
                     PasswordCategorySelectionUiState.Empty -> {
                         Text(
                             text = stringResource(R.string.new_password_category_dialog_empty),
-                            color = MistText
+                            color = colors.textSecondary
                         )
                     }
 
@@ -88,7 +88,7 @@ fun PasswordCategorySelectionDialog(
                 Text(text = stringResource(R.string.edit_category_cancel))
             }
         },
-        containerColor = DeepNavy
+        containerColor = colors.surface
     )
 }
 
@@ -98,6 +98,8 @@ private fun PasswordCategorySelectionRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -111,7 +113,7 @@ private fun PasswordCategorySelectionRow(
         )
         Text(
             text = category.name,
-            color = SoftWhite,
+            color = colors.textPrimary,
             style = MaterialTheme.typography.bodyLarge
         )
     }

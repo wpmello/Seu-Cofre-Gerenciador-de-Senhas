@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,14 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-
-private val VaultPrimaryPersistenceGradient = Brush.linearGradient(
-    colors = listOf(ElectricBlue, NeonPink)
-)
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultPrimaryPersistenceButton(
@@ -35,6 +29,8 @@ fun VaultPrimaryPersistenceButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Button(
         onClick = onClick,
         enabled = !isLoading,
@@ -50,7 +46,7 @@ fun VaultPrimaryPersistenceButton(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    brush = VaultPrimaryPersistenceGradient,
+                    brush = Brush.linearGradient(listOf(colors.primary, colors.secondary)),
                     shape = RoundedCornerShape(999.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -58,13 +54,13 @@ fun VaultPrimaryPersistenceButton(
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = MidnightBlue,
+                    color = colors.onAccent,
                     strokeWidth = 2.dp
                 )
             } else {
                 Text(
                     text = text,
-                    color = SoftWhite,
+                    color = Color.White,
                     fontSize = 18.sp,
                     lineHeight = 28.sp,
                     fontWeight = FontWeight.ExtraBold,

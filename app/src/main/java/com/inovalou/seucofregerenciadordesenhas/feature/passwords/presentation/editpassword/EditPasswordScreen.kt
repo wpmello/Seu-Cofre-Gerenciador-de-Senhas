@@ -74,16 +74,7 @@ import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -126,9 +117,11 @@ fun EditPasswordScreen(
     onAction: (EditPasswordAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Column(
             modifier = Modifier
@@ -156,7 +149,7 @@ fun EditPasswordScreen(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.testTag("edit_password_loading"),
-                            color = ElectricBlue
+                            color = colors.primary
                         )
                     }
                 }
@@ -164,7 +157,7 @@ fun EditPasswordScreen(
                 is EditPasswordContentState.Error -> {
                     Text(
                         text = stringResource(contentState.messageResId),
-                        color = MistText,
+                        color = colors.textSecondary,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -222,10 +215,10 @@ fun EditPasswordScreen(
                                 Icon(
                                     imageVector = Icons.Outlined.Lightbulb,
                                     contentDescription = null,
-                                    tint = VaultGreen
+                                    tint = colors.success
                                 )
                             },
-                            accent = VaultGreen.copy(alpha = 0.2f),
+                            accent = colors.success.copy(alpha = 0.2f),
                             modifier = Modifier.weight(1f)
                         )
                         ActionCard(
@@ -234,10 +227,10 @@ fun EditPasswordScreen(
                                 Icon(
                                     imageVector = Icons.Outlined.History,
                                     contentDescription = null,
-                                    tint = ElectricBlue
+                                    tint = colors.primary
                                 )
                             },
-                            accent = ElectricBlue.copy(alpha = 0.18f),
+                            accent = colors.primary.copy(alpha = 0.18f),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -315,10 +308,12 @@ private fun PasswordIdentityCard(
     onCopyPassword: () -> Unit,
     onTogglePasswordVisibility: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(40.dp),
-        color = SlateBlue.copy(alpha = 0.82f),
+        color = colors.surfaceHigh.copy(alpha = 0.92f),
         tonalElevation = 0.dp
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -337,12 +332,12 @@ private fun PasswordIdentityCard(
                         modifier = Modifier
                             .size(96.dp)
                             .clip(RoundedCornerShape(32.dp))
-                            .background(SurfaceBright),
+                            .background(colors.surfaceBright),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = title.toInitials(),
-                            color = SoftWhite,
+                            color = colors.textPrimary,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -374,7 +369,7 @@ private fun PasswordIdentityCard(
                             Icon(
                                 imageVector = Icons.Outlined.ContentCopy,
                                 contentDescription = stringResource(R.string.edit_password_copy_email),
-                                tint = ElectricBlue
+                                tint = colors.primary
                             )
                         }
                     },
@@ -413,7 +408,7 @@ private fun PasswordIdentityCard(
                                             R.string.edit_password_show_password
                                         }
                                     ),
-                                    tint = MistText
+                                    tint = colors.textSecondary
                                 )
                             }
                             IconButton(
@@ -423,7 +418,7 @@ private fun PasswordIdentityCard(
                                 Icon(
                                     imageVector = Icons.Outlined.ContentCopy,
                                     contentDescription = stringResource(R.string.edit_password_copy_password),
-                                    tint = ElectricBlue
+                                    tint = colors.primary
                                 )
                             }
                         }
@@ -461,10 +456,12 @@ private fun CategoryField(
     onClick: () -> Unit,
     testTag: String
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = label,
-            color = ElectricBlue.copy(alpha = 0.72f),
+            color = colors.primary.copy(alpha = 0.72f),
             fontSize = 10.sp,
             lineHeight = 15.sp,
             letterSpacing = 2.sp,
@@ -490,31 +487,31 @@ private fun CategoryField(
                 placeholder = {
                     Text(
                         text = placeholder,
-                        color = GhostOutline.copy(alpha = 0.75f)
+                        color = colors.outline.copy(alpha = 0.75f)
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.GridView,
                         contentDescription = null,
-                        tint = SoftWhite.copy(alpha = 0.78f)
+                        tint = colors.textPrimary.copy(alpha = 0.78f)
                     )
                 },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = DeepNavy.copy(alpha = 0.55f),
-                    unfocusedContainerColor = DeepNavy.copy(alpha = 0.55f),
-                    disabledContainerColor = DeepNavy.copy(alpha = 0.55f),
-                    focusedIndicatorColor = GhostOutline.copy(alpha = 0.28f),
-                    unfocusedIndicatorColor = GhostOutline.copy(alpha = 0.16f),
-                    disabledIndicatorColor = GhostOutline.copy(alpha = 0.16f),
-                    focusedTextColor = SoftWhite,
-                    unfocusedTextColor = SoftWhite,
-                    disabledTextColor = SoftWhite,
-                    focusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                    unfocusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                    disabledPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                    disabledLeadingIconColor = SoftWhite.copy(alpha = 0.78f),
-                    cursorColor = ElectricBlue
+                    focusedContainerColor = colors.surface.copy(alpha = 0.68f),
+                    unfocusedContainerColor = colors.surface.copy(alpha = 0.68f),
+                    disabledContainerColor = colors.surface.copy(alpha = 0.68f),
+                    focusedIndicatorColor = colors.outline.copy(alpha = 0.28f),
+                    unfocusedIndicatorColor = colors.outline.copy(alpha = 0.16f),
+                    disabledIndicatorColor = colors.outline.copy(alpha = 0.16f),
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    disabledTextColor = colors.textPrimary,
+                    focusedPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                    unfocusedPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                    disabledPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                    disabledLeadingIconColor = colors.textPrimary.copy(alpha = 0.78f),
+                    cursorColor = colors.primary
                 )
             )
         }
@@ -540,10 +537,12 @@ private fun CredentialField(
     readOnly: Boolean = false,
     trailingContent: @Composable () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = label,
-            color = ElectricBlue.copy(alpha = 0.72f),
+            color = colors.primary.copy(alpha = 0.72f),
             fontSize = 10.sp,
             lineHeight = 15.sp,
             letterSpacing = 2.sp,
@@ -562,13 +561,13 @@ private fun CredentialField(
             visualTransformation = visualTransformation,
             trailingIcon = trailingContent,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = DeepNavy.copy(alpha = 0.55f),
-                unfocusedContainerColor = DeepNavy.copy(alpha = 0.55f),
+                focusedContainerColor = colors.surface.copy(alpha = 0.68f),
+                unfocusedContainerColor = colors.surface.copy(alpha = 0.68f),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = SoftWhite,
-                unfocusedTextColor = SoftWhite,
-                cursorColor = ElectricBlue
+                focusedTextColor = colors.textPrimary,
+                unfocusedTextColor = colors.textPrimary,
+                cursorColor = colors.primary
             )
         )
     }
@@ -578,10 +577,11 @@ private fun CredentialField(
 private fun SecuritySection(
     state: EditPasswordSecuritySectionUiState
 ) {
+    val colors = MaterialTheme.vaultColors
     val accentColor = when (state.visualState) {
-        EditPasswordSecurityVisualState.HighRisk -> MaterialTheme.colorScheme.error
-        EditPasswordSecurityVisualState.MediumRisk -> VaultAmber
-        EditPasswordSecurityVisualState.Safe -> VaultGreen
+        EditPasswordSecurityVisualState.HighRisk -> colors.danger
+        EditPasswordSecurityVisualState.MediumRisk -> colors.warning
+        EditPasswordSecurityVisualState.Safe -> colors.success
     }
     val statusIcon = when (state.visualState) {
         EditPasswordSecurityVisualState.HighRisk,
@@ -599,8 +599,8 @@ private fun SecuritySection(
             .fillMaxWidth()
             .testTag("edit_password_security_section"),
         shape = RoundedCornerShape(40.dp),
-        color = DeepNavy,
-        border = BorderStroke(1.dp, GhostOutline.copy(alpha = 0.05f))
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.12f))
     ) {
         Column(
             modifier = Modifier
@@ -657,7 +657,7 @@ private fun SecuritySection(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0x80000000)
+                color = colors.surfaceHigh.copy(alpha = 0.62f)
             ) {
                 Row(
                     modifier = Modifier
@@ -683,7 +683,7 @@ private fun SecuritySection(
                             }
                             withStyle(
                                 SpanStyle(
-                                    color = MistText,
+                                    color = colors.textSecondary,
                                     fontWeight = FontWeight.Normal
                                 )
                             ) {
@@ -740,6 +740,8 @@ private fun SecurityScoreIndicator(
     scorePercent: Int,
     accentColor: Color
 ) {
+    val colors = MaterialTheme.vaultColors
+
     val sweepAngle = securityScoreSweepAngle(scorePercent = scorePercent)
 
     Column(
@@ -792,7 +794,7 @@ private fun SecurityScoreIndicator(
         }
         Text(
             text = stringResource(R.string.edit_password_security_index_label),
-            color = MistText,
+            color = colors.textSecondary,
             fontSize = 9.sp,
             lineHeight = 13.5.sp,
             letterSpacing = 0.9.sp,
@@ -801,25 +803,30 @@ private fun SecurityScoreIndicator(
     }
 }
 
-private fun securityTagStyle(tagResId: Int): SecurityTagStyle = when (tagResId) {
-    R.string.edit_password_security_tag_weak -> SecurityTagStyle(
-        icon = Icons.Rounded.WarningAmber,
-        contentColor = Color(0xFFFF716C),
-        backgroundColor = Color(0x339F0519),
-        borderColor = Color(0x1AFF716C)
-    )
-    R.string.edit_password_security_tag_duplicate -> SecurityTagStyle(
-        icon = Icons.Outlined.ContentCopy,
-        contentColor = Color(0xFFEA73FB),
-        backgroundColor = Color(0x338F15A4),
-        borderColor = Color(0x1AEA73FB)
-    )
-    else -> SecurityTagStyle(
-        icon = Icons.Rounded.CheckCircle,
-        contentColor = VaultGreen,
-        backgroundColor = VaultGreen.copy(alpha = 0.16f),
-        borderColor = VaultGreen.copy(alpha = 0.12f)
-    )
+@Composable
+private fun securityTagStyle(tagResId: Int): SecurityTagStyle {
+    val colors = MaterialTheme.vaultColors
+
+    return when (tagResId) {
+        R.string.edit_password_security_tag_weak -> SecurityTagStyle(
+            icon = Icons.Rounded.WarningAmber,
+            contentColor = colors.danger,
+            backgroundColor = colors.danger.copy(alpha = 0.14f),
+            borderColor = colors.danger.copy(alpha = 0.22f)
+        )
+        R.string.edit_password_security_tag_duplicate -> SecurityTagStyle(
+            icon = Icons.Outlined.ContentCopy,
+            contentColor = colors.secondary,
+            backgroundColor = colors.secondary.copy(alpha = 0.14f),
+            borderColor = colors.secondary.copy(alpha = 0.22f)
+        )
+        else -> SecurityTagStyle(
+            icon = Icons.Rounded.CheckCircle,
+            contentColor = colors.success,
+            backgroundColor = colors.success.copy(alpha = 0.14f),
+            borderColor = colors.success.copy(alpha = 0.22f)
+        )
+    }
 }
 
 private data class SecurityTagStyle(
@@ -835,10 +842,12 @@ private fun DateInfoCard(
     value: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        color = DeepNavy
+        color = colors.surface
     ) {
         Column(
             modifier = Modifier
@@ -848,7 +857,7 @@ private fun DateInfoCard(
         ) {
             Text(
                 text = label,
-                color = MistText.copy(alpha = 0.62f),
+                color = colors.textSecondary.copy(alpha = 0.72f),
                 fontSize = 10.sp,
                 lineHeight = 15.sp,
                 letterSpacing = 2.sp,
@@ -856,7 +865,7 @@ private fun DateInfoCard(
             )
             Text(
                 text = value,
-                color = SoftWhite,
+                color = colors.textPrimary,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.SemiBold
@@ -870,11 +879,13 @@ private fun NotesCard(
     note: String,
     onNoteChanged: (String) -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
-        color = SlateBlue.copy(alpha = 0.82f),
-        border = BorderStroke(1.dp, GhostOutline.copy(alpha = 0.18f))
+        color = colors.surfaceHigh.copy(alpha = 0.92f),
+        border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.18f))
     ) {
         Column(
             modifier = Modifier
@@ -884,7 +895,7 @@ private fun NotesCard(
         ) {
             Text(
                 text = stringResource(R.string.edit_password_notes_label),
-                color = MistText.copy(alpha = 0.62f),
+                color = colors.textSecondary.copy(alpha = 0.72f),
                 fontSize = 10.sp,
                 lineHeight = 15.sp,
                 letterSpacing = 2.sp,
@@ -904,17 +915,17 @@ private fun NotesCard(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.edit_password_notes_empty_hint),
-                        color = GhostOutline.copy(alpha = 0.75f)
+                        color = colors.outline.copy(alpha = 0.75f)
                     )
                 },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = DeepNavy.copy(alpha = 0.55f),
-                    unfocusedContainerColor = DeepNavy.copy(alpha = 0.55f),
+                    focusedContainerColor = colors.surface.copy(alpha = 0.68f),
+                    unfocusedContainerColor = colors.surface.copy(alpha = 0.68f),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = SoftWhite,
-                    unfocusedTextColor = SoftWhite,
-                    cursorColor = ElectricBlue
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    cursorColor = colors.primary
                 )
             )
 
@@ -927,16 +938,18 @@ private fun NotesCard(
 
 @Composable
 private fun PlainTextNoteNotice(text: String) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0x1AF4C95D),
-        border = BorderStroke(1.dp, Color(0x66F4C95D))
+        color = colors.warning.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, colors.warning.copy(alpha = 0.32f))
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            color = Color(0xFFF4C95D),
+            color = colors.warning,
             fontSize = 12.sp,
             lineHeight = 18.sp
         )
@@ -950,10 +963,12 @@ private fun ActionCard(
     accent: Color,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(28.dp),
-        color = DeepNavy
+        color = colors.surface
     ) {
         Column(
             modifier = Modifier
@@ -972,7 +987,7 @@ private fun ActionCard(
             }
             Text(
                 text = title,
-                color = SoftWhite,
+                color = colors.textPrimary,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Bold

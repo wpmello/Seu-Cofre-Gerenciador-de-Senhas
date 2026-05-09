@@ -54,15 +54,8 @@ import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.Ap
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppThemePreference
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultEncryptedIndicator
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 private val SettingsItemCardMinHeight = 112.dp
 
@@ -87,6 +80,8 @@ fun SettingsScreen(
     onAction: (SettingsAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -94,7 +89,7 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MidnightBlue)
+                .background(colors.background)
                 .testTag("settings_screen")
         ) {
             LazyColumn(
@@ -202,20 +197,22 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsTitle(modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
             text = stringResource(R.string.settings_title),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 42.sp,
             lineHeight = 48.sp,
             fontWeight = FontWeight.ExtraBold
         )
         Text(
             text = stringResource(R.string.settings_subtitle),
-            color = MistText,
+            color = colors.textSecondary,
             fontSize = 16.sp,
             lineHeight = 24.sp
         )
@@ -224,6 +221,8 @@ private fun SettingsTitle(modifier: Modifier = Modifier) {
 
 @Composable
 private fun SettingsLoading() {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -231,7 +230,7 @@ private fun SettingsLoading() {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            color = ElectricBlue,
+            color = colors.primary,
             modifier = Modifier.testTag("settings_loading")
         )
     }
@@ -242,17 +241,19 @@ private fun SettingsMessageCard(
     message: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(DeepNavy)
+            .background(colors.surface)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = message,
-            color = MistText,
+            color = colors.textSecondary,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
@@ -265,6 +266,8 @@ private fun SettingsUserCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -272,7 +275,11 @@ private fun SettingsUserCard(
             .clickable(onClick = onClick)
             .background(
                 brush = Brush.linearGradient(
-                    colors = listOf(SlateBlue.copy(alpha = 0.88f), DeepNavy, Color(0xFF2C2440))
+                    colors = listOf(
+                        colors.surfaceHigh.copy(alpha = 0.88f),
+                        colors.surface,
+                        colors.secondary.copy(alpha = 0.18f)
+                    )
                 )
             )
             .testTag("settings_user_card")
@@ -281,7 +288,7 @@ private fun SettingsUserCard(
     ) {
         Text(
             text = user.name ?: stringResource(user.fallbackNameResId),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 28.sp,
             lineHeight = 36.sp,
             fontWeight = FontWeight.ExtraBold
@@ -301,10 +308,12 @@ private fun UserNameEditorBottomSheet(
     onSaveClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = DeepNavy,
-        contentColor = SoftWhite
+        containerColor = colors.surface,
+        contentColor = colors.textPrimary
     ) {
         Column(
             modifier = Modifier
@@ -318,14 +327,14 @@ private fun UserNameEditorBottomSheet(
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = stringResource(R.string.settings_user_name_sheet_title),
-                    color = SoftWhite,
+                    color = colors.textPrimary,
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = stringResource(R.string.settings_user_name_sheet_subtitle),
-                    color = MistText,
+                    color = colors.textSecondary,
                     fontSize = 14.sp,
                     lineHeight = 20.sp
                 )
@@ -366,13 +375,15 @@ private fun SettingsItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = SettingsItemCardMinHeight)
             .clip(RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
-            .background(DeepNavy, RoundedCornerShape(24.dp))
+            .background(colors.surface, RoundedCornerShape(24.dp))
             .testTag("settings_item")
             .padding(horizontal = 18.dp, vertical = 18.dp),
         horizontalArrangement = Arrangement.spacedBy(18.dp),
@@ -389,7 +400,7 @@ private fun SettingsItemCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("settings_item_title_${item.kind.name}"),
-                color = SoftWhite,
+                color = colors.textPrimary,
                 fontSize = 18.sp,
                 lineHeight = 24.sp,
                 fontWeight = FontWeight.Bold
@@ -405,7 +416,7 @@ private fun SettingsItemCard(
                     modifier = Modifier
                         .weight(2f)
                         .testTag("settings_item_subtitle_${item.kind.name}"),
-                    color = MistText,
+                    color = colors.textSecondary,
                     fontSize = 14.sp,
                     lineHeight = 20.sp
                 )
@@ -417,7 +428,7 @@ private fun SettingsItemCard(
                             .weight(1.3f)
                             .testTag("settings_item_trailing_${item.kind.name}"),
                         textAlign = TextAlign.End,
-                        color = MistText.copy(alpha = 0.8f),
+                        color = colors.textSecondary.copy(alpha = 0.8f),
                         fontSize = 10.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -430,7 +441,7 @@ private fun SettingsItemCard(
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             contentDescription = null,
-            tint = MistText.copy(alpha = 0.45f),
+            tint = colors.textSecondary.copy(alpha = 0.45f),
             modifier = Modifier.size(28.dp)
         )
     }
@@ -441,10 +452,25 @@ private fun SettingsItemIconBox(
     icon: SettingsItemIcon,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
     val (imageVector, iconTint, containerColor) = when (icon) {
-        SettingsItemIcon.Password -> Triple(Icons.Rounded.Password, ElectricBlue, SlateBlue.copy(alpha = 0.74f))
-        SettingsItemIcon.Palette -> Triple(Icons.Rounded.Palette, Color(0xFFA7FFC0), Color(0xFF1A3031))
-        SettingsItemIcon.Info -> Triple(Icons.Rounded.Info, MistText, SlateBlue.copy(alpha = 0.54f))
+        SettingsItemIcon.Password -> Triple(
+            Icons.Rounded.Password,
+            colors.primary,
+            colors.surfaceHigh.copy(alpha = 0.74f)
+        )
+
+        SettingsItemIcon.Palette -> Triple(
+            Icons.Rounded.Palette,
+            colors.success,
+            colors.success.copy(alpha = 0.16f)
+        )
+
+        SettingsItemIcon.Info -> Triple(
+            Icons.Rounded.Info,
+            colors.textSecondary,
+            colors.surfaceHigh.copy(alpha = 0.54f)
+        )
     }
 
     Box(
@@ -469,11 +495,13 @@ private fun LanguageSelectionDialog(
     onSaveClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = DeepNavy,
-        titleContentColor = SoftWhite,
-        textContentColor = MistText,
+        containerColor = colors.surface,
+        titleContentColor = colors.textPrimary,
+        textContentColor = colors.textSecondary,
         title = { Text(text = stringResource(R.string.settings_language_dialog_title)) },
         text = {
             Column(
@@ -512,11 +540,13 @@ private fun ThemeSelectionDialog(
     onSaveClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = DeepNavy,
-        titleContentColor = SoftWhite,
-        textContentColor = MistText,
+        containerColor = colors.surface,
+        titleContentColor = colors.textPrimary,
+        textContentColor = colors.textSecondary,
         title = { Text(text = stringResource(R.string.settings_theme_dialog_title)) },
         text = {
             Column(
@@ -555,12 +585,14 @@ private fun SettingsRadioOption(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
-            .background(SurfaceBright.copy(alpha = if (selected) 0.52f else 0.22f))
+            .background(colors.surfaceBright.copy(alpha = if (selected) 0.52f else 0.22f))
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -571,7 +603,7 @@ private fun SettingsRadioOption(
         )
         Text(
             text = label,
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 16.sp,
             lineHeight = 22.sp,
             fontWeight = FontWeight.SemiBold
@@ -583,11 +615,13 @@ private fun SettingsRadioOption(
 private fun AboutAppDialog(
     onDismiss: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = DeepNavy,
-        titleContentColor = SoftWhite,
-        textContentColor = MistText,
+        containerColor = colors.surface,
+        titleContentColor = colors.textPrimary,
+        textContentColor = colors.textSecondary,
         title = { Text(text = stringResource(R.string.settings_about_dialog_title)) },
         text = {
             Text(
@@ -609,11 +643,13 @@ private fun AboutAppDialog(
 private fun ActiveEncryptionCard(
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(SurfaceBright.copy(alpha = 0.34f), RoundedCornerShape(24.dp))
+            .background(colors.surfaceBright.copy(alpha = 0.34f), RoundedCornerShape(24.dp))
             .testTag("settings_crypto_card")
             .padding(horizontal = 24.dp, vertical = 26.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -625,14 +661,14 @@ private fun ActiveEncryptionCard(
         ) {
             Text(
                 text = stringResource(R.string.settings_crypto_title),
-                color = SoftWhite,
+                color = colors.textPrimary,
                 fontSize = 20.sp,
                 lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = stringResource(R.string.settings_crypto_description),
-                color = MistText,
+                color = colors.textSecondary,
                 fontSize = 15.sp,
                 lineHeight = 21.sp
             )
@@ -642,7 +678,7 @@ private fun ActiveEncryptionCard(
             modifier = Modifier
                 .size(72.dp)
                 .background(
-                    brush = Brush.linearGradient(listOf(ElectricBlue, NeonPink)),
+                    brush = Brush.linearGradient(listOf(colors.primary, colors.secondary)),
                     shape = RoundedCornerShape(24.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -650,7 +686,7 @@ private fun ActiveEncryptionCard(
             Icon(
                 imageVector = Icons.Rounded.Security,
                 contentDescription = null,
-                tint = MidnightBlue,
+                tint = colors.onAccent,
                 modifier = Modifier.size(34.dp)
             )
         }

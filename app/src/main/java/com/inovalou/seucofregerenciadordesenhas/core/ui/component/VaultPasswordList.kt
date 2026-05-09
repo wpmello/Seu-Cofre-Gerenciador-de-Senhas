@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,13 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.R
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 data class VaultPasswordListItemModel(
     val id: Long,
@@ -101,11 +96,13 @@ fun VaultPasswordListItem(
     onClick: (() -> Unit)? = null,
     showTrailingIndicator: Boolean = onClick != null
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = SlateBlue.copy(alpha = 0.4f),
+                color = colors.surfaceHigh.copy(alpha = 0.4f),
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable(enabled = onClick != null) { onClick?.invoke() }
@@ -127,14 +124,14 @@ fun VaultPasswordListItem(
                     modifier = Modifier
                         .size(48.dp)
                         .background(
-                            color = DeepNavy,
+                            color = colors.surface,
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = password.initials?.takeIf { it.isNotBlank() } ?: password.title.toInitials(),
-                        color = SoftWhite,
+                        color = colors.textPrimary,
                         fontSize = 16.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.ExtraBold
@@ -158,7 +155,7 @@ fun VaultPasswordListItem(
             ) {
                 Text(
                     text = password.title,
-                    color = SoftWhite,
+                    color = colors.textPrimary,
                     fontSize = 16.sp,
                     lineHeight = 24.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -168,7 +165,7 @@ fun VaultPasswordListItem(
                 if (password.supportingText.isNotBlank()) {
                     Text(
                         text = password.supportingText,
-                        color = MistText,
+                        color = colors.textSecondary,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
                         fontWeight = FontWeight.Medium,
@@ -199,7 +196,7 @@ fun VaultPasswordListItem(
                 if (password.scorePercent != null) {
                     Text(
                         text = "${password.scorePercent}%",
-                        color = password.securityLevel?.accentColor() ?: MistText,
+                        color = password.securityLevel?.accentColor() ?: colors.textSecondary,
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.Bold,
@@ -225,7 +222,7 @@ fun VaultPasswordListItem(
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                         contentDescription = null,
-                        tint = GhostOutline,
+                        tint = colors.outline,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -311,14 +308,16 @@ private fun VaultPasswordListSecurityLevel.flagResId(): Int? = when (this) {
     VaultPasswordListSecurityLevel.Safe -> null
 }
 
+@Composable
 private fun VaultPasswordListSecurityLevel.accentColor(): Color = when (this) {
-    VaultPasswordListSecurityLevel.Weak -> Color(0xFFFF716C)
-    VaultPasswordListSecurityLevel.Moderate -> VaultAmber
-    VaultPasswordListSecurityLevel.Safe -> VaultGreen
+    VaultPasswordListSecurityLevel.Weak -> MaterialTheme.vaultColors.danger
+    VaultPasswordListSecurityLevel.Moderate -> MaterialTheme.vaultColors.warning
+    VaultPasswordListSecurityLevel.Safe -> MaterialTheme.vaultColors.success
 }
 
+@Composable
 private fun Int.securityTagAccentColor(): Color = when (this) {
-    R.string.edit_password_security_tag_weak -> Color(0xFFFF716C)
-    R.string.edit_password_security_tag_safe -> VaultGreen
-    else -> MistText
+    R.string.edit_password_security_tag_weak -> MaterialTheme.vaultColors.danger
+    R.string.edit_password_security_tag_safe -> MaterialTheme.vaultColors.success
+    else -> MaterialTheme.vaultColors.textSecondary
 }

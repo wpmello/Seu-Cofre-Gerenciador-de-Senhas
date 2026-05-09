@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -16,10 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.inovalou.seucofregerenciadordesenhas.R
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultSearchField(
@@ -29,6 +27,8 @@ fun VaultSearchField(
     testTag: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     TextField(
         value = value,
         onValueChange = onValueChange,
@@ -40,26 +40,26 @@ fun VaultSearchField(
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_search),
                 contentDescription = stringResource(placeholderResId),
-                tint = MistText
+                tint = colors.textSecondary
             )
         },
         placeholder = {
             Text(
                 text = stringResource(placeholderResId),
-                color = MistText
+                color = colors.textSecondary
             )
         },
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = SlateBlue,
-            unfocusedContainerColor = SlateBlue,
-            disabledContainerColor = SlateBlue,
+            focusedContainerColor = colors.surfaceHigh,
+            unfocusedContainerColor = colors.surfaceHigh,
+            disabledContainerColor = colors.surfaceHigh,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            focusedTextColor = SoftWhite,
-            unfocusedTextColor = SoftWhite,
-            cursorColor = ElectricBlue
+            focusedTextColor = colors.textPrimary,
+            unfocusedTextColor = colors.textPrimary,
+            cursorColor = colors.primary
         )
     )
 }

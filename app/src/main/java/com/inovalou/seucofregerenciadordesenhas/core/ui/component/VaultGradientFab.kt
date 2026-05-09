@@ -10,14 +10,14 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultGradientFab(
@@ -25,6 +25,8 @@ fun VaultGradientFab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier.size(56.dp),
@@ -42,7 +44,7 @@ fun VaultGradientFab(
                 .fillMaxSize()
                 .background(
                     brush = Brush.linearGradient(
-                        colors = listOf(ElectricBlue, NeonPink)
+                        colors = listOf(colors.primary, colors.secondary)
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ),

@@ -35,11 +35,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientF
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.vaultPasswordListItems
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun PasswordsRoute(
@@ -72,14 +68,16 @@ fun PasswordsScreen(
     onAction: (PasswordsAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MidnightBlue)
+                .background(colors.background)
                 .testTag("passwords_screen")
         ) {
             LazyColumn(
@@ -128,7 +126,7 @@ fun PasswordsScreen(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.testTag("passwords_loading"),
-                                    color = ElectricBlue
+                                    color = colors.primary
                                 )
                             }
                         }
@@ -173,7 +171,7 @@ fun PasswordsScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp)
                                     .testTag("passwords_error"),
-                                color = MistText,
+                                color = colors.textSecondary,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -198,13 +196,15 @@ private fun PasswordsHero(
     totalPasswords: Int,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = stringResource(R.string.passwords_title),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 36.sp,
             lineHeight = 40.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -217,7 +217,7 @@ private fun PasswordsHero(
                     totalPasswords,
                     totalPasswords
                 ),
-                color = MistText,
+                color = colors.textSecondary,
                 fontSize = 14.sp,
                 lineHeight = 20.sp
             )
@@ -231,6 +231,8 @@ private fun PasswordsEmptyState(
     message: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -240,14 +242,14 @@ private fun PasswordsEmptyState(
     ) {
         Text(
             text = title,
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 18.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = message,
-            color = MistText,
+            color = colors.textSecondary,
             style = MaterialTheme.typography.bodyMedium
         )
     }
