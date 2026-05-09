@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.home.presentation
 
+import androidx.annotation.PluralsRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,6 +59,8 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
 
 @Composable
 fun VaultHomeRoute(
@@ -140,7 +145,9 @@ fun VaultHomeScreen(
                         item {
                             VaultHomeSummaryCard(
                                 totalPasswords = uiState.totalPasswords,
-                                weakPasswords = uiState.weakPasswords
+                                weakPasswords = uiState.weakPasswords,
+                                moderatePasswords = uiState.moderatePasswords,
+                                strongPasswords = uiState.strongPasswords
                             )
                         }
 
@@ -214,6 +221,8 @@ private fun VaultHomeError(contentState: VaultHomeContentState.Error) {
 private fun VaultHomeSummaryCard(
     totalPasswords: Int,
     weakPasswords: Int,
+    moderatePasswords: Int,
+    strongPasswords: Int,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -270,40 +279,102 @@ private fun VaultHomeSummaryCard(
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .background(
-                        color = MidnightBlue.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(999.dp)
-                    )
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            color = Color(0xFFFF716C),
-                            shape = CircleShape
-                        )
-                )
-                Text(
-                    text = pluralStringResource(
-                        R.plurals.vault_home_weak_passwords,
-                        weakPasswords,
-                        weakPasswords
-                    ),
-                    color = MidnightBlue,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.testTag("vault_home_weak_passwords")
-                )
-            }
+            VaultHomeSecuritySummaryTags(
+                weakPasswords = weakPasswords,
+                moderatePasswords = moderatePasswords,
+                strongPasswords = strongPasswords
+            )
         }
     }
 }
+
+@Composable
+private fun VaultHomeSecuritySummaryTags(
+    weakPasswords: Int,
+    moderatePasswords: Int,
+    strongPasswords: Int,
+    modifier: Modifier = Modifier
+) {
+    val tags = listOf(
+        VaultHomeSecuritySummaryTagUiModel(
+            count = weakPasswords,
+            labelResId = R.plurals.vault_home_weak_passwords,
+            accentColor = Color(0xFFFF716C),
+            testTag = "vault_home_weak_passwords"
+        ),
+        VaultHomeSecuritySummaryTagUiModel(
+            count = moderatePasswords,
+            labelResId = R.plurals.vault_home_moderate_passwords,
+            accentColor = VaultAmber,
+            testTag = "vault_home_moderate_passwords"
+        ),
+        VaultHomeSecuritySummaryTagUiModel(
+            count = strongPasswords,
+            labelResId = R.plurals.vault_home_strong_passwords,
+            accentColor = VaultGreen,
+            testTag = "vault_home_strong_passwords"
+        )
+    )
+
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("vault_home_security_summary_tags"),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(
+            items = tags,
+            key = { tag -> tag.testTag }
+        ) { tag ->
+            VaultHomeSecuritySummaryTag(tag = tag)
+        }
+    }
+}
+
+@Composable
+private fun VaultHomeSecuritySummaryTag(
+    tag: VaultHomeSecuritySummaryTagUiModel,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .background(
+                color = MidnightBlue.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(999.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(
+                    color = tag.accentColor,
+                    shape = CircleShape
+                )
+        )
+        Text(
+            text = pluralStringResource(
+                tag.labelResId,
+                tag.count,
+                tag.count
+            ),
+            color = MidnightBlue,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.testTag(tag.testTag)
+        )
+    }
+}
+
+private data class VaultHomeSecuritySummaryTagUiModel(
+    val count: Int,
+    @PluralsRes val labelResId: Int,
+    val accentColor: Color,
+    val testTag: String
+)
 
 @Composable
 private fun VaultHomeCategoriesSection(
@@ -568,6 +639,8 @@ private fun VaultHomeScreenPreview() {
             uiState = VaultHomeUiState(
                 totalPasswords = 28,
                 weakPasswords = 3,
+                moderatePasswords = 8,
+                strongPasswords = 17,
                 categories = listOf(
                     VaultHomeCategoryUiModel(1L, "Redes Sociais", "ic_global", R.drawable.ic_global, 8),
                     VaultHomeCategoryUiModel(2L, "Compras", "ic_work_bag", R.drawable.ic_work_bag, 5),

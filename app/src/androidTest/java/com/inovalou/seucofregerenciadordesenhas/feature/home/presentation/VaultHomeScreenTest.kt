@@ -1,7 +1,9 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.home.presentation
 
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -40,6 +42,13 @@ class VaultHomeScreenTest {
         composeRule.onNodeWithText("4").assertIsDisplayed()
         composeRule.onNodeWithText(
             context.resources.getQuantityString(R.plurals.vault_home_weak_passwords, 1, 1)
+        ).assertIsDisplayed()
+        composeRule.onNodeWithTag("vault_home_security_summary_tags").assert(hasScrollAction())
+        composeRule.onNodeWithText(
+            context.resources.getQuantityString(R.plurals.vault_home_moderate_passwords, 2, 2)
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            context.resources.getQuantityString(R.plurals.vault_home_strong_passwords, 1, 1)
         ).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.categories_title)).assertIsDisplayed()
         composeRule.onNodeWithTag("vault_home_other_categories_card").assertIsDisplayed()
@@ -244,6 +253,8 @@ class VaultHomeScreenTest {
     ) = VaultHomeUiState(
         totalPasswords = 4,
         weakPasswords = 1,
+        moderatePasswords = 2,
+        strongPasswords = 1,
         categories = categories,
         showOtherCategories = showOtherCategories,
         recentPasswords = recentPasswords,

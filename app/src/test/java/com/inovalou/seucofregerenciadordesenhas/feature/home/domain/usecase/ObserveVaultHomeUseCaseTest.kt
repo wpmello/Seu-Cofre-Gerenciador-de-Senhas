@@ -23,7 +23,7 @@ import org.junit.Test
 class ObserveVaultHomeUseCaseTest {
 
     @Test
-    fun givenPasswordsAndSecuritySnapshots_whenObserved_thenCountsTotalAndWeakPasswordsFromSecurityPolicy() = runTest {
+    fun givenPasswordsAndSecuritySnapshots_whenObserved_thenCountsTotalAndSecurityBucketsFromSecurityPolicy() = runTest {
         val useCase = buildUseCase(
             passwords = listOf(
                 passwordSummary(id = 1L, title = "Weak"),
@@ -41,6 +41,8 @@ class ObserveVaultHomeUseCaseTest {
 
         assertEquals(3, result.totalPasswords)
         assertEquals(1, result.weakPasswords)
+        assertEquals(1, result.moderatePasswords)
+        assertEquals(1, result.strongPasswords)
     }
 
     @Test
