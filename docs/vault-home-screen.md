@@ -5,7 +5,7 @@
 A tela Home da aba `Cofre` é o dashboard principal após a splash. Ela consolida uma visão resumida do cofre sem expor senhas em texto claro:
 
 - total real de senhas;
-- total de senhas fracas calculado pela política vigente de segurança;
+- totais de senhas fracas, moderadas e fortes calculados pela política vigente de segurança;
 - até 3 categorias reais recentes;
 - card fixo `Outros` quando houver pelo menos 3 categorias reais;
 - até 4 senhas recentes;
@@ -20,9 +20,19 @@ A tela usa `ObserveVaultHomeUseCase` como ponto único de agregação de domíni
 O card superior usa:
 
 - `PasswordRepository.observePasswordCount()` para o total real de senhas;
-- `ObserveVaultSecurityDetailsUseCase` para contar senhas no bucket `Weak`, reaproveitando a mesma política usada pela tela de detalhes de segurança.
+- `ObserveVaultSecurityDetailsUseCase` para contar senhas nos buckets `Weak`, `Moderate` e `Safe`, reaproveitando a mesma política usada pela tela de detalhes de segurança.
 
-Assim, a Home não cria regra paralela de senha fraca.
+Assim, a Home não cria regra paralela para classificar força de senha.
+
+### Tags de segurança do resumo
+
+O `VaultHomeSummaryCard` exibe as contagens dos três grupos oficiais do app:
+
+- fracas: bucket `Weak`, com cor de erro;
+- moderadas: bucket `Moderate`, com cor âmbar;
+- fortes: bucket `Safe`, com cor verde.
+
+Essas tags são apresentadas em um componente horizontalmente scrollável. Por enquanto elas são informativas e não disparam ação de clique.
 
 ### Categorias resumidas
 
@@ -62,13 +72,13 @@ As origens `vault` foram adicionadas aos fluxos de edição de categoria e senha
 
 A Home não acessa Room, DataStore, Keystore ou criptografia diretamente. A UI recebe apenas estado renderizável e não exibe senhas descriptografadas.
 
-O cálculo de senhas fracas usa a fonte de verdade existente de segurança, derivada de `docs/password-strength-security-policy-v1.md`.
+O cálculo das contagens de segurança usa a fonte de verdade existente, derivada de `docs/password-strength-security-policy-v1.md`.
 
 ## Testes
 
 Foram adicionados testes para:
 
-- agregação de total e senhas fracas;
+- agregação de total e contagens de senhas fracas, moderadas e fortes;
 - seleção determinística de categorias;
 - ordenação e limite de senhas recentes;
 - estado e efeitos do `VaultHomeViewModel`;
