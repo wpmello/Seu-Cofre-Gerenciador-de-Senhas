@@ -8,6 +8,8 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordL
 data class VaultHomeUiState(
     val totalPasswords: Int = 0,
     val weakPasswords: Int = 0,
+    val moderatePasswords: Int = 0,
+    val strongPasswords: Int = 0,
     val categories: List<VaultHomeCategoryUiModel> = emptyList(),
     val showOtherCategories: Boolean = false,
     val recentPasswords: List<VaultHomeRecentPasswordUiModel> = emptyList(),

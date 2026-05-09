@@ -30,6 +30,8 @@ class ObserveVaultHomeUseCase @Inject constructor(
         VaultHome(
             totalPasswords = totalPasswords,
             weakPasswords = securityDetails.countWeakPasswords(),
+            moderatePasswords = securityDetails.countModeratePasswords(),
+            strongPasswords = securityDetails.countStrongPasswords(),
             categories = categories.toHomeCategories(),
             showOtherCategories = categories.size >= HomeCategoryLimit,
             recentPasswords = recentPasswords.toRecentHomePasswords()
@@ -72,6 +74,12 @@ class ObserveVaultHomeUseCase @Inject constructor(
 
     private fun VaultSecurityDetails.countWeakPasswords(): Int =
         countFor(PasswordSecurityBucket.Weak)
+
+    private fun VaultSecurityDetails.countModeratePasswords(): Int =
+        countFor(PasswordSecurityBucket.Moderate)
+
+    private fun VaultSecurityDetails.countStrongPasswords(): Int =
+        countFor(PasswordSecurityBucket.Safe)
 
     private companion object {
         const val HomeCategoryLimit = 3

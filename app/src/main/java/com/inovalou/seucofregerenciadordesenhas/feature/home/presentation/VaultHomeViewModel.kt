@@ -82,6 +82,8 @@ class VaultHomeViewModel @Inject constructor(
         return VaultHomeUiState(
             totalPasswords = totalPasswords,
             weakPasswords = weakPasswords,
+            moderatePasswords = moderatePasswords,
+            strongPasswords = strongPasswords,
             categories = categories.map { category ->
                 VaultHomeCategoryUiModel(
                     id = category.id,

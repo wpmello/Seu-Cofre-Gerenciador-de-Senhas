@@ -10,6 +10,14 @@
         <item quantity="one">%1$d Débil</item>
         <item quantity="other">%1$d Débiles</item>
     </plurals>
+    <plurals name="vault_home_moderate_passwords">
+        <item quantity="one">%1$d Moderada</item>
+        <item quantity="other">%1$d Moderadas</item>
+    </plurals>
+    <plurals name="vault_home_strong_passwords">
+        <item quantity="one">%1$d Fuerte</item>
+        <item quantity="other">%1$d Fuertes</item>
+    </plurals>
     <string name="vault_home_other_categories">Otros</string>
     <string name="vault_home_recent_title">Recientes</string>
     <string name="vault_home_view_all">Ver todo</string>

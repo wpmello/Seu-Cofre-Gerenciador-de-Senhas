@@ -5,6 +5,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 data class VaultHome(
     val totalPasswords: Int,
     val weakPasswords: Int,
+    val moderatePasswords: Int,
+    val strongPasswords: Int,
     val categories: List<VaultHomeCategory>,
     val showOtherCategories: Boolean,
     val recentPasswords: List<VaultHomePassword>
@@ -13,6 +15,8 @@ data class VaultHome(
         fun empty(): VaultHome = VaultHome(
             totalPasswords = 0,
             weakPasswords = 0,
+            moderatePasswords = 0,
+            strongPasswords = 0,
             categories = emptyList(),
             showOtherCategories = false,
             recentPasswords = emptyList()
