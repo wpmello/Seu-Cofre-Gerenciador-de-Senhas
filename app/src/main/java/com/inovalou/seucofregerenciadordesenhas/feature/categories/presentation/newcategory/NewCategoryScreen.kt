@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -35,13 +36,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySelectableIconUiModel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryValidationText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun NewCategoryRoute(
@@ -74,9 +70,11 @@ fun NewCategoryScreen(
     onAction: (NewCategoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Column(
             modifier = Modifier
@@ -94,7 +92,7 @@ fun NewCategoryScreen(
 
             Text(
                 text = stringResource(R.string.new_category_description),
-                color = MistText,
+                color = colors.textSecondary,
                 fontSize = 16.sp,
                 lineHeight = 26.sp,
                 modifier = Modifier.fillMaxWidth(0.9f)
@@ -113,22 +111,22 @@ fun NewCategoryScreen(
                     placeholder = {
                         Text(
                             text = stringResource(R.string.new_category_name_hint),
-                            color = GhostOutline
+                            color = colors.outline
                         )
                     },
                     isError = uiState.nameErrorResId != null,
                     shape = RoundedCornerShape(18.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = SurfaceBright,
-                        unfocusedContainerColor = SurfaceBright,
-                        disabledContainerColor = SurfaceBright,
+                        focusedContainerColor = colors.surfaceBright,
+                        unfocusedContainerColor = colors.surfaceBright,
+                        disabledContainerColor = colors.surfaceBright,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        focusedTextColor = SoftWhite,
-                        unfocusedTextColor = SoftWhite,
-                        focusedPlaceholderColor = GhostOutline,
-                        unfocusedPlaceholderColor = GhostOutline
+                        focusedTextColor = colors.textPrimary,
+                        unfocusedTextColor = colors.textPrimary,
+                        focusedPlaceholderColor = colors.outline,
+                        unfocusedPlaceholderColor = colors.outline
                     )
                 )
                 uiState.nameErrorResId?.let { errorResId ->
@@ -148,7 +146,7 @@ fun NewCategoryScreen(
                             R.string.new_category_icons_available,
                             uiState.availableIcons.size
                         ),
-                        color = ElectricBlue,
+                        color = colors.primary,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
                         fontWeight = FontWeight.Medium

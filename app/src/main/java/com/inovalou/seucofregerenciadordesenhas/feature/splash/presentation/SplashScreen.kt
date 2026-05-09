@@ -44,10 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.R
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 internal object SplashScreenSpec {
     const val animationDurationMillis = 2200
@@ -83,6 +81,8 @@ fun SplashScreen(
     uiState: SplashUiState,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -93,9 +93,9 @@ fun SplashScreen(
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFF1C2639),
-                            Color(0xFF121A2A),
-                            MidnightBlue
+                            colors.surfaceHigh,
+                            colors.surface,
+                            colors.background
                         )
                     )
                 )
@@ -134,6 +134,8 @@ fun SplashScreen(
 
 @Composable
 private fun BoxScope.DecorativeBackground() {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = Modifier
             .size(384.dp)
@@ -141,7 +143,7 @@ private fun BoxScope.DecorativeBackground() {
             .align(Alignment.TopStart)
             .blur(60.dp)
             .background(
-                color = ElectricBlue.copy(alpha = 0.03f),
+                color = colors.primary.copy(alpha = 0.08f),
                 shape = CircleShape
             )
     )
@@ -184,6 +186,7 @@ private fun BrandSection() {
 
 @Composable
 private fun ShieldLogo(modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.vaultColors
     val logoShape = RoundedCornerShape(40.dp)
     val logoContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.98f)
     val logoInnerGlowColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.10f)
@@ -200,8 +203,8 @@ private fun ShieldLogo(modifier: Modifier = Modifier) {
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            ElectricBlue.copy(alpha = 0.20f),
-                            NeonPink.copy(alpha = 0.20f)
+                            colors.primary.copy(alpha = 0.20f),
+                            colors.secondary.copy(alpha = 0.20f)
                         )
                     ),
                     shape = CircleShape
@@ -239,7 +242,7 @@ private fun ShieldLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Rounded.Security,
                 contentDescription = null,
-                tint = ElectricBlue,
+                tint = colors.primary,
                 modifier = Modifier.size(50.dp)
             )
         }
@@ -251,6 +254,8 @@ private fun FooterSection(
     progress: Float,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -272,7 +277,7 @@ private fun FooterSection(
                 fontWeight = FontWeight.Normal,
                 letterSpacing = 1.sp
             ),
-            color = if (progress >= 1f) NeonPink else ElectricBlue
+            color = if (progress >= 1f) colors.secondary else colors.primary
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -284,7 +289,7 @@ private fun FooterSection(
             Icon(
                 imageVector = Icons.Rounded.Security,
                 contentDescription = null,
-                tint = ElectricBlue.copy(alpha = 0.40f),
+                tint = colors.primary.copy(alpha = 0.56f),
                 modifier = Modifier.size(10.dp)
             )
 
@@ -295,7 +300,7 @@ private fun FooterSection(
                     lineHeight = 13.5.sp,
                     fontWeight = FontWeight.Medium
                 ),
-                color = ElectricBlue.copy(alpha = 0.40f)
+                color = colors.primary.copy(alpha = 0.56f)
             )
         }
     }
@@ -306,6 +311,7 @@ private fun ProgressBar(
     progress: Float,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
     val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 
     Canvas(
@@ -324,7 +330,7 @@ private fun ProgressBar(
 
         drawLine(
             brush = Brush.horizontalGradient(
-                colors = listOf(ElectricBlue, NeonPink)
+                colors = listOf(colors.primary, colors.secondary)
             ),
             start = Offset(0f, centerY),
             end = Offset(size.width * clampedProgress, centerY),

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,10 +24,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.R
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultTopBar(
@@ -34,6 +32,8 @@ fun VaultTopBar(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -48,7 +48,7 @@ fun VaultTopBar(
                     .size(40.dp)
                     .background(
                         brush = Brush.linearGradient(
-                            colors = listOf(ElectricBlue, NeonPink)
+                            colors = listOf(colors.primary, colors.secondary)
                         ),
                         shape = CircleShape
                     )
@@ -58,7 +58,7 @@ fun VaultTopBar(
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(DeepNavy)
+                        .background(colors.surface)
                         .size(36.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -73,7 +73,7 @@ fun VaultTopBar(
 
             Text(
                 text = stringResource(R.string.app_brand_name),
-                color = ElectricBlue,
+                color = colors.primary,
                 fontSize = 24.sp,
                 lineHeight = 32.sp,
                 letterSpacing = (-0.6).sp

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,10 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.CategoryCardUiModel
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun CategoryGridCard(
@@ -36,6 +34,8 @@ fun CategoryGridCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -43,7 +43,7 @@ fun CategoryGridCard(
             .clip(RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(20.dp),
@@ -53,7 +53,7 @@ fun CategoryGridCard(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = SlateBlue.copy(alpha = 0.7f),
+                    color = colors.surfaceHigh.copy(alpha = 0.7f),
                     shape = RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -61,7 +61,7 @@ fun CategoryGridCard(
             Icon(
                 imageVector = ImageVector.vectorResource(category.iconResId),
                 contentDescription = null,
-                tint = SoftWhite,
+                tint = colors.textPrimary,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -69,7 +69,7 @@ fun CategoryGridCard(
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = category.name,
-                color = SoftWhite,
+                color = colors.textPrimary,
                 fontSize = 18.sp,
                 lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold
@@ -80,7 +80,7 @@ fun CategoryGridCard(
                     category.itemCount,
                     category.itemCount
                 ),
-                color = MistText,
+                color = colors.textSecondary,
                 fontSize = 12.sp,
                 lineHeight = 16.sp
             )

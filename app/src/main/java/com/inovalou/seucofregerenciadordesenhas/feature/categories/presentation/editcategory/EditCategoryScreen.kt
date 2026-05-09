@@ -56,12 +56,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.vaultPasswordL
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryValidationText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun EditCategoryEntry(
@@ -96,12 +91,13 @@ fun EditCategoryScreen(
     onAction: (EditCategoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
     val selectedIconResId = uiState.availableIcons.firstOrNull { it.isSelected }?.iconResId
         ?: uiState.availableIcons.firstOrNull()?.iconResId
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Column(
             modifier = Modifier
@@ -128,14 +124,14 @@ fun EditCategoryScreen(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.testTag("edit_category_loading"),
-                            color = ElectricBlue
+                            color = colors.primary
                         )
                     }
                 }
                 is EditCategoryContentState.Error -> {
                     Text(
                         text = stringResource(contentState.messageResId),
-                        color = MistText,
+                        color = colors.textSecondary,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -203,14 +199,14 @@ fun EditCategoryScreen(
             title = {
                 Text(
                     text = stringResource(R.string.edit_category_icon_dialog_title),
-                    color = SoftWhite
+                    color = colors.textPrimary
                 )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = stringResource(R.string.edit_category_icon_dialog_message),
-                        color = MistText
+                        color = colors.textSecondary
                     )
                     CategoryIconSelectionGrid(
                         icons = uiState.availableIcons,
@@ -228,7 +224,7 @@ fun EditCategoryScreen(
                     Text(text = stringResource(R.string.edit_category_cancel))
                 }
             },
-            containerColor = DeepNavy
+            containerColor = colors.surface
         )
     }
 
@@ -238,13 +234,13 @@ fun EditCategoryScreen(
             title = {
                 Text(
                     text = stringResource(R.string.edit_category_delete_dialog_title),
-                    color = SoftWhite
+                    color = colors.textPrimary
                 )
             },
             text = {
                 Text(
                     text = stringResource(R.string.edit_category_delete_dialog_message),
-                    color = MistText
+                    color = colors.textSecondary
                 )
             },
             confirmButton = {
@@ -260,7 +256,7 @@ fun EditCategoryScreen(
                     Text(text = stringResource(R.string.edit_category_cancel))
                 }
             },
-            containerColor = DeepNavy
+            containerColor = colors.surface
         )
     }
 }
@@ -274,11 +270,13 @@ private fun CategoryEditCard(
     onEditIconClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(24.dp),
@@ -289,7 +287,7 @@ private fun CategoryEditCard(
             modifier = Modifier
                 .size(88.dp)
                 .background(
-                    color = SurfaceBright.copy(alpha = 0.48f),
+                    color = colors.surfaceBright.copy(alpha = 0.48f),
                     shape = CircleShape
                 )
                 .clickable(onClick = onEditIconClick)
@@ -300,7 +298,7 @@ private fun CategoryEditCard(
                 Icon(
                     imageVector = ImageVector.vectorResource(iconResId),
                     contentDescription = null,
-                    tint = ElectricBlue,
+                    tint = colors.primary,
                     modifier = Modifier.size(34.dp)
                 )
             }
@@ -309,13 +307,13 @@ private fun CategoryEditCard(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .size(24.dp)
-                    .background(color = MidnightBlue, shape = CircleShape),
+                    .background(color = colors.background, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Edit,
                     contentDescription = null,
-                    tint = SoftWhite,
+                    tint = colors.textPrimary,
                     modifier = Modifier.size(12.dp)
                 )
             }
@@ -337,14 +335,14 @@ private fun CategoryEditCard(
                 isError = nameErrorResId != null,
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceBright,
-                    unfocusedContainerColor = SurfaceBright,
-                    disabledContainerColor = SurfaceBright,
+                    focusedContainerColor = colors.surfaceBright,
+                    unfocusedContainerColor = colors.surfaceBright,
+                    disabledContainerColor = colors.surfaceBright,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = SoftWhite,
-                    unfocusedTextColor = SoftWhite
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary
                 )
             )
             nameErrorResId?.let { errorResId ->
@@ -360,13 +358,15 @@ private fun CategoryPasswordsSection(
     onAction: (EditCategoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = stringResource(R.string.edit_category_passwords_title),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 22.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
@@ -378,7 +378,7 @@ private fun CategoryPasswordsSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = DeepNavy,
+                            color = colors.surface,
                             shape = RoundedCornerShape(20.dp)
                         )
                         .padding(20.dp),
@@ -386,12 +386,12 @@ private fun CategoryPasswordsSection(
                 ) {
                     Text(
                         text = stringResource(R.string.edit_category_passwords_empty_title),
-                        color = SoftWhite,
+                        color = colors.textPrimary,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = stringResource(R.string.edit_category_passwords_empty_message),
-                        color = MistText,
+                        color = colors.textSecondary,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -406,7 +406,7 @@ private fun CategoryPasswordsSection(
                         .fillMaxWidth()
                         .height(categoryPasswordsListHeight(passwords.size))
                         .background(
-                            color = DeepNavy,
+                            color = colors.surface,
                             shape = RoundedCornerShape(20.dp)
                         )
                         .padding(20.dp)

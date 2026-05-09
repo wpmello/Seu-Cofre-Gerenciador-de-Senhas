@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,20 +47,8 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeade
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListColumn
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.NeonPink
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
-
-private val HeroGradient = Brush.linearGradient(
-    colors = listOf(ElectricBlue, NeonPink)
-)
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun SecurityDetailsRoute(
@@ -92,14 +81,16 @@ fun SecurityDetailsScreen(
     onAction: (SecurityDetailsAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MidnightBlue)
+                .background(colors.background)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp, vertical = 20.dp)
@@ -155,6 +146,8 @@ private fun SecurityDetailsContent(
 
 @Composable
 private fun SecurityDetailsLoading() {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,7 +155,7 @@ private fun SecurityDetailsLoading() {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            color = ElectricBlue,
+            color = colors.primary,
             modifier = Modifier.testTag("security_details_loading")
         )
     }
@@ -170,11 +163,13 @@ private fun SecurityDetailsLoading() {
 
 @Composable
 private fun SecurityDetailsError(contentState: SecurityDetailsContentState.Error) {
+    val colors = MaterialTheme.vaultColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(24.dp)
@@ -183,7 +178,7 @@ private fun SecurityDetailsError(contentState: SecurityDetailsContentState.Error
     ) {
         Text(
             text = stringResource(contentState.messageResId),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 14.sp,
             lineHeight = 20.sp
         )
@@ -192,12 +187,17 @@ private fun SecurityDetailsError(contentState: SecurityDetailsContentState.Error
 
 @Composable
 private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
+    val colors = MaterialTheme.vaultColors
+    val heroGradient = Brush.linearGradient(
+        colors = listOf(colors.primary, colors.secondary)
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.linearGradient(
-                    colors = listOf(DeepNavy, SlateBlue.copy(alpha = 0.92f))
+                    colors = listOf(colors.surface, colors.surfaceHigh.copy(alpha = 0.92f))
                 ),
                 shape = RoundedCornerShape(24.dp)
             )
@@ -210,7 +210,7 @@ private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
                 .size(164.dp)
                 .drawBehind {
                     drawCircle(
-                        brush = HeroGradient,
+                        brush = heroGradient,
                         alpha = 0.18f,
                         center = Offset(size.width * 0.72f, size.height * 0.2f),
                         radius = size.maxDimension * 0.72f
@@ -234,7 +234,7 @@ private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
             ) {
                 Text(
                     text = stringResource(R.string.security_details_status_label),
-                    color = MistText,
+                    color = colors.textSecondary,
                     fontSize = 10.sp,
                     lineHeight = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -242,7 +242,7 @@ private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
                 )
                 Text(
                     text = stringResource(uiState.statusResId),
-                    color = SoftWhite,
+                    color = colors.textPrimary,
                     fontSize = 24.sp,
                     lineHeight = 28.sp,
                     fontWeight = FontWeight.Bold,
@@ -254,13 +254,13 @@ private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
                         uiState.totalPasswords,
                         uiState.totalPasswords
                     ),
-                    color = MistText,
+                    color = colors.textSecondary,
                     fontSize = 12.sp,
                     lineHeight = 18.sp
                 )
                 Text(
                     text = stringResource(R.string.security_details_index_calculated),
-                    color = MistText,
+                    color = colors.textSecondary,
                     fontSize = 12.sp,
                     lineHeight = 18.sp
                 )
@@ -274,6 +274,7 @@ private fun CircularScoreGauge(
     scorePercent: Int,
     visualState: SecurityDetailsVisualState
 ) {
+    val colors = MaterialTheme.vaultColors
     val normalizedScore = scorePercent.coerceIn(0, 100)
     val accentColor = visualState.accentColor()
 
@@ -286,7 +287,7 @@ private fun CircularScoreGauge(
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 10.dp.toPx()
             drawCircle(
-                color = SlateBlue.copy(alpha = 0.62f),
+                color = colors.surfaceBright.copy(alpha = 0.62f),
                 radius = (size.minDimension - strokeWidth) / 2f,
                 style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
             )
@@ -301,7 +302,7 @@ private fun CircularScoreGauge(
 
         Text(
             text = "$normalizedScore%",
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 28.sp,
             lineHeight = 32.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -312,11 +313,13 @@ private fun CircularScoreGauge(
 
 @Composable
 private fun CalculationInfoCard(criteria: List<SecurityDetailsCriteriaUiModel>) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .testTag("security_details_calculation_card")
@@ -325,14 +328,14 @@ private fun CalculationInfoCard(criteria: List<SecurityDetailsCriteriaUiModel>) 
     ) {
         Text(
             text = stringResource(R.string.security_details_how_calculation_works),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 20.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = stringResource(R.string.security_details_calculation_description),
-            color = MistText,
+            color = colors.textSecondary,
             fontSize = 14.sp,
             lineHeight = 22.sp
         )
@@ -343,14 +346,14 @@ private fun CalculationInfoCard(criteria: List<SecurityDetailsCriteriaUiModel>) 
         }
         Text(
             text = stringResource(R.string.security_details_absolute_note),
-            color = MistText.copy(alpha = 0.72f),
+            color = colors.textSecondary.copy(alpha = 0.82f),
             fontSize = 12.sp,
             lineHeight = 16.sp,
             fontStyle = FontStyle.Italic,
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = SlateBlue.copy(alpha = 0.35f),
+                    color = colors.surfaceHigh.copy(alpha = 0.62f),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(12.dp)
@@ -360,11 +363,13 @@ private fun CalculationInfoCard(criteria: List<SecurityDetailsCriteriaUiModel>) 
 
 @Composable
 private fun SecurityCriterionRow(criterion: SecurityDetailsCriteriaUiModel) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = MidnightBlue.copy(alpha = 0.46f),
+                color = colors.surfaceHigh.copy(alpha = 0.52f),
                 shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 14.dp, vertical = 12.dp),
@@ -374,7 +379,7 @@ private fun SecurityCriterionRow(criterion: SecurityDetailsCriteriaUiModel) {
         SecurityDot(visualState = criterion.visualState)
         Text(
             text = stringResource(criterion.labelResId),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 14.sp,
             lineHeight = 20.sp,
             fontWeight = FontWeight.SemiBold,
@@ -382,7 +387,7 @@ private fun SecurityCriterionRow(criterion: SecurityDetailsCriteriaUiModel) {
         )
         Text(
             text = stringResource(criterion.rangeResId),
-            color = MistText,
+            color = colors.textSecondary,
             fontSize = 12.sp,
             lineHeight = 16.sp,
             fontWeight = FontWeight.Bold
@@ -419,12 +424,13 @@ private fun SecurityDetailsTabButton(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
     val accentColor = tab.tab.visualState().accentColor()
 
     Column(
         modifier = Modifier
             .background(
-                color = if (selected) SlateBlue else DeepNavy,
+                color = if (selected) colors.surfaceHigh else colors.surface,
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable(onClick = onClick)
@@ -435,14 +441,14 @@ private fun SecurityDetailsTabButton(
     ) {
         Text(
             text = tab.count.toString(),
-            color = if (selected) accentColor else MistText,
+            color = if (selected) accentColor else colors.textSecondary,
             fontSize = 22.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = stringResource(tab.tab.labelResId).uppercase(),
-            color = if (selected) SoftWhite else MistText,
+            color = if (selected) colors.textPrimary else colors.textSecondary,
             fontSize = 10.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight.Bold,
@@ -496,11 +502,13 @@ private fun EmptySecurityCard(
     message: String,
     testTag: String
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(20.dp)
@@ -509,7 +517,7 @@ private fun EmptySecurityCard(
     ) {
         Text(
             text = title,
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 16.sp,
             lineHeight = 24.sp,
             fontWeight = FontWeight.Bold
@@ -517,7 +525,7 @@ private fun EmptySecurityCard(
         if (message.isNotBlank()) {
             Text(
                 text = message,
-                color = MistText,
+                color = colors.textSecondary,
                 fontSize = 13.sp,
                 lineHeight = 20.sp
             )
@@ -554,10 +562,15 @@ private fun SecurityDot(
     }
 }
 
-private fun SecurityDetailsVisualState.accentColor(): Color = when (this) {
-    SecurityDetailsVisualState.Poor -> Color(0xFFFF716C)
-    SecurityDetailsVisualState.Moderate -> VaultAmber
-    SecurityDetailsVisualState.Excellent -> VaultGreen
+@Composable
+private fun SecurityDetailsVisualState.accentColor(): Color {
+    val colors = MaterialTheme.vaultColors
+
+    return when (this) {
+        SecurityDetailsVisualState.Poor -> colors.danger
+        SecurityDetailsVisualState.Moderate -> colors.warning
+        SecurityDetailsVisualState.Excellent -> colors.success
+    }
 }
 
 private fun SecurityDetailsTab.visualState(): SecurityDetailsVisualState = when (this) {

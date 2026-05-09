@@ -6,7 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.inovalou.seucofregerenciadordesenhas.core.preferences.presentation.AppPreferencesViewModel
+import com.inovalou.seucofregerenciadordesenhas.core.ui.AppLocaleProvider
 import com.inovalou.seucofregerenciadordesenhas.navigation.SeuCofreNavHost
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,9 +22,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SeuCofreGerenciadorDeSenhasTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    SeuCofreNavHost()
+            val appPreferencesViewModel: AppPreferencesViewModel = hiltViewModel()
+            val preferences by appPreferencesViewModel.preferences.collectAsStateWithLifecycle()
+
+            AppLocaleProvider(language = preferences.language) {
+                SeuCofreGerenciadorDeSenhasTheme(themePreference = preferences.themePreference) {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        SeuCofreNavHost()
+                    }
                 }
             }
         }

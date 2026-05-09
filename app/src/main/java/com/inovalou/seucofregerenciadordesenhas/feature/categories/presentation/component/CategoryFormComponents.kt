@@ -30,12 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
-
-private val SlateSelection = SurfaceBright.copy(alpha = 0.62f)
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 data class CategorySelectableIconUiModel(
     val iconKey: String,
@@ -48,10 +43,12 @@ fun CategorySectionLabel(
     label: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Text(
         text = label,
         modifier = modifier,
-        color = GhostOutline,
+        color = colors.outline,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         fontWeight = FontWeight.Bold,
@@ -138,13 +135,18 @@ private fun CategoryIconCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = if (icon.isSelected) SlateSelection else DeepNavy
+    val colors = MaterialTheme.vaultColors
+    val backgroundColor = if (icon.isSelected) {
+        colors.surfaceBright.copy(alpha = 0.62f)
+    } else {
+        colors.surface
+    }
     val borderColor = if (icon.isSelected) {
-        ElectricBlue.copy(alpha = 0.7f)
+        colors.primary.copy(alpha = 0.7f)
     } else {
         Color.Transparent
     }
-    val iconTint = if (icon.isSelected) ElectricBlue else GhostOutline
+    val iconTint = if (icon.isSelected) colors.primary else colors.outline
 
     Box(
         modifier = modifier

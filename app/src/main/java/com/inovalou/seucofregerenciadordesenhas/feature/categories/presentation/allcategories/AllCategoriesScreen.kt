@@ -33,10 +33,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchFie
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory.EditCategoryOpenedFrom
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun AllCategoriesEntry(
@@ -75,14 +72,16 @@ fun AllCategoriesScreen(
     onAddCategoryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MidnightBlue)
+                .background(colors.background)
                 .testTag("all_categories_screen")
         ) {
             LazyVerticalGrid(
@@ -119,7 +118,7 @@ fun AllCategoriesScreen(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.testTag("all_categories_loading"),
-                                    color = ElectricBlue
+                                    color = colors.primary
                                 )
                             }
                         }
@@ -167,7 +166,7 @@ fun AllCategoriesScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp)
                                     .testTag("all_categories_error"),
-                                color = MistText,
+                                color = colors.textSecondary,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -222,6 +221,8 @@ private fun AllCategoriesEmptyState(
     message: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -231,14 +232,14 @@ private fun AllCategoriesEmptyState(
     ) {
         Text(
             text = title,
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 18.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = message,
-            color = MistText,
+            color = colors.textSecondary,
             style = MaterialTheme.typography.bodyMedium
         )
     }

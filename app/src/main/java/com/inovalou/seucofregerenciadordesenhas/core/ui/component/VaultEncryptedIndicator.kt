@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,9 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.R
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SurfaceBright
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultEncryptedIndicator(
@@ -30,10 +29,11 @@ fun VaultEncryptedIndicator(
     @StringRes labelResId: Int = R.string.vault_encrypted_indicator,
     container: Boolean = true
 ) {
+    val colors = MaterialTheme.vaultColors
     val rowModifier = if (container) {
         modifier
             .background(
-                color = SurfaceBright.copy(alpha = 0.72f),
+                color = colors.surfaceBright.copy(alpha = 0.72f),
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -49,12 +49,12 @@ fun VaultEncryptedIndicator(
         Box(
             modifier = Modifier
                 .size(8.dp)
-                .background(VaultGreen, CircleShape)
-                .shadow(8.dp, CircleShape, ambientColor = VaultGreen, spotColor = VaultGreen)
+                .background(colors.success, CircleShape)
+                .shadow(8.dp, CircleShape, ambientColor = colors.success, spotColor = colors.success)
         )
         Text(
             text = stringResource(labelResId),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 10.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight.SemiBold,

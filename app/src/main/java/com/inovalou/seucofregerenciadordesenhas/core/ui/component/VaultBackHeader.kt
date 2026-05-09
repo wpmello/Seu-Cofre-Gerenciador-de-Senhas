@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,8 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun VaultBackHeader(
@@ -31,6 +31,8 @@ fun VaultBackHeader(
     onBackClick: () -> Unit,
     testTag: String? = null
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -55,13 +57,13 @@ fun VaultBackHeader(
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                 contentDescription = navigationContentDescription,
-                tint = ElectricBlue
+                tint = colors.primary
             )
         }
 
         Text(
             text = title,
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = titleFontSize.sp,
             lineHeight = 32.sp,
             fontWeight = FontWeight.Bold

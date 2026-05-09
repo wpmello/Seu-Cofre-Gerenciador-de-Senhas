@@ -55,13 +55,7 @@ import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.DeepNavy
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.GhostOutline
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SlateBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun NewPasswordRoute(
@@ -92,9 +86,11 @@ fun NewPasswordScreen(
     onAction: (NewPasswordAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MidnightBlue
+        color = colors.background
     ) {
         Column(
             modifier = Modifier
@@ -118,7 +114,7 @@ fun NewPasswordScreen(
             ) {
                 Text(
                     text = stringResource(R.string.new_password_description),
-                    color = MistText,
+                    color = colors.textSecondary,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     modifier = Modifier.fillMaxWidth(0.88f)
@@ -217,7 +213,7 @@ private fun PasswordTextField(
     isPasswordField: Boolean = false,
     isPasswordVisible: Boolean = false,
     onTogglePasswordVisibility: (() -> Unit)? = null,
-    containerColor: Color = SlateBlue,
+    containerColor: Color? = null,
     highlightedLabel: Boolean = false,
     showBorder: Boolean = true,
     readOnly: Boolean = false,
@@ -225,6 +221,9 @@ private fun PasswordTextField(
     minLines: Int = 1,
     maxLines: Int = 1
 ) {
+    val colors = MaterialTheme.vaultColors
+    val fieldContainerColor = containerColor ?: colors.surfaceHigh
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         label?.let {
             PasswordSectionLabel(label = it, highlighted = highlightedLabel)
@@ -250,7 +249,7 @@ private fun PasswordTextField(
             placeholder = {
                 Text(
                     text = placeholder,
-                    color = GhostOutline.copy(alpha = 0.75f)
+                    color = colors.outline.copy(alpha = 0.75f)
                 )
             },
             leadingIcon = leadingIcon?.let { icon ->
@@ -258,7 +257,7 @@ private fun PasswordTextField(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = SoftWhite.copy(alpha = 0.78f)
+                        tint = colors.textPrimary.copy(alpha = 0.78f)
                     )
                 }
             },
@@ -283,7 +282,7 @@ private fun PasswordTextField(
                                 } else {
                                     stringResource(R.string.new_password_show_password)
                                 },
-                                tint = SoftWhite.copy(alpha = 0.78f)
+                                tint = colors.textPrimary.copy(alpha = 0.78f)
                             )
                         }
                     }
@@ -292,17 +291,17 @@ private fun PasswordTextField(
                 null
             },
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = containerColor,
-                unfocusedContainerColor = containerColor,
-                disabledContainerColor = containerColor,
-                focusedIndicatorColor = if (showBorder) GhostOutline.copy(alpha = 0.28f) else Color.Transparent,
-                unfocusedIndicatorColor = if (showBorder) GhostOutline.copy(alpha = 0.16f) else Color.Transparent,
+                focusedContainerColor = fieldContainerColor,
+                unfocusedContainerColor = fieldContainerColor,
+                disabledContainerColor = fieldContainerColor,
+                focusedIndicatorColor = if (showBorder) colors.outline.copy(alpha = 0.28f) else Color.Transparent,
+                unfocusedIndicatorColor = if (showBorder) colors.outline.copy(alpha = 0.16f) else Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                focusedTextColor = SoftWhite,
-                unfocusedTextColor = SoftWhite,
-                focusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                unfocusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                cursorColor = ElectricBlue
+                focusedTextColor = colors.textPrimary,
+                unfocusedTextColor = colors.textPrimary,
+                focusedPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                unfocusedPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                cursorColor = colors.primary
             )
         )
     }
@@ -351,19 +350,21 @@ private fun PlainTextNoteWarning(
     warningText: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0x1AF4C95D),
+        color = colors.warning.copy(alpha = 0.12f),
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
-            color = Color(0x66F4C95D)
+            color = colors.warning.copy(alpha = 0.32f)
         )
     ) {
         Text(
             text = warningText,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            color = Color(0xFFF4C95D),
+            color = colors.warning,
             fontSize = 12.sp,
             lineHeight = 18.sp
         )
@@ -376,11 +377,13 @@ private fun PasswordSection(
     onPasswordChanged: (String) -> Unit,
     onTogglePasswordVisibility: () -> Unit
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = DeepNavy,
+                color = colors.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(16.dp),
@@ -418,9 +421,11 @@ private fun PasswordSectionLabel(
     label: String,
     highlighted: Boolean = false
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Text(
         text = label,
-        color = if (highlighted) ElectricBlue else MistText,
+        color = if (highlighted) colors.primary else colors.textSecondary,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         fontWeight = FontWeight.Medium,
@@ -438,6 +443,8 @@ private fun CategorySelectionField(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -464,31 +471,31 @@ private fun CategorySelectionField(
                 placeholder = {
                     Text(
                         text = placeholder,
-                        color = GhostOutline.copy(alpha = 0.75f)
+                        color = colors.outline.copy(alpha = 0.75f)
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.GridView,
                         contentDescription = null,
-                        tint = SoftWhite.copy(alpha = 0.78f)
+                        tint = colors.textPrimary.copy(alpha = 0.78f)
                     )
                 },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = SlateBlue,
-                    unfocusedContainerColor = SlateBlue,
-                    disabledContainerColor = SlateBlue,
-                    focusedIndicatorColor = GhostOutline.copy(alpha = 0.28f),
-                    unfocusedIndicatorColor = GhostOutline.copy(alpha = 0.16f),
-                    disabledIndicatorColor = GhostOutline.copy(alpha = 0.16f),
-                    focusedTextColor = SoftWhite,
-                    unfocusedTextColor = SoftWhite,
-                    disabledTextColor = SoftWhite,
-                    focusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                    unfocusedPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                    disabledPlaceholderColor = GhostOutline.copy(alpha = 0.75f),
-                    disabledLeadingIconColor = SoftWhite.copy(alpha = 0.78f),
-                    cursorColor = ElectricBlue
+                    focusedContainerColor = colors.surfaceHigh,
+                    unfocusedContainerColor = colors.surfaceHigh,
+                    disabledContainerColor = colors.surfaceHigh,
+                    focusedIndicatorColor = colors.outline.copy(alpha = 0.28f),
+                    unfocusedIndicatorColor = colors.outline.copy(alpha = 0.16f),
+                    disabledIndicatorColor = colors.outline.copy(alpha = 0.16f),
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    disabledTextColor = colors.textPrimary,
+                    focusedPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                    unfocusedPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                    disabledPlaceholderColor = colors.outline.copy(alpha = 0.75f),
+                    disabledLeadingIconColor = colors.textPrimary.copy(alpha = 0.78f),
+                    cursorColor = colors.primary
                 )
             )
         }

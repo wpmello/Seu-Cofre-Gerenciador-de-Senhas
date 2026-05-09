@@ -49,26 +49,8 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultEncrypted
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.ElectricBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MidnightBlue
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.MistText
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.SoftWhite
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultAmber
-import com.inovalou.seucofregerenciadordesenhas.ui.theme.VaultGreen
-
-private val PoorSecurityGradient = Brush.linearGradient(
-    colors = listOf(Color(0xFFFF716C), Color(0xFF9F0519))
-)
-private val ModerateSecurityGradient = Brush.linearGradient(
-    colors = listOf(VaultAmber, Color(0xFFFFE39A))
-)
-private val ExcellentSecurityGradient = Brush.linearGradient(
-    colors = listOf(VaultGreen, Color(0xFF9AFFC4))
-)
-private val HighlightedCategoryGradient = Brush.linearGradient(
-    colors = listOf(ElectricBlue, Color(0xFF0F6DF3))
-)
+import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun CategoriesRoute(
@@ -102,6 +84,8 @@ fun CategoriesScreen(
     onSecuritySummaryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -109,7 +93,7 @@ fun CategoriesScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MidnightBlue)
+                .background(colors.background)
                 .testTag("categories_screen")
         ) {
             LazyVerticalGrid(
@@ -163,7 +147,7 @@ fun CategoriesScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(
-                                    color = ElectricBlue,
+                                    color = colors.primary,
                                     modifier = Modifier.testTag("categories_loading")
                                 )
                             }
@@ -200,7 +184,7 @@ fun CategoriesScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp)
                                     .testTag("categories_error"),
-                                color = MistText
+                                color = colors.textSecondary
                             )
                         }
                     }
@@ -238,10 +222,26 @@ private fun SecuritySummaryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
     val cardBrush = when (summary.visualState) {
-        SecuritySummaryVisualState.Poor -> PoorSecurityGradient
-        SecuritySummaryVisualState.Moderate -> ModerateSecurityGradient
-        SecuritySummaryVisualState.Excellent -> ExcellentSecurityGradient
+        SecuritySummaryVisualState.Poor -> Brush.linearGradient(
+            colors = listOf(
+                colors.securityPoorGradientStart,
+                colors.securityPoorGradientEnd
+            )
+        )
+        SecuritySummaryVisualState.Moderate -> Brush.linearGradient(
+            colors = listOf(
+                colors.securityModerateGradientStart,
+                colors.securityModerateGradientEnd
+            )
+        )
+        SecuritySummaryVisualState.Excellent -> Brush.linearGradient(
+            colors = listOf(
+                colors.securityExcellentGradientStart,
+                colors.securityExcellentGradientEnd
+            )
+        )
     }
 
     Box(
@@ -279,7 +279,7 @@ private fun SecuritySummaryCard(
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = stringResource(summary.titleResId),
-                        color = MidnightBlue.copy(alpha = 0.8f),
+                        color = colors.onAccent.copy(alpha = 0.8f),
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.Medium,
@@ -288,7 +288,7 @@ private fun SecuritySummaryCard(
 
                     Text(
                         text = stringResource(summary.statusResId),
-                        color = MidnightBlue,
+                        color = colors.onAccent,
                         fontSize = 48.sp,
                         lineHeight = 48.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -299,14 +299,14 @@ private fun SecuritySummaryCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = summary.totalItems.toString(),
-                        color = MidnightBlue,
+                        color = colors.onAccent,
                         fontSize = 30.sp,
                         lineHeight = 36.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = stringResource(R.string.categories_total_items_label),
-                        color = MidnightBlue,
+                        color = colors.onAccent,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
                         textAlign = TextAlign.End
@@ -329,6 +329,8 @@ private fun CategoriesSectionHeader(
     onViewAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -338,7 +340,7 @@ private fun CategoriesSectionHeader(
     ) {
         Text(
             text = stringResource(R.string.categories_title),
-            color = SoftWhite,
+            color = colors.textPrimary,
             fontSize = 20.sp,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold
@@ -375,6 +377,8 @@ private fun CategoriesViewAllButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Row(
         modifier = modifier.clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
@@ -382,7 +386,7 @@ private fun CategoriesViewAllButton(
     ) {
         Text(
             text = stringResource(R.string.categories_view_all),
-            color = Color(0xFF0F6DF3),
+            color = colors.primaryDim,
             fontSize = 14.sp,
             lineHeight = 20.sp,
             fontWeight = FontWeight.SemiBold
@@ -390,7 +394,7 @@ private fun CategoriesViewAllButton(
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
             contentDescription = null,
-            tint = Color(0xFF0F6DF3),
+            tint = colors.primaryDim,
             modifier = Modifier.size(10.dp)
         )
     }
@@ -402,13 +406,15 @@ private fun HighlightedCategoryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.vaultColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
             .background(
-                brush = HighlightedCategoryGradient,
+                brush = Brush.linearGradient(listOf(colors.primary, colors.primaryDim)),
                 shape = RoundedCornerShape(24.dp)
             )
             .testTag("highlighted_category_card")
@@ -434,7 +440,7 @@ private fun HighlightedCategoryCard(
                         shape = RoundedCornerShape(999.dp)
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
-                color = SoftWhite,
+                color = Color.White,
                 fontSize = 10.sp,
                 lineHeight = 15.sp,
                 fontWeight = FontWeight.SemiBold
