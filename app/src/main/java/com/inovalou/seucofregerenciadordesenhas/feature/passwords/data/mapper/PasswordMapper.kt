@@ -1,7 +1,9 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordSearchResultEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSearchResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 
 fun PasswordEntity.toDomain(): PasswordSummary = PasswordSummary(
@@ -25,4 +27,10 @@ fun PasswordEntity.toDetailsDomain(password: String): PasswordDetails = Password
     iconKey = iconKey,
     createdAt = createdAt,
     updatedAt = updatedAt
+)
+
+fun PasswordSearchResultEntity.toDomain(): PasswordSearchResult = PasswordSearchResult(
+    id = id,
+    title = title,
+    iconKey = iconKey
 )

@@ -52,4 +52,9 @@ class CategoryRepositoryImpl @Inject constructor(
         localDataSource.observeCategories().map { entities ->
             entities.map { entity -> entity.toDomain() }
         }
+
+    override fun observeCategoriesMatchingQuery(query: String): Flow<List<Category>> =
+        localDataSource.observeCategoriesMatchingQuery(query).map { entities ->
+            entities.map { entity -> entity.toDomain() }
+        }
 }

@@ -5,9 +5,11 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.En
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordFingerprintGenerator
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordEntity
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordSearchResultEntity
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local.PasswordsLocalDataSource
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSearchResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import kotlinx.coroutines.flow.Flow
@@ -143,6 +145,40 @@ class PasswordRepositoryImplTest {
         assertEquals("Banco", observed.single().title)
         assertEquals(700L, observed.single().createdAt)
         assertEquals(900L, observed.single().updatedAt)
+    }
+
+    @Test
+    fun givenPasswordSearchResults_whenObservingSearch_thenMapsMinimalResultWithoutDecryptingPasswords() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            searchResults = listOf(
+                PasswordSearchResultEntity(
+                    id = 71L,
+                    title = "Banco Digital",
+                    iconKey = "ic_bank"
+                )
+            )
+        )
+        val passwordCipher = FakePasswordCipher()
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordCipher = passwordCipher
+        )
+
+        val observed = repository.observePasswordSearchResults("ban").first()
+
+        assertEquals("ban", localDataSource.lastSearchQuery)
+        assertEquals(
+            listOf(
+                PasswordSearchResult(
+                    id = 71L,
+                    title = "Banco Digital",
+                    iconKey = "ic_bank"
+                )
+            ),
+            observed
+        )
+        assertEquals(null, passwordCipher.lastDecryptedCipherText)
     }
 
     @Test
@@ -527,16 +563,19 @@ class PasswordRepositoryImplTest {
         private val observedPasswordCount: Int = passwordCount,
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
-        private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList()
+        private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList(),
+        searchResults: List<PasswordSearchResultEntity> = emptyList()
     ) : PasswordsLocalDataSource {
 
         private val passwordsFlow = MutableStateFlow(initialPasswords)
         private val passwordsByCategoryFlow = MutableStateFlow<List<PasswordEntity>>(emptyList())
         private val recentPasswordsFlow = MutableStateFlow<List<PasswordEntity>>(emptyList())
+        private val searchResultsFlow = MutableStateFlow(searchResults)
         var insertedPassword: PasswordEntity? = null
         var updatedPassword: PasswordEntity? = null
         var lastObservedCategoryId: Long? = null
         var lastRecentLimit: Int? = null
+        var lastSearchQuery: String? = null
         var lastDuplicateFingerprint: String? = null
         var lastDuplicateExcludedId: Long? = null
         var lastFingerprintUpdatePasswordId: Long? = null
@@ -554,6 +593,11 @@ class PasswordRepositoryImplTest {
         override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> {
             lastRecentLimit = limit
             return recentPasswordsFlow
+        }
+
+        override fun observePasswordSearchResults(query: String): Flow<List<PasswordSearchResultEntity>> {
+            lastSearchQuery = query
+            return searchResultsFlow
         }
 
         override suspend fun createPassword(password: PasswordEntity): Long {
@@ -601,6 +645,7 @@ class PasswordRepositoryImplTest {
 
     private class FakePasswordCipher : PasswordCipher {
         var lastEncryptedPlainText: String? = null
+        var lastDecryptedCipherText: String? = null
 
         override fun encrypt(plainText: String): EncryptedPasswordPayload = EncryptedPasswordPayload(
             cipherText = "enc::$plainText",
@@ -611,6 +656,7 @@ class PasswordRepositoryImplTest {
         }
 
         override fun decrypt(cipherText: String, iv: String, version: Int): String {
+            lastDecryptedCipherText = cipherText
             return "plain::$cipherText"
         }
     }

@@ -49,6 +49,16 @@ class RoomPasswordsLocalDataSourceTest {
     }
 
     @Test
+    fun givenRawQuery_whenObservingPasswordSearchResults_thenEscapesLikeWildcardsAndDelegatesPatternToDao() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()))
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        dataSource.observePasswordSearchResults("bank_%").first()
+
+        assertEquals("%bank\\_\\%%", dao.lastSearchPattern)
+    }
+
+    @Test
     fun givenEntity_whenCreatingPassword_thenDelegatesInsertToDao() = runTest {
         val dao = FakePasswordDao(flowOf(emptyList()))
         val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
@@ -277,6 +287,7 @@ class RoomPasswordsLocalDataSourceTest {
         private val passwordsByCategoryFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
         private val passwordCountFlow: Flow<Int> = flowOf(0),
         private val recentPasswordsFlow: Flow<List<PasswordEntity>> = flowOf(emptyList()),
+        private val passwordSearchResultsFlow: Flow<List<PasswordSearchResultEntity>> = flowOf(emptyList()),
         private val passwordCount: Int = 0,
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
@@ -292,6 +303,7 @@ class RoomPasswordsLocalDataSourceTest {
         var lastDuplicateExcludedId: Long? = null
         var lastUpdatedFingerprintPasswordId: Long? = null
         var lastUpdatedFingerprint: String? = null
+        var lastSearchPattern: String? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
@@ -305,6 +317,11 @@ class RoomPasswordsLocalDataSourceTest {
         override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> {
             lastRecentLimit = limit
             return recentPasswordsFlow
+        }
+
+        override fun observePasswordSearchResults(searchPattern: String): Flow<List<PasswordSearchResultEntity>> {
+            lastSearchPattern = searchPattern
+            return passwordSearchResultsFlow
         }
 
         override suspend fun insert(password: PasswordEntity): Long {

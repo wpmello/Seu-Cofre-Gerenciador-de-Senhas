@@ -9,6 +9,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper.to
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.mapper.toDomain
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSearchResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
@@ -37,6 +38,11 @@ class PasswordRepositoryImpl @Inject constructor(
 
     override fun observeRecentPasswords(limit: Int): Flow<List<PasswordSummary>> =
         localDataSource.observeRecentPasswords(limit).map { entities ->
+            entities.map { entity -> entity.toDomain() }
+        }
+
+    override fun observePasswordSearchResults(query: String): Flow<List<PasswordSearchResult>> =
+        localDataSource.observePasswordSearchResults(query).map { entities ->
             entities.map { entity -> entity.toDomain() }
         }
 

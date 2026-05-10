@@ -25,6 +25,16 @@ class RoomCategoriesLocalDataSourceTest {
     }
 
     @Test
+    fun givenRawQuery_whenObservingMatchingCategories_thenEscapesLikeWildcardsAndDelegatesPatternToDao() = runTest {
+        val dao = FakeCategoryDao(flowOf(emptyList()))
+        val dataSource = RoomCategoriesLocalDataSource(categoryDao = dao)
+
+        dataSource.observeCategoriesMatchingQuery("50%_safe").first()
+
+        assertEquals("%50\\%\\_safe%", dao.lastSearchPattern)
+    }
+
+    @Test
     fun givenCategory_whenInserting_thenDelegatesToDao() = runTest {
         val category = CategoryEntity(
             name = "Pessoal",
@@ -132,6 +142,7 @@ class RoomCategoriesLocalDataSourceTest {
         var touchedCategoryId: Long? = null
         var touchedLastModifiedAt: Long? = null
         var deletedCategoryId: Long? = null
+        var lastSearchPattern: String? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
             insertedCategory = category
@@ -154,5 +165,10 @@ class RoomCategoriesLocalDataSourceTest {
         }
 
         override fun observeCategories(): Flow<List<CategoryEntity>> = categoriesFlow
+
+        override fun observeCategoriesMatchingQuery(searchPattern: String): Flow<List<CategoryEntity>> {
+            lastSearchPattern = searchPattern
+            return flowOf(emptyList())
+        }
     }
 }

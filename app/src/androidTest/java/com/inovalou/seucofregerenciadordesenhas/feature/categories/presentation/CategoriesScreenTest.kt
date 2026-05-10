@@ -2,11 +2,13 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
@@ -37,6 +39,7 @@ class CategoriesScreenTest {
         }
 
         composeRule.onNodeWithTag("categories_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("categories_top_bar").assertIsDisplayed()
     }
 
     @Test
@@ -82,6 +85,33 @@ class CategoriesScreenTest {
         }
 
         composeRule.onNodeWithTag("categories_bottom_view_all").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenScrollableCategoriesScreen_whenScrolledDown_thenKeepsHeaderVisible() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        categoriesState = CategoriesContentUiState.Content(
+                            categories = sampleCategories(count = 12)
+                        ),
+                        shouldShowBottomViewAllButton = true
+                    ),
+                    onAction = {},
+                    onCategoryClick = {},
+                    onViewAllClick = {},
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("categories_grid")
+            .performScrollToNode(hasTestTag("categories_bottom_view_all"))
+
+        composeRule.onNodeWithTag("categories_top_bar").assertIsDisplayed()
     }
 
     @Test
@@ -218,13 +248,13 @@ class CategoriesScreenTest {
         assertTrue(wasClicked)
     }
 
-    private fun sampleCategories() = listOf(
+    private fun sampleCategories(count: Int = 1) = (1L..count.toLong()).map { id ->
         CategoryCardUiModel(
-            id = 1L,
-            name = "Trabalho",
+            id = id,
+            name = "Trabalho $id",
             iconKey = "ic_work_bag_add_category",
             iconResId = R.drawable.ic_work_bag_add_category,
             itemCount = 42
         )
-    )
+    }
 }

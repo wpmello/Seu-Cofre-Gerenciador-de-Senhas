@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -19,12 +20,38 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
+
+@Composable
+fun VaultFloatingTopBar(
+    @StringRes searchContentDescriptionResId: Int,
+    onSearchClick: () -> Unit,
+    testTag: String,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.vaultColors
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colors.background)
+            .padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 8.dp)
+    ) {
+        VaultTopBar(
+            searchContentDescriptionResId = searchContentDescriptionResId,
+            onSearchClick = onSearchClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(testTag)
+        )
+    }
+}
 
 @Composable
 fun VaultTopBar(

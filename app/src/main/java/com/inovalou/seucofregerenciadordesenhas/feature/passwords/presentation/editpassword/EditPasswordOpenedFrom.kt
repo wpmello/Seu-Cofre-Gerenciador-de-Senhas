@@ -4,7 +4,8 @@ enum class EditPasswordOpenedFrom(val routeValue: String) {
     Vault("vault"),
     Passwords("passwords"),
     EditCategory("edit_category"),
-    SecurityDetails("security_details");
+    SecurityDetails("security_details"),
+    GlobalSearch("global_search");
 
     companion object {
         fun fromRouteValue(routeValue: String?): EditPasswordOpenedFrom =

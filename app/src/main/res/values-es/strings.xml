@@ -101,6 +101,15 @@
     <string name="passwords_create_fab">Agregar clave</string>
     <string name="passwords_strength_weak_flag">DÉBIL</string>
     <string name="passwords_strength_moderate_flag">MODERADA</string>
+    <string name="global_search_title">Buscar</string>
+    <string name="global_search_back">Volver</string>
+    <string name="global_search_placeholder">Buscar categorías y claves...</string>
+    <string name="global_search_initial_title">Escribe para buscar</string>
+    <string name="global_search_initial_message">Encuentra categorías y claves por nombre.</string>
+    <string name="global_search_empty_title">No se encontraron resultados</string>
+    <string name="global_search_empty_message">Prueba con otro nombre de categoría o clave.</string>
+    <string name="global_search_error_title">Búsqueda no disponible</string>
+    <string name="global_search_load_error">No se pudieron cargar los resultados de la búsqueda.</string>
     <string name="new_password_back">Volver</string>
     <string name="new_password_title">Nueva Clave</string>
     <string name="new_password_description">Protege tu identidad digital con cifrado de nivel militar.</string>

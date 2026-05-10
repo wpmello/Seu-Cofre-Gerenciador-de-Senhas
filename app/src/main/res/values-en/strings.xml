@@ -101,6 +101,15 @@
     <string name="passwords_create_fab">Add password</string>
     <string name="passwords_strength_weak_flag">WEAK</string>
     <string name="passwords_strength_moderate_flag">MODERATE</string>
+    <string name="global_search_title">Search</string>
+    <string name="global_search_back">Go back</string>
+    <string name="global_search_placeholder">Search categories and passwords...</string>
+    <string name="global_search_initial_title">Type to search</string>
+    <string name="global_search_initial_message">Find categories and passwords by name.</string>
+    <string name="global_search_empty_title">No results found</string>
+    <string name="global_search_empty_message">Try another category or password name.</string>
+    <string name="global_search_error_title">Search unavailable</string>
+    <string name="global_search_load_error">Could not load search results.</string>
     <string name="new_password_back">Go back</string>
     <string name="new_password_title">New Password</string>
     <string name="new_password_description">Protect your digital identity with military-grade encryption.</string>

@@ -29,18 +29,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultFloatingTopBar
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
-import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.vaultPasswordListItems
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
+
+private val PasswordsContentTopPadding = 72.dp
 
 @Composable
 fun PasswordsRoute(
     onOpenPassword: (Long) -> Unit,
     onAddPassword: () -> Unit,
+    onOpenGlobalSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PasswordsViewModel = hiltViewModel()
 ) {
@@ -58,6 +61,7 @@ fun PasswordsRoute(
     PasswordsScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
+        onOpenGlobalSearch = onOpenGlobalSearch,
         modifier = modifier
     )
 }
@@ -66,6 +70,7 @@ fun PasswordsRoute(
 fun PasswordsScreen(
     uiState: PasswordsUiState,
     onAction: (PasswordsAction) -> Unit,
+    onOpenGlobalSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
@@ -86,20 +91,12 @@ fun PasswordsScreen(
                     .testTag("passwords_list"),
                 contentPadding = PaddingValues(
                     start = 24.dp,
-                    top = 16.dp,
+                    top = PasswordsContentTopPadding,
                     end = 24.dp,
                     bottom = 112.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {
-                    VaultTopBar(
-                        searchContentDescriptionResId = R.string.categories_search,
-                        onSearchClick = {},
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
                 item {
                     PasswordsHero(
                         totalPasswords = uiState.totalPasswords
@@ -178,6 +175,13 @@ fun PasswordsScreen(
                     }
                 }
             }
+
+            VaultFloatingTopBar(
+                searchContentDescriptionResId = R.string.categories_search,
+                onSearchClick = onOpenGlobalSearch,
+                testTag = "passwords_top_bar",
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
 
             VaultGradientFab(
                 contentDescription = stringResource(R.string.passwords_create_fab),

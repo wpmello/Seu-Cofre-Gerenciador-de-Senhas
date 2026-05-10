@@ -53,14 +53,16 @@ import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppLanguage
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppThemePreference
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultEncryptedIndicator
-import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultFloatingTopBar
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 private val SettingsItemCardMinHeight = 112.dp
+private val SettingsContentTopPadding = 84.dp
 
 @Composable
 fun SettingsRoute(
+    onOpenGlobalSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -69,6 +71,7 @@ fun SettingsRoute(
     SettingsScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
+        onOpenGlobalSearch = onOpenGlobalSearch,
         modifier = modifier
     )
 }
@@ -78,6 +81,7 @@ fun SettingsRoute(
 fun SettingsScreen(
     uiState: SettingsUiState,
     onAction: (SettingsAction) -> Unit,
+    onOpenGlobalSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
@@ -93,23 +97,17 @@ fun SettingsScreen(
                 .testTag("settings_screen")
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("settings_content"),
                 contentPadding = PaddingValues(
                     start = 24.dp,
-                    top = 16.dp,
+                    top = SettingsContentTopPadding,
                     end = 24.dp,
                     bottom = 112.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(28.dp)
             ) {
-                item {
-                    VaultTopBar(
-                        searchContentDescriptionResId = R.string.settings_search,
-                        onSearchClick = { onAction(SettingsAction.OnSearchClick) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
                 item {
                     SettingsTitle()
                 }
@@ -158,6 +156,13 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            VaultFloatingTopBar(
+                searchContentDescriptionResId = R.string.settings_search,
+                onSearchClick = onOpenGlobalSearch,
+                testTag = "settings_top_bar",
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
 
             uiState.nameEditor?.let { nameEditor ->
                 UserNameEditorBottomSheet(

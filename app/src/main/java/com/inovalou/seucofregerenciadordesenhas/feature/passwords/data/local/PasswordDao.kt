@@ -93,6 +93,19 @@ interface PasswordDao {
         SELECT
             passwords.id,
             passwords.title,
+            passwords.icon_key
+        FROM passwords
+        WHERE passwords.title LIKE :searchPattern ESCAPE '\'
+        ORDER BY passwords.title COLLATE NOCASE ASC
+        """
+    )
+    fun observePasswordSearchResults(searchPattern: String): Flow<List<PasswordSearchResultEntity>>
+
+    @Query(
+        """
+        SELECT
+            passwords.id,
+            passwords.title,
             passwords.login,
             COALESCE(categories.name, passwords.category) AS category,
             passwords.category_id,

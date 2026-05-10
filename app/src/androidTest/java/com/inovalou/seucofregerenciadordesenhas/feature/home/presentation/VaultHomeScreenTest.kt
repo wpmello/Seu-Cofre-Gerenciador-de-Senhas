@@ -4,12 +4,14 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
@@ -38,6 +40,7 @@ class VaultHomeScreenTest {
         }
 
         composeRule.onNodeWithTag("vault_home_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("vault_home_top_bar").assertIsDisplayed()
         composeRule.onNodeWithTag("vault_home_summary_card").assertIsDisplayed()
         composeRule.onNodeWithText("4").assertIsDisplayed()
         composeRule.onNodeWithText(
@@ -55,6 +58,34 @@ class VaultHomeScreenTest {
         composeRule.onNodeWithText(context.getString(R.string.vault_home_recent_title)).assertIsDisplayed()
         composeRule.onNodeWithTag("password_item_11").assertIsDisplayed()
         composeRule.onNodeWithTag("vault_home_create_password_fab").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenLongHomeContent_whenScrolledDown_thenKeepsHeaderVisible() {
+        val recentPasswords = (1L..30L).map { id ->
+            VaultHomeRecentPasswordUiModel(
+                id = id,
+                title = "App $id",
+                supportingText = "user$id@email.com",
+                initials = "A",
+                securityLevel = VaultPasswordListSecurityLevel.Safe
+            )
+        }
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(recentPasswords = recentPasswords),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("vault_home_content")
+            .performScrollToNode(hasTestTag("password_item_30"))
+
+        composeRule.onNodeWithTag("vault_home_top_bar").assertIsDisplayed()
     }
 
     @Test
