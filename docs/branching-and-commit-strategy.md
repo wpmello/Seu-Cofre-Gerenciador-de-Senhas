@@ -246,7 +246,9 @@ Salvo instrução explícita do usuário em contrário, a descrição de PR gera
 - preferir bullets curtos e verificáveis;
 - listar validações realmente executadas, não validações presumidas;
 - mencionar arquivos principais por área de mudança, sem transformar a descrição em changelog exaustivo;
-- registrar em `# Observações` qualquer risco, limitação, dependência externa, dirty worktree remanescente ou contexto que afete a revisão.
+- usar `# Observações` apenas quando houver contexto funcional relevante sobre o escopo entregue, como ações não implementadas, não alteradas, propositalmente fora do escopo ou limitações perceptíveis para produto/revisão;
+- preferir observações concretas sobre a funcionalidade desenvolvida, por exemplo: `A ação de excluir senha não foi implementada nem alterada.`;
+- manter riscos técnicos, TODOs, dependências externas ou contexto local fora de `# Observações`; quando forem relevantes para a revisão, usar uma seção específica adicional.
 
 ### Seções adicionais permitidas
 
