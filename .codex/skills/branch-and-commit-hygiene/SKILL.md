@@ -147,7 +147,9 @@ Rules:
 - keep these headings by default;
 - fill them only with content grounded in the final delivery;
 - list only validations that were actually executed;
-- mention leftover risks, limitations, or non-committed local context in `# Observações` when relevant;
+- use `# Observações` only when there is relevant functional context about the delivered scope, such as actions not implemented, not altered, intentionally out of scope, or limitations visible to product/review;
+- prefer concrete functional notes in `# Observações`, for example: `A ação de excluir senha não foi implementada nem alterada.`;
+- keep unrelated technical risks, TODOs, or local worktree context out of `# Observações`; use a specific extra heading when that information materially improves review quality;
 - add extra headings only when they materially improve review quality, such as `# Riscos`, `# TODOs`, `# Impactos`, or `# Migração`.
 
 ### 6. Repair wrong branch ancestry safely
