@@ -24,6 +24,8 @@
     <string name="vault_home_categories_empty">As categorias cadastradas aparecerão aqui.</string>
     <string name="vault_home_recent_empty">As senhas criadas ou atualizadas recentemente aparecerão aqui.</string>
     <string name="vault_home_load_error">Não foi possível carregar o cofre.</string>
+    <string name="vault_home_summary_passwords_empty">Nenhuma senha encontrada nesta classificação.</string>
+    <string name="vault_home_summary_passwords_error">Não foi possível carregar esta lista.</string>
     <string name="onboarding_brand">Seu cofre</string>
     <string name="onboarding_next">Próximo</string>
     <string name="onboarding_existing_account">Já tem uma conta? </string>

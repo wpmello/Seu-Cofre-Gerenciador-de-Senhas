@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.home.domain.model
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
 
 data class VaultHome(
     val totalPasswords: Int,
@@ -39,4 +40,12 @@ data class VaultHomePassword(
     val securityRiskLevel: PasswordSecurityRiskLevel,
     val createdAt: Long,
     val updatedAt: Long
+)
+
+data class VaultHomeSecurityPassword(
+    val id: Long,
+    val title: String,
+    val login: String,
+    val bucket: PasswordSecurityBucket,
+    val scorePercent: Int
 )

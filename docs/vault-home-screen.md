@@ -32,7 +32,18 @@ O `VaultHomeSummaryCard` exibe as contagens dos três grupos oficiais do app:
 - moderadas: bucket `Moderate`, com cor âmbar;
 - fortes: bucket `Safe`, com cor verde.
 
-Essas tags são apresentadas em um componente horizontalmente scrollável. Por enquanto elas são informativas e não disparam ação de clique.
+Essas tags são apresentadas em um componente horizontalmente scrollável e são clicáveis. Ao selecionar uma tag, o próprio `VaultHomeSummaryCard` deixa o modo de resumo e passa a exibir a lista de senhas daquele bucket, sem abrir uma nova tela.
+
+No modo lista, o card:
+
+- oculta o total, o ícone de escudo e as tags;
+- mostra um botão de voltar interno e o título da classificação selecionada;
+- exibe senhas sem revelar o valor da senha;
+- navega para `EditPasswordDestination` com origem `vault` ao tocar em um item;
+- mantém a classificação aberta ao retornar da edição porque o estado fica no `VaultHomeViewModel`;
+- possui estados explícitos de loading, vazio e erro para a lista selecionada.
+
+A altura da lista é limitada para evitar avançar sobre o topo do FAB quando a posição do card e do FAB já foi medida pela composição. Quando essa medição ainda não está disponível, o fallback é a altura de até 5 itens. Listas com menos itens usam altura natural e não reservam espaço vazio para cinco linhas.
 
 ### Categorias resumidas
 
@@ -83,5 +94,8 @@ Foram adicionados testes para:
 - ordenação e limite de senhas recentes;
 - estado e efeitos do `VaultHomeViewModel`;
 - callbacks visíveis da `VaultHomeScreen`;
+- seleção das tags de segurança e transformação do summary card em lista;
+- estado vazio e erro da lista por classificação;
+- navegação de item da lista de classificação para detalhes de senha;
 - queries/delegação de contagem e recentes em DAO/data source/repository;
 - rotas com origem `vault`.

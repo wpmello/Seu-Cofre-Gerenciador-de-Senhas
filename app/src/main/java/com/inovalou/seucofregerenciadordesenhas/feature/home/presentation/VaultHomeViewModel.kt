@@ -7,42 +7,100 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordL
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.model.VaultHome
 import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.model.VaultHomePassword
+import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.model.VaultHomeSecurityPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.usecase.ObserveVaultHomeUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.usecase.ObserveVaultHomeSecurityPasswordsUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class VaultHomeViewModel @Inject constructor(
     observeVaultHomeUseCase: ObserveVaultHomeUseCase,
+    observeVaultHomeSecurityPasswordsUseCase: ObserveVaultHomeSecurityPasswordsUseCase,
     private val categoryIconCatalog: CategoryIconCatalog
 ) : ViewModel() {
 
-    val uiState: StateFlow<VaultHomeUiState> = observeVaultHomeUseCase()
-        .map { home -> home.toUiState() }
-        .catch {
-            emit(
-                VaultHomeUiState(
-                    contentState = VaultHomeContentState.Error(
-                        messageResId = R.string.vault_home_load_error
-                    )
-                )
-            )
+    private val selectedSecurityFilter = MutableStateFlow<VaultHomeSecurityFilter?>(null)
+
+    private val summaryCardState: StateFlow<VaultHomeSummaryCardState> = selectedSecurityFilter
+        .flatMapLatest { filter ->
+            if (filter == null) {
+                flowOf(VaultHomeSummaryCardState.Overview)
+            } else {
+                observeVaultHomeSecurityPasswordsUseCase(filter.bucket)
+                    .map<List<VaultHomeSecurityPassword>, VaultHomeSummaryCardState> { passwords ->
+                        if (passwords.isEmpty()) {
+                            VaultHomeSummaryCardState.Empty(filter)
+                        } else {
+                            VaultHomeSummaryCardState.Content(
+                                filter = filter,
+                                passwords = passwords.map { password -> password.toUiModel() }
+                            )
+                        }
+                    }
+                    .onStart {
+                        emit(VaultHomeSummaryCardState.Loading(filter))
+                    }
+                    .catch {
+                        emit(
+                            VaultHomeSummaryCardState.Error(
+                                filter = filter,
+                                messageResId = R.string.vault_home_summary_passwords_error
+                            )
+                        )
+                    }
+            }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = VaultHomeUiState()
+            initialValue = VaultHomeSummaryCardState.Overview
         )
+
+    val uiState: StateFlow<VaultHomeUiState> = combine(
+        observeVaultHomeUseCase()
+            .map<VaultHome, VaultHomeLoadState> { home -> VaultHomeLoadState.Loaded(home) }
+            .catch {
+                emit(
+                    VaultHomeLoadState.Error(
+                        messageResId = R.string.vault_home_load_error
+                    )
+                )
+            },
+        summaryCardState
+    ) { homeState, summaryCardState ->
+        when (homeState) {
+            is VaultHomeLoadState.Loaded -> homeState.home.toUiState(summaryCardState)
+            is VaultHomeLoadState.Error -> VaultHomeUiState(
+                contentState = VaultHomeContentState.Error(
+                    messageResId = homeState.messageResId
+                )
+            )
+        }
+    }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = VaultHomeUiState()
+    )
 
     private val _effects = MutableSharedFlow<VaultHomeEffect>()
     val effects: SharedFlow<VaultHomeEffect> = _effects.asSharedFlow()
@@ -50,6 +108,15 @@ class VaultHomeViewModel @Inject constructor(
     fun onAction(action: VaultHomeAction) {
         when (action) {
             VaultHomeAction.OnSearchClick -> Unit
+            is VaultHomeAction.OnSecuritySummaryTagClick -> {
+                selectedSecurityFilter.value = action.filter
+            }
+            VaultHomeAction.OnSecuritySummaryBackClick -> {
+                selectedSecurityFilter.value = null
+            }
+            is VaultHomeAction.OnSecuritySummaryPasswordClick -> emitEffect(
+                VaultHomeEffect.NavigateToPasswordDetails(action.passwordId)
+            )
             is VaultHomeAction.OnCategoryClick -> emitEffect(
                 VaultHomeEffect.NavigateToCategoryDetails(action.categoryId)
             )
@@ -68,7 +135,7 @@ class VaultHomeViewModel @Inject constructor(
         }
     }
 
-    private fun VaultHome.toUiState(): VaultHomeUiState {
+    private fun VaultHome.toUiState(summaryCardState: VaultHomeSummaryCardState): VaultHomeUiState {
         val contentState = if (
             totalPasswords == 0 &&
             categories.isEmpty() &&
@@ -95,9 +162,15 @@ class VaultHomeViewModel @Inject constructor(
             },
             showOtherCategories = showOtherCategories,
             recentPasswords = recentPasswords.map { password -> password.toUiModel() },
+            summaryCardState = summaryCardState,
             contentState = contentState
         )
     }
+}
+
+private sealed interface VaultHomeLoadState {
+    data class Loaded(val home: VaultHome) : VaultHomeLoadState
+    data class Error(@androidx.annotation.StringRes val messageResId: Int) : VaultHomeLoadState
 }
 
 private fun VaultHomePassword.toUiModel(): VaultHomeRecentPasswordUiModel =
@@ -107,6 +180,17 @@ private fun VaultHomePassword.toUiModel(): VaultHomeRecentPasswordUiModel =
         supportingText = login,
         initials = title.toInitials(),
         securityLevel = securityRiskLevel.toVaultPasswordListSecurityLevel()
+    )
+
+private fun VaultHomeSecurityPassword.toUiModel(): VaultHomeSummaryPasswordUiModel =
+    VaultHomeSummaryPasswordUiModel(
+        id = id,
+        title = title,
+        supportingText = login,
+        initials = title.toInitials(),
+        bucket = bucket,
+        securityLevel = bucket.toVaultPasswordListSecurityLevel(),
+        scorePercent = scorePercent
     )
 
 private fun String.toInitials(): String {
@@ -133,4 +217,11 @@ private fun PasswordSecurityRiskLevel.toVaultPasswordListSecurityLevel(): VaultP
         PasswordSecurityRiskLevel.High -> VaultPasswordListSecurityLevel.Weak
         PasswordSecurityRiskLevel.Medium -> VaultPasswordListSecurityLevel.Moderate
         PasswordSecurityRiskLevel.Low -> VaultPasswordListSecurityLevel.Safe
+    }
+
+private fun PasswordSecurityBucket.toVaultPasswordListSecurityLevel(): VaultPasswordListSecurityLevel =
+    when (this) {
+        PasswordSecurityBucket.Weak -> VaultPasswordListSecurityLevel.Weak
+        PasswordSecurityBucket.Moderate -> VaultPasswordListSecurityLevel.Moderate
+        PasswordSecurityBucket.Safe -> VaultPasswordListSecurityLevel.Safe
     }
