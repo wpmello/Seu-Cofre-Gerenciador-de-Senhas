@@ -157,6 +157,36 @@ class PasswordDaoTest {
     }
 
     @Test
+    fun givenSearchPattern_whenObservingPasswordSearchResults_thenReturnsTitleMatchesOnly() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (1, 'Banco Digital', 'user@email.com', 'Financeiro', NULL, 'cipher-a', 'iv-a', 1, 'ic_bank', NULL, 100, 200)
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (2, 'GitHub', 'banco@empresa.com', 'Work', NULL, 'cipher-b', 'iv-b', 1, 'ic_code', NULL, 300, 400)
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (3, 'banco reserva', 'admin@email.com', 'Financeiro', NULL, 'cipher-c', 'iv-c', 1, '', NULL, 500, 600)
+            """.trimIndent()
+        )
+
+        val passwords = passwordDao.observePasswordSearchResults("%banco%").first()
+
+        assertEquals(listOf("Banco Digital", "banco reserva"), passwords.map { it.title })
+        assertEquals(listOf("ic_bank", ""), passwords.map { it.iconKey })
+    }
+
+    @Test
     fun givenMatchingFingerprints_whenCountingDuplicates_thenIgnoresExcludedPassword() = runTest {
         database.openHelper.writableDatabase.execSQL(
             """

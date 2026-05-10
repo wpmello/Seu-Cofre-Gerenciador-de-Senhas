@@ -45,4 +45,15 @@ class EditPasswordDestinationTest {
             )
         )
     }
+
+    @Test
+    fun givenGlobalSearchOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "passwords/25/edit?openedFrom=global_search",
+            EditPasswordDestination.createRoute(
+                passwordId = 25L,
+                openedFrom = EditPasswordOpenedFrom.GlobalSearch
+            )
+        )
+    }
 }

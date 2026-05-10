@@ -28,6 +28,17 @@ class EditCategoryRouteTest {
     }
 
     @Test
+    fun givenGlobalSearchOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "categories/9/edit?openedFrom=global_search",
+            EditCategoryRoute.createRoute(
+                categoryId = 9L,
+                openedFrom = EditCategoryOpenedFrom.GlobalSearch
+            )
+        )
+    }
+
+    @Test
     fun givenNoOriginOverride_whenCreatingRoute_thenDefaultsToCategoriesOrigin() {
         assertEquals(
             "categories/9/edit?openedFrom=categories",

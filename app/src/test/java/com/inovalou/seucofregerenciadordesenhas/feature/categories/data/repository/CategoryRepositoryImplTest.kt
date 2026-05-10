@@ -62,6 +62,39 @@ class CategoryRepositoryImplTest {
     }
 
     @Test
+    fun givenSearchQuery_whenObservingMatchingCategories_thenDelegatesAndMapsResults() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(
+            initialCategories = emptyList(),
+            searchCategories = listOf(
+                CategoryEntity(
+                    id = 61L,
+                    name = "Banco",
+                    iconKey = "ic_padlock",
+                    itemCount = 2,
+                    lastModifiedAt = 61L
+                )
+            )
+        )
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
+
+        val observed = repository.observeCategoriesMatchingQuery("ban").first()
+
+        assertEquals("ban", localDataSource.lastSearchQuery)
+        assertEquals(
+            listOf(
+                Category(
+                    id = 61L,
+                    name = "Banco",
+                    iconKey = "ic_padlock",
+                    itemCount = 2,
+                    lastModifiedAt = 61L
+                )
+            ),
+            observed
+        )
+    }
+
+    @Test
     fun givenValidInput_whenCreatingCategory_thenPersistsNameAndIconKeyWithZeroItems() = runTest {
         val localDataSource = FakeCategoriesLocalDataSource(emptyList())
         val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
@@ -199,15 +232,18 @@ class CategoryRepositoryImplTest {
 
     private class FakeCategoriesLocalDataSource(
         initialCategories: List<CategoryEntity>,
-        private val categoryById: CategoryEntity? = null
+        private val categoryById: CategoryEntity? = null,
+        private val searchCategories: List<CategoryEntity> = emptyList()
     ) : CategoriesLocalDataSource {
 
         private val categoriesFlow = MutableStateFlow(initialCategories)
+        private val searchCategoriesFlow = MutableStateFlow(searchCategories)
         var insertedCategory: CategoryEntity? = null
         var updatedCategory: CategoryEntity? = null
         var touchedCategoryId: Long? = null
         var touchedLastModifiedAt: Long? = null
         var deletedCategoryId: Long? = null
+        var lastSearchQuery: String? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
             insertedCategory = category
@@ -230,6 +266,11 @@ class CategoryRepositoryImplTest {
         }
 
         override fun observeCategories(): Flow<List<CategoryEntity>> = categoriesFlow
+
+        override fun observeCategoriesMatchingQuery(query: String): Flow<List<CategoryEntity>> {
+            lastSearchQuery = query
+            return searchCategoriesFlow
+        }
 
         fun emit(categories: List<CategoryEntity>) {
             categoriesFlow.value = categories

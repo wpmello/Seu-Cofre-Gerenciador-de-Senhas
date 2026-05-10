@@ -2,11 +2,13 @@ package com.inovalou.seucofregerenciadordesenhas.feature.settings.presentation
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppLanguage
@@ -36,12 +38,41 @@ class SettingsScreenTest {
         }
 
         composeRule.onNodeWithTag("settings_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_top_bar").assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.settings_title)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.settings_user_name_fallback)).assertIsDisplayed()
         composeRule.onNodeWithTag("settings_user_card").assertIsDisplayed()
         composeRule.onNodeWithTag("settings_crypto_card").assertIsDisplayed()
         composeRule.onAllNodesWithTag("settings_item").assertCountEquals(3)
         composeRule.onAllNodesWithTag("settings_logout_button").assertCountEquals(0)
+    }
+
+    @Test
+    fun givenScrollableSettingsContent_whenScrolledDown_thenKeepsHeaderVisible() {
+        val repeatedItems = (1..12).map { index ->
+            SettingsItemUiModel(
+                kind = SettingsItemKind.Language,
+                titleResId = R.string.settings_language_title,
+                subtitleResId = R.string.settings_language_subtitle,
+                trailingLabelResId = R.string.settings_language_portuguese,
+                icon = if (index % 2 == 0) SettingsItemIcon.Palette else SettingsItemIcon.Password
+            )
+        }
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                SettingsScreen(
+                    uiState = SettingsUiState.content().copy(items = repeatedItems),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("settings_content")
+            .performScrollToNode(hasTestTag("settings_crypto_card"))
+
+        composeRule.onNodeWithTag("settings_top_bar").assertIsDisplayed()
     }
 
     @Test

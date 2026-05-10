@@ -2,12 +2,14 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -49,10 +51,42 @@ class PasswordsScreenTest {
         }
 
         composeRule.onNodeWithTag("passwords_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("passwords_top_bar").assertIsDisplayed()
         composeRule.onNodeWithTag("passwords_search_input").assertIsDisplayed()
         composeRule.onNodeWithTag("passwords_list").assertIsDisplayed()
         composeRule.onNodeWithTag("passwords_create_fab").assertIsDisplayed()
         composeRule.onNodeWithText("Gerencie sua 1 credencial segura").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenLongPasswordList_whenScrolledDown_thenKeepsHeaderVisible() {
+        val passwords = (1L..30L).map { id ->
+            PasswordListItemUiModel(
+                id = id,
+                title = "App $id",
+                supportingText = "user$id@email.com",
+                initials = "A"
+            )
+        }
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                PasswordsScreen(
+                    uiState = PasswordsUiState(
+                        filteredPasswords = passwords,
+                        totalPasswords = passwords.size,
+                        contentState = PasswordsContentState.Content
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("passwords_list")
+            .performScrollToNode(hasTestTag("password_item_30"))
+
+        composeRule.onNodeWithTag("passwords_top_bar").assertIsDisplayed()
     }
 
     @Test

@@ -104,6 +104,32 @@ class CategoryDaoTest {
     }
 
     @Test
+    fun givenSearchPattern_whenObservingMatchingCategories_thenReturnsNameMatchesWithPasswordCount() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (1, 'Banco', 'ic_padlock', 0, 10)"
+        )
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (2, 'Bancos digitais', 'ic_cloud', 0, 20)"
+        )
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (3, 'Trabalho', 'ic_work_bag', 0, 30)"
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key
+            ) VALUES (30, 'Conta principal', 'bank@email.com', '', 1, 'cipher-a', 'iv-a', 1, '')
+            """.trimIndent()
+        )
+
+        val categories = categoryDao.observeCategoriesMatchingQuery("%banco%").first()
+
+        assertEquals(listOf("Banco", "Bancos digitais"), categories.map { it.name })
+        assertEquals(listOf(1, 0), categories.map { it.itemCount })
+        assertEquals(listOf("ic_padlock", "ic_cloud"), categories.map { it.iconKey })
+    }
+
+    @Test
     fun givenPersistedCategory_whenUpdating_thenPersistsNewNameAndIconKey() = runTest {
         database.openHelper.writableDatabase.execSQL(
             "INSERT INTO categories(id, name, icon_key, item_count, last_modified_at) VALUES (11, 'Trabalho', 'ic_work_bag', 3, 110)"
