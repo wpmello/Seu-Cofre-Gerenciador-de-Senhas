@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repos
 
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 interface CategoryRepository {
 
@@ -19,4 +20,11 @@ interface CategoryRepository {
     suspend fun deleteCategoryById(categoryId: Long)
 
     fun observeCategories(): Flow<List<Category>>
+
+    fun observeCategoriesMatchingQuery(query: String): Flow<List<Category>> =
+        observeCategories().map { categories ->
+            categories.filter { category ->
+                category.name.contains(query.trim(), ignoreCase = true)
+            }
+        }
 }

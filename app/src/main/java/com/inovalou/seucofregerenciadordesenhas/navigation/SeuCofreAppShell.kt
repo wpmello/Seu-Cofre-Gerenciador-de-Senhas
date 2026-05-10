@@ -33,7 +33,12 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.n
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.search.presentation.GlobalSearchRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.settings.presentation.SettingsRoute
+
+private object GlobalSearchDestination {
+    const val route = "global-search"
+}
 
 @Composable
 fun SeuCofreAppShell(modifier: Modifier = Modifier) {
@@ -99,6 +104,11 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                     },
                     onAddPassword = {
                         navController.navigate(NewPasswordDestination.route)
+                    },
+                    onOpenGlobalSearch = {
+                        navController.navigate(GlobalSearchDestination.route) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -109,6 +119,11 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                     },
                     onAddPassword = {
                         navController.navigate(NewPasswordDestination.route)
+                    },
+                    onOpenGlobalSearch = {
+                        navController.navigate(GlobalSearchDestination.route) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -158,6 +173,10 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                                     inclusive = false
                                 )
                             }
+
+                            EditPasswordOpenedFrom.GlobalSearch -> {
+                                navController.popBackStack()
+                            }
                         }
                     }
                 )
@@ -179,6 +198,11 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                     },
                     onSecuritySummaryClick = {
                         navController.navigate(SecurityDetailsDestination.route)
+                    },
+                    onOpenGlobalSearch = {
+                        navController.navigate(GlobalSearchDestination.route) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -283,6 +307,10 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                                     inclusive = false
                                 )
                             }
+
+                            EditCategoryOpenedFrom.GlobalSearch -> {
+                                navController.popBackStack()
+                            }
                         }
                     },
                     onNavigateToCategories = {
@@ -302,7 +330,46 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 )
             }
             composable(AppBottomDestination.Settings.route) {
-                SettingsRoute()
+                SettingsRoute(
+                    onOpenGlobalSearch = {
+                        navController.navigate(GlobalSearchDestination.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+            composable(GlobalSearchDestination.route) {
+                GlobalSearchRoute(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onOpenCategory = { categoryId ->
+                        navController.navigate(
+                            EditCategoryRoute.createRoute(
+                                categoryId = categoryId,
+                                openedFrom = EditCategoryOpenedFrom.GlobalSearch
+                            )
+                        ) {
+                            popUpTo(GlobalSearchDestination.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                    onOpenPassword = { passwordId ->
+                        navController.navigate(
+                            EditPasswordDestination.createRoute(
+                                passwordId = passwordId,
+                                openedFrom = EditPasswordOpenedFrom.GlobalSearch
+                            )
+                        ) {
+                            popUpTo(GlobalSearchDestination.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
         }
     }

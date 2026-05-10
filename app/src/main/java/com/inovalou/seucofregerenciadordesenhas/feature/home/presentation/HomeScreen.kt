@@ -55,12 +55,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultFloatingTopBar
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListColumn
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItem
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
-import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
@@ -71,6 +71,7 @@ fun VaultHomeRoute(
     onOpenPasswords: () -> Unit,
     onOpenPassword: (Long) -> Unit,
     onAddPassword: () -> Unit,
+    onOpenGlobalSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: VaultHomeViewModel = hiltViewModel()
 ) {
@@ -91,6 +92,7 @@ fun VaultHomeRoute(
     VaultHomeScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
+        onOpenGlobalSearch = onOpenGlobalSearch,
         modifier = modifier
     )
 }
@@ -99,6 +101,7 @@ fun VaultHomeRoute(
 fun VaultHomeScreen(
     uiState: VaultHomeUiState,
     onAction: (VaultHomeAction) -> Unit,
+    onOpenGlobalSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
@@ -126,23 +129,17 @@ fun VaultHomeScreen(
                 .testTag("vault_home_screen")
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("vault_home_content"),
                 contentPadding = PaddingValues(
                     start = 24.dp,
-                    top = 16.dp,
+                    top = VaultHomeContentTopPadding,
                     end = 24.dp,
                     bottom = 112.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
-                item {
-                    VaultTopBar(
-                        searchContentDescriptionResId = R.string.categories_search,
-                        onSearchClick = { onAction(VaultHomeAction.OnSearchClick) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
                 when (val contentState = uiState.contentState) {
                     VaultHomeContentState.Loading -> {
                         item {
@@ -190,6 +187,13 @@ fun VaultHomeScreen(
                     }
                 }
             }
+
+            VaultFloatingTopBar(
+                searchContentDescriptionResId = R.string.categories_search,
+                onSearchClick = onOpenGlobalSearch,
+                testTag = "vault_home_top_bar",
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
 
             VaultGradientFab(
                 contentDescription = stringResource(R.string.passwords_create_fab),
@@ -648,6 +652,7 @@ private data class VaultHomeSecuritySummaryTagUiModel(
 )
 
 private val VaultHomeSummaryListPadding = 24.dp
+private val VaultHomeContentTopPadding = 88.dp
 private val VaultHomeSummaryListChromeHeight = 100.dp
 private val VaultHomeSummaryListFabClearance = 16.dp
 private val VaultHomeSummaryLoadingHeight = 160.dp

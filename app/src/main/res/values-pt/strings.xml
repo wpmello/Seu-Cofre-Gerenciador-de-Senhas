@@ -101,6 +101,15 @@
     <string name="passwords_create_fab">Adicionar senha</string>
     <string name="passwords_strength_weak_flag">FRACA</string>
     <string name="passwords_strength_moderate_flag">MODERADA</string>
+    <string name="global_search_title">Pesquisar</string>
+    <string name="global_search_back">Voltar</string>
+    <string name="global_search_placeholder">Buscar categorias e senhas...</string>
+    <string name="global_search_initial_title">Digite para pesquisar</string>
+    <string name="global_search_initial_message">Encontre categorias e senhas pelo nome.</string>
+    <string name="global_search_empty_title">Nada encontrado</string>
+    <string name="global_search_empty_message">Tente buscar por outro nome de categoria ou senha.</string>
+    <string name="global_search_error_title">Busca indisponível</string>
+    <string name="global_search_load_error">Não foi possível carregar os resultados da busca.</string>
     <string name="new_password_back">Voltar</string>
     <string name="new_password_title">Nova Senha</string>
     <string name="new_password_description">Proteja sua identidade digital com criptografia de nível militar.</string>

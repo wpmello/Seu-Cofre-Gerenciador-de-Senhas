@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.reposi
 
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSearchResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +25,19 @@ interface PasswordRepository {
         }
 
     fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> = flowOf(emptyList())
+
+    fun observePasswordSearchResults(query: String): Flow<List<PasswordSearchResult>> =
+        observePasswords().map { passwords ->
+            passwords
+                .filter { password -> password.title.contains(query.trim(), ignoreCase = true) }
+                .map { password ->
+                    PasswordSearchResult(
+                        id = password.id,
+                        title = password.title,
+                        iconKey = ""
+                    )
+                }
+        }
 
     suspend fun getPasswordCount(): Int
 

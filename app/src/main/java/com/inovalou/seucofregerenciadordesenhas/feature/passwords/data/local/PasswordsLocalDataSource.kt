@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.local
 
+import com.inovalou.seucofregerenciadordesenhas.core.database.toSqlLikeContainsPattern
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -17,6 +18,19 @@ interface PasswordsLocalDataSource {
     fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> =
         observePasswords().map { passwords ->
             passwords.sortedByMostRecentChange().take(limit)
+        }
+
+    fun observePasswordSearchResults(query: String): Flow<List<PasswordSearchResultEntity>> =
+        observePasswords().map { passwords ->
+            passwords
+                .filter { password -> password.title.contains(query.trim(), ignoreCase = true) }
+                .map { password ->
+                    PasswordSearchResultEntity(
+                        id = password.id,
+                        title = password.title,
+                        iconKey = password.iconKey
+                    )
+                }
         }
 
     suspend fun createPassword(password: PasswordEntity): Long
@@ -50,6 +64,9 @@ class RoomPasswordsLocalDataSource @Inject constructor(
 
     override fun observeRecentPasswords(limit: Int): Flow<List<PasswordEntity>> =
         passwordDao.observeRecentPasswords(limit)
+
+    override fun observePasswordSearchResults(query: String): Flow<List<PasswordSearchResultEntity>> =
+        passwordDao.observePasswordSearchResults(query.toSqlLikeContainsPattern())
 
     override suspend fun createPassword(password: PasswordEntity): Long = passwordDao.insert(password)
 

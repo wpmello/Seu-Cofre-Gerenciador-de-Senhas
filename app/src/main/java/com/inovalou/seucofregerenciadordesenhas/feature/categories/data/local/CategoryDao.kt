@@ -60,4 +60,21 @@ interface CategoryDao {
         """
     )
     fun observeCategories(): Flow<List<CategoryEntity>>
+
+    @Query(
+        """
+        SELECT
+            categories.id,
+            categories.name,
+            categories.icon_key,
+            COUNT(passwords.id) AS item_count,
+            categories.last_modified_at
+        FROM categories
+        LEFT JOIN passwords ON passwords.category_id = categories.id
+        WHERE categories.name LIKE :searchPattern ESCAPE '\'
+        GROUP BY categories.id
+        ORDER BY categories.name COLLATE NOCASE ASC
+        """
+    )
+    fun observeCategoriesMatchingQuery(searchPattern: String): Flow<List<CategoryEntity>>
 }

@@ -1,6 +1,8 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.data.local
 
+import com.inovalou.seucofregerenciadordesenhas.core.database.toSqlLikeContainsPattern
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface CategoriesLocalDataSource {
@@ -16,6 +18,13 @@ interface CategoriesLocalDataSource {
     suspend fun deleteCategoryById(categoryId: Long)
 
     fun observeCategories(): Flow<List<CategoryEntity>>
+
+    fun observeCategoriesMatchingQuery(query: String): Flow<List<CategoryEntity>> =
+        observeCategories().map { categories ->
+            categories.filter { category ->
+                category.name.contains(query.trim(), ignoreCase = true)
+            }
+        }
 }
 
 class RoomCategoriesLocalDataSource @Inject constructor(
@@ -41,4 +50,7 @@ class RoomCategoriesLocalDataSource @Inject constructor(
     }
 
     override fun observeCategories(): Flow<List<CategoryEntity>> = categoryDao.observeCategories()
+
+    override fun observeCategoriesMatchingQuery(query: String): Flow<List<CategoryEntity>> =
+        categoryDao.observeCategoriesMatchingQuery(query.toSqlLikeContainsPattern())
 }

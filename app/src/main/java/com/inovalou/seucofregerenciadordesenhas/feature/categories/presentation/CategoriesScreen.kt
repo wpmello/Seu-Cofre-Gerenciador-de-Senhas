@@ -46,11 +46,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultEncryptedIndicator
-import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultTopBar
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultFloatingTopBar
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryCreateFab
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryGridCard
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
+
+private val CategoriesContentTopPadding = 72.dp
 
 @Composable
 fun CategoriesRoute(
@@ -58,6 +60,7 @@ fun CategoriesRoute(
     onViewAllClick: () -> Unit,
     onAddCategoryClick: () -> Unit,
     onSecuritySummaryClick: () -> Unit,
+    onOpenGlobalSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoriesViewModel = hiltViewModel()
 ) {
@@ -70,6 +73,7 @@ fun CategoriesRoute(
         onViewAllClick = onViewAllClick,
         onAddCategoryClick = onAddCategoryClick,
         onSecuritySummaryClick = onSecuritySummaryClick,
+        onOpenGlobalSearch = onOpenGlobalSearch,
         modifier = modifier
     )
 }
@@ -82,6 +86,7 @@ fun CategoriesScreen(
     onViewAllClick: () -> Unit,
     onAddCategoryClick: () -> Unit,
     onSecuritySummaryClick: () -> Unit,
+    onOpenGlobalSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
@@ -98,22 +103,18 @@ fun CategoriesScreen(
         ) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("categories_grid"),
                 contentPadding = PaddingValues(
                     start = 24.dp,
-                    top = 16.dp,
+                    top = CategoriesContentTopPadding,
                     end = 24.dp,
                     bottom = 140.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    CategoriesHeader(
-                        onSearchClick = { onAction(CategoriesAction.OnSearchClick) }
-                    )
-                }
-
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     SecuritySummaryCard(
                         summary = uiState.securitySummary,
@@ -191,6 +192,13 @@ fun CategoriesScreen(
                 }
             }
 
+            VaultFloatingTopBar(
+                searchContentDescriptionResId = R.string.categories_search,
+                onSearchClick = onOpenGlobalSearch,
+                testTag = "categories_top_bar",
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
             CategoryCreateFab(
                 contentDescription = stringResource(R.string.categories_create_fab),
                 onClick = onAddCategoryClick,
@@ -201,18 +209,6 @@ fun CategoriesScreen(
             )
         }
     }
-}
-
-@Composable
-private fun CategoriesHeader(
-    onSearchClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    VaultTopBar(
-        searchContentDescriptionResId = R.string.categories_search,
-        onSearchClick = onSearchClick,
-        modifier = modifier.fillMaxWidth()
-    )
 }
 
 @Composable
