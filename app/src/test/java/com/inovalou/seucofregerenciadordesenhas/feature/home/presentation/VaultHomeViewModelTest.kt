@@ -8,8 +8,10 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.reposi
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
 import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.usecase.ObserveVaultHomeUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.usecase.ObserveVaultHomeSecurityPasswordsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
@@ -155,6 +157,111 @@ class VaultHomeViewModelTest {
     }
 
     @Test
+    fun givenSecurityTagClicked_whenListLoads_thenShowsSelectedBucketPasswords() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                passwordSummary(1L, "Weak", createdAt = 10L, updatedAt = 10L),
+                passwordSummary(2L, "Safe", createdAt = 20L, updatedAt = 20L)
+            ),
+            snapshots = listOf(
+                PasswordSecuritySnapshot(1L, "123456", "weak"),
+                PasswordSecuritySnapshot(2L, "VeryStrongCredential!2026", "safe")
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(VaultHomeAction.OnSecuritySummaryTagClick(VaultHomeSecurityFilter.Weak))
+        advanceUntilIdle()
+
+        val summaryState = viewModel.uiState.value.summaryCardState
+        require(summaryState is VaultHomeSummaryCardState.Content)
+        assertEquals(VaultHomeSecurityFilter.Weak, summaryState.filter)
+        assertEquals(listOf("Weak"), summaryState.passwords.map { password -> password.title })
+        assertEquals(PasswordSecurityBucket.Weak, summaryState.passwords.single().bucket)
+    }
+
+    @Test
+    fun givenSecurityTagWithoutPasswords_whenListLoads_thenShowsEmptySummaryState() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                passwordSummary(1L, "Safe", createdAt = 10L, updatedAt = 10L)
+            ),
+            snapshots = listOf(
+                PasswordSecuritySnapshot(1L, "VeryStrongCredential!2026", "safe")
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(VaultHomeAction.OnSecuritySummaryTagClick(VaultHomeSecurityFilter.Moderate))
+        advanceUntilIdle()
+
+        val summaryState = viewModel.uiState.value.summaryCardState
+        require(summaryState is VaultHomeSummaryCardState.Empty)
+        assertEquals(VaultHomeSecurityFilter.Moderate, summaryState.filter)
+    }
+
+    @Test
+    fun givenSecurityListOpen_whenBackClicked_thenSummaryReturnsToOverview() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                passwordSummary(1L, "Weak", createdAt = 10L, updatedAt = 10L)
+            ),
+            snapshots = listOf(
+                PasswordSecuritySnapshot(1L, "123456", "weak")
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(VaultHomeAction.OnSecuritySummaryTagClick(VaultHomeSecurityFilter.Weak))
+        advanceUntilIdle()
+        viewModel.onAction(VaultHomeAction.OnSecuritySummaryBackClick)
+        advanceUntilIdle()
+
+        assertEquals(VaultHomeSummaryCardState.Overview, viewModel.uiState.value.summaryCardState)
+    }
+
+    @Test
+    fun givenSecuritySummaryPasswordClicked_whenActionHandled_thenEmitsPasswordDetailsNavigationEffect() = runTest {
+        val viewModel = buildViewModel()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(VaultHomeAction.OnSecuritySummaryPasswordClick(45L))
+
+        assertEquals(VaultHomeEffect.NavigateToPasswordDetails(45L), effect.await())
+    }
+
+    @Test
+    fun givenSecurityListFailure_whenTagClicked_thenKeepsHomeContentAndShowsSummaryError() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                passwordSummary(1L, "Weak", createdAt = 10L, updatedAt = 10L)
+            ),
+            snapshots = listOf(
+                PasswordSecuritySnapshot(1L, "123456", "weak")
+            ),
+            summaryPasswordRepository = FailingSecurityPasswordRepository(
+                passwords = listOf(
+                    passwordSummary(1L, "Weak", createdAt = 10L, updatedAt = 10L)
+                )
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(VaultHomeAction.OnSecuritySummaryTagClick(VaultHomeSecurityFilter.Weak))
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.contentState is VaultHomeContentState.Content)
+        val summaryState = viewModel.uiState.value.summaryCardState
+        require(summaryState is VaultHomeSummaryCardState.Error)
+        assertEquals(VaultHomeSecurityFilter.Weak, summaryState.filter)
+        assertEquals(R.string.vault_home_summary_passwords_error, summaryState.messageResId)
+    }
+
+    @Test
     fun givenViewAllClicked_whenActionHandled_thenEmitsPasswordsNavigationEffect() = runTest {
         val viewModel = buildViewModel()
         val effect = async { viewModel.effects.first() }
@@ -180,9 +287,11 @@ class VaultHomeViewModelTest {
         snapshots: List<PasswordSecuritySnapshot> = passwords.map { password ->
             PasswordSecuritySnapshot(password.id, "VeryStrongCredential!${password.id}2026", "password-${password.id}")
         },
-        categoryRepository: CategoryRepository = FakeCategoryRepository(categories)
+        categoryRepository: CategoryRepository = FakeCategoryRepository(categories),
+        summaryPasswordRepository: PasswordRepository? = null
     ): VaultHomeViewModel {
         val passwordRepository = FakePasswordRepository(passwords, snapshots)
+        val resolvedSummaryPasswordRepository = summaryPasswordRepository ?: passwordRepository
         return VaultHomeViewModel(
             observeVaultHomeUseCase = ObserveVaultHomeUseCase(
                 categoryRepository = categoryRepository,
@@ -193,6 +302,12 @@ class VaultHomeViewModelTest {
                 ),
                 observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
                     repository = passwordRepository,
+                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                )
+            ),
+            observeVaultHomeSecurityPasswordsUseCase = ObserveVaultHomeSecurityPasswordsUseCase(
+                observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
+                    repository = resolvedSummaryPasswordRepository,
                     evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
                 )
             ),
@@ -241,6 +356,29 @@ class VaultHomeViewModelTest {
 
         override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
             MutableStateFlow(snapshots)
+
+        override suspend fun getPasswordCount(): Int = passwords.size
+        override suspend fun createPassword(password: NewPassword): Long = 0L
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
+        override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
+            false
+    }
+
+    private class FailingSecurityPasswordRepository(
+        private val passwords: List<PasswordSummary>
+    ) : PasswordRepository {
+        override fun observePasswords(): Flow<List<PasswordSummary>> = MutableStateFlow(passwords)
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            MutableStateFlow(passwords)
+
+        override fun observePasswordCount(): Flow<Int> = MutableStateFlow(passwords.size)
+        override fun observeRecentPasswords(limit: Int): Flow<List<PasswordSummary>> =
+            MutableStateFlow(passwords)
+
+        override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> = flow {
+            throw IllegalStateException("summary failure")
+        }
 
         override suspend fun getPasswordCount(): Int = passwords.size
         override suspend fun createPassword(password: NewPassword): Long = 0L

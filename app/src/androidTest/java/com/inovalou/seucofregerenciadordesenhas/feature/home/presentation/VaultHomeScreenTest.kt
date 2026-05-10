@@ -213,6 +213,153 @@ class VaultHomeScreenTest {
     }
 
     @Test
+    fun givenSecuritySummaryTag_whenClicked_thenEmitsTagAction() {
+        var selectedFilter: VaultHomeSecurityFilter? = null
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(),
+                    onAction = { action ->
+                        if (action is VaultHomeAction.OnSecuritySummaryTagClick) {
+                            selectedFilter = action.filter
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("vault_home_weak_passwords").performClick()
+
+        assertEquals(VaultHomeSecurityFilter.Weak, selectedFilter)
+    }
+
+    @Test
+    fun givenSecuritySummaryList_whenRendered_thenShowsTitleListAndHidesOverviewContent() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(
+                        summaryCardState = VaultHomeSummaryCardState.Content(
+                            filter = VaultHomeSecurityFilter.Weak,
+                            passwords = listOf(
+                                VaultHomeSummaryPasswordUiModel(
+                                    id = 31L,
+                                    title = "Banco",
+                                    supportingText = "conta@email.com",
+                                    initials = "B",
+                                    bucket = VaultHomeSecurityFilter.Weak.bucket,
+                                    securityLevel = VaultPasswordListSecurityLevel.Weak,
+                                    scorePercent = 24
+                                )
+                            )
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(context.getString(R.string.security_details_tab_weak)).assertIsDisplayed()
+        composeRule.onNodeWithTag("vault_home_summary_password_list").assertIsDisplayed()
+        composeRule.onNodeWithTag("password_item_31").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("vault_home_total_passwords").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("vault_home_security_summary_tags").assertCountEquals(0)
+    }
+
+    @Test
+    fun givenSecuritySummaryListActions_whenClicked_thenEmitsBackAndPasswordActions() {
+        var didClickBack = false
+        var clickedPasswordId: Long? = null
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(
+                        summaryCardState = VaultHomeSummaryCardState.Content(
+                            filter = VaultHomeSecurityFilter.Moderate,
+                            passwords = listOf(
+                                VaultHomeSummaryPasswordUiModel(
+                                    id = 41L,
+                                    title = "Email",
+                                    supportingText = "usuario@email.com",
+                                    initials = "E",
+                                    bucket = VaultHomeSecurityFilter.Moderate.bucket,
+                                    securityLevel = VaultPasswordListSecurityLevel.Moderate,
+                                    scorePercent = 70
+                                )
+                            )
+                        )
+                    ),
+                    onAction = { action ->
+                        when (action) {
+                            VaultHomeAction.OnSecuritySummaryBackClick -> didClickBack = true
+                            is VaultHomeAction.OnSecuritySummaryPasswordClick -> {
+                                clickedPasswordId = action.passwordId
+                            }
+                            else -> Unit
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("vault_home_summary_list_back").performClick()
+        composeRule.onNodeWithTag("password_item_41").performClick()
+
+        assertTrue(didClickBack)
+        assertEquals(41L, clickedPasswordId)
+    }
+
+    @Test
+    fun givenSecuritySummaryEmptyLoadingAndErrorStates_whenRendered_thenDisplaysFallbacks() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(
+                        summaryCardState = VaultHomeSummaryCardState.Empty(
+                            filter = VaultHomeSecurityFilter.Safe
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+        composeRule.onNodeWithTag("vault_home_summary_passwords_empty").assertIsDisplayed()
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(
+                        summaryCardState = VaultHomeSummaryCardState.Loading(
+                            filter = VaultHomeSecurityFilter.Safe
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+        composeRule.onNodeWithTag("vault_home_summary_passwords_loading").assertIsDisplayed()
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(
+                        summaryCardState = VaultHomeSummaryCardState.Error(
+                            filter = VaultHomeSecurityFilter.Safe,
+                            messageResId = R.string.vault_home_summary_passwords_error
+                        )
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+        composeRule.onNodeWithTag("vault_home_summary_passwords_error").assertIsDisplayed()
+    }
+
+    @Test
     fun givenFab_whenClicked_thenEmitsAddPasswordAction() {
         var wasClicked = false
 
@@ -249,7 +396,8 @@ class VaultHomeScreenTest {
                 initials = "F",
                 securityLevel = VaultPasswordListSecurityLevel.Weak
             )
-        )
+        ),
+        summaryCardState: VaultHomeSummaryCardState = VaultHomeSummaryCardState.Overview
     ) = VaultHomeUiState(
         totalPasswords = 4,
         weakPasswords = 1,
@@ -258,6 +406,7 @@ class VaultHomeScreenTest {
         categories = categories,
         showOtherCategories = showOtherCategories,
         recentPasswords = recentPasswords,
+        summaryCardState = summaryCardState,
         contentState = VaultHomeContentState.Content
     )
 }
