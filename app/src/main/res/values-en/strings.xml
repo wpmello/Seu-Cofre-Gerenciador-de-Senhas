@@ -24,6 +24,8 @@
     <string name="vault_home_categories_empty">Saved categories will appear here.</string>
     <string name="vault_home_recent_empty">Recently created or updated passwords will appear here.</string>
     <string name="vault_home_load_error">Could not load the vault.</string>
+    <string name="vault_home_summary_passwords_empty">No passwords found in this classification.</string>
+    <string name="vault_home_summary_passwords_error">Could not load this list.</string>
     <string name="onboarding_brand">Your vault</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_existing_account">Already have an account? </string>
