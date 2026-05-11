@@ -4,14 +4,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -33,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -81,37 +80,20 @@ fun SplashScreen(
     uiState: SplashUiState,
     modifier: Modifier = Modifier
 ) {
-    val colors = MaterialTheme.vaultColors
-
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = Color.Black
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            colors.surfaceHigh,
-                            colors.surface,
-                            colors.background
-                        )
-                    )
-                )
-                .drawBehind {
-                    drawRect(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.White.copy(alpha = 0.02f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-                }
+                .background(Color.Black)
         ) {
-            DecorativeBackground()
+            StarFieldBackground(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("splash_star_field_background")
+            )
 
             Column(
                 modifier = Modifier
@@ -133,20 +115,65 @@ fun SplashScreen(
 }
 
 @Composable
-private fun BoxScope.DecorativeBackground() {
+private fun StarFieldBackground(modifier: Modifier = Modifier) {
     val colors = MaterialTheme.vaultColors
+    val dimStar = colors.textSecondary
+    val brightStar = Color.White
+    val blueStar = colors.primary
+    val purpleStar = colors.secondary
 
-    Box(
-        modifier = Modifier
-            .size(384.dp)
-            .offset(x = (-96).dp, y = (-96).dp)
-            .align(Alignment.TopStart)
-            .blur(60.dp)
-            .background(
-                color = colors.primary.copy(alpha = 0.08f),
-                shape = CircleShape
+    Canvas(modifier = modifier) {
+        drawRect(Color.Black)
+
+        val starCount = 720
+        val baseStarSize = 1.dp.toPx()
+
+        repeat(starCount) { index ->
+            val xSeed = ((index * 73 + index * index * 17) % 997) / 997f
+            val ySeed = ((index * 151 + index * index * 29) % 1543) / 1543f
+            val starSizeSeed = (index * 37) % 100
+            val starSize = when {
+                starSizeSeed > 96 -> baseStarSize * 2.2f
+                starSizeSeed > 84 -> baseStarSize * 1.45f
+                else -> baseStarSize
+            }
+            val alphaSeed = (index * 53) % 100
+            val alpha = when {
+                alphaSeed > 92 -> 0.92f
+                alphaSeed > 70 -> 0.62f
+                else -> 0.36f
+            }
+            val starColor = when {
+                index % 41 == 0 -> purpleStar
+                index % 29 == 0 -> blueStar
+                index % 7 == 0 -> brightStar
+                else -> dimStar
+            }
+
+            drawRect(
+                color = starColor.copy(alpha = alpha),
+                topLeft = Offset(
+                    x = xSeed * size.width,
+                    y = ySeed * size.height
+                ),
+                size = Size(starSize, starSize)
             )
-    )
+
+            if (index % 67 == 0) {
+                val clusterSize = baseStarSize * 0.82f
+                val clusterOrigin = Offset(
+                    x = (xSeed * size.width + baseStarSize * 4f).coerceAtMost(size.width),
+                    y = (ySeed * size.height + baseStarSize * 3f).coerceAtMost(size.height)
+                )
+
+                drawRect(
+                    color = starColor.copy(alpha = 0.42f),
+                    topLeft = clusterOrigin,
+                    size = Size(clusterSize, clusterSize)
+                )
+            }
+        }
+    }
 }
 
 @Composable

@@ -25,6 +25,7 @@ class SplashScreenTest {
         composeRule.onNodeWithText("SEU COFRE DIGITAL SEGURO").assertIsDisplayed()
         composeRule.onNodeWithText("Carregando...").assertIsDisplayed()
         composeRule.onNodeWithText("ENCRYPTED END-TO-END").assertIsDisplayed()
+        composeRule.onNodeWithTag("splash_star_field_background").assertIsDisplayed()
         composeRule.onNodeWithTag("splash_progress_indicator").assertIsDisplayed()
         composeRule.onNodeWithTag("splash_logo").assertIsDisplayed()
     }
