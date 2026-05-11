@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
@@ -219,6 +218,7 @@ private fun SecuritySummaryCard(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
+    val cardShape = RoundedCornerShape(24.dp)
     val cardBrush = when (summary.visualState) {
         SecuritySummaryVisualState.Poor -> Brush.linearGradient(
             colors = listOf(
@@ -248,27 +248,28 @@ private fun SecuritySummaryCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
+                .clip(cardShape)
                 .clickable(onClick = onClick)
                 .background(
                     brush = cardBrush,
-                    shape = RoundedCornerShape(24.dp)
+                    shape = cardShape
+                )
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.14f),
+                            Color.Transparent,
+                            colors.onAccent.copy(alpha = 0.06f)
+                        )
+                    ),
+                    shape = cardShape
                 )
                 .testTag("categories_security_summary_card")
-                .padding(horizontal = 20.dp, vertical = 28.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(120.dp)
-                    .background(
-                        color = Color.White.copy(alpha = 0.12f),
-                        shape = CircleShape
-                    )
-            )
-
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 62.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
@@ -276,7 +277,7 @@ private fun SecuritySummaryCard(
                     Text(
                         text = stringResource(summary.titleResId),
                         color = colors.onAccent.copy(alpha = 0.8f),
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 0.35.sp
@@ -285,7 +286,7 @@ private fun SecuritySummaryCard(
                     Text(
                         text = stringResource(summary.statusResId),
                         color = colors.onAccent,
-                        fontSize = 48.sp,
+                        fontSize = 40.sp,
                         lineHeight = 48.sp,
                         fontWeight = FontWeight.ExtraBold,
                         modifier = Modifier.testTag("categories_security_summary_status")
