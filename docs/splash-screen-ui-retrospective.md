@@ -16,6 +16,10 @@ Frame de referência no Figma:
 - arquivo `Seu Cofre`
 - node `1:3`
 
+Referência visual complementar aplicada depois:
+- imagem PNG de campo estrelado enviada pelo usuário
+- uso como base para o fundo da splash screen, preservando marca, progresso e fluxo de navegação existentes
+
 Implementação de referência no código:
 - [SplashScreen.kt](/workspace/app/src/main/java/com/inovalou/seucofregerenciadordesenhas/feature/splash/presentation/SplashScreen.kt)
 
@@ -71,3 +75,8 @@ Para futuras telas que reutilizarem este motivo visual:
 - consultar primeiro o frame exato do Figma, se existir;
 - usar `docs/ui-source-of-truth-figma-compose.md` e `docs/design-system-operational-source-of-truth.md` como regra operacional;
 - usar este documento como memória do caso real já resolvido no projeto.
+
+Para a splash atual:
+- manter o fundo preto estrelado como base visual;
+- gerar o campo de estrelas de forma determinística em Compose, sem depender de asset binário local;
+- preservar os elementos funcionais da splash, incluindo logo, textos, barra de progresso e callback de conclusão.

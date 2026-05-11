@@ -188,9 +188,7 @@ private fun SecurityDetailsError(contentState: SecurityDetailsContentState.Error
 @Composable
 private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
     val colors = MaterialTheme.vaultColors
-    val heroGradient = Brush.linearGradient(
-        colors = listOf(colors.primary, colors.secondary)
-    )
+    val cardShape = RoundedCornerShape(24.dp)
 
     Box(
         modifier = Modifier
@@ -199,25 +197,23 @@ private fun OverallStatusCard(uiState: SecurityDetailsUiState) {
                 brush = Brush.linearGradient(
                     colors = listOf(colors.surface, colors.surfaceHigh.copy(alpha = 0.92f))
                 ),
-                shape = RoundedCornerShape(24.dp)
+                shape = cardShape
+            )
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        colors.primary.copy(alpha = 0.08f),
+                        colors.secondary.copy(alpha = 0.20f)
+                    ),
+                    start = Offset.Zero,
+                    end = Offset(Float.POSITIVE_INFINITY, 0f)
+                ),
+                shape = cardShape
             )
             .testTag("security_details_overall_card")
             .padding(24.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(164.dp)
-                .drawBehind {
-                    drawCircle(
-                        brush = heroGradient,
-                        alpha = 0.18f,
-                        center = Offset(size.width * 0.72f, size.height * 0.2f),
-                        radius = size.maxDimension * 0.72f
-                    )
-                }
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
