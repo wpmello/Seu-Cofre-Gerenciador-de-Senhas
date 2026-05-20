@@ -43,6 +43,13 @@ class GetCategoryByIdUseCaseTest {
     private class FakeCategoryRepository(
         private val category: Category?
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 

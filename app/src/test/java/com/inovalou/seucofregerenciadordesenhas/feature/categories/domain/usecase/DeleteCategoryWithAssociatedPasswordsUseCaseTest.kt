@@ -9,30 +9,25 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class DeleteCategoryUseCaseTest {
+class DeleteCategoryWithAssociatedPasswordsUseCaseTest {
 
     @Test
-    fun givenExistingCategory_whenDeleting_thenDelegatesDeleteToRepository() = runTest {
-        val repository = FakeCategoryRepository(
-            existingCategory = Category(
-                id = 18L,
-                name = "Pessoal",
-                iconKey = "ic_directory",
-                itemCount = 0,
-                lastModifiedAt = 0L
-            )
-        )
-        val useCase = DeleteCategoryUseCase(repository)
+    fun givenExistingCategory_whenDeletingWithAssociatedPasswords_thenDelegatesTransactionalDeleteToRepository() = runTest {
+        val repository = FakeCategoryRepository(existingCategory = category(id = 18L))
+        val useCase = DeleteCategoryWithAssociatedPasswordsUseCase(repository)
 
         val result = useCase(18L)
 
         assertTrue(result is DeleteCategoryResult.Success)
-        assertEquals(18L, repository.deletedCategoryId)
+        assertEquals(18L, repository.deletedCategoryWithAssociatedPasswordsId)
+        assertEquals(null, repository.deletedCategoryId)
     }
 
     @Test
-    fun givenUnknownCategoryId_whenDeleting_thenReturnsNotFound() = runTest {
-        val useCase = DeleteCategoryUseCase(FakeCategoryRepository(existingCategory = null))
+    fun givenUnknownCategoryId_whenDeletingWithAssociatedPasswords_thenReturnsNotFound() = runTest {
+        val useCase = DeleteCategoryWithAssociatedPasswordsUseCase(
+            FakeCategoryRepository(existingCategory = null)
+        )
 
         val result = useCase(71L)
 
@@ -40,17 +35,11 @@ class DeleteCategoryUseCaseTest {
     }
 
     @Test
-    fun givenRepositoryFailure_whenDeleting_thenReturnsFailure() = runTest {
-        val useCase = DeleteCategoryUseCase(
+    fun givenRepositoryFailure_whenDeletingWithAssociatedPasswords_thenReturnsFailure() = runTest {
+        val useCase = DeleteCategoryWithAssociatedPasswordsUseCase(
             FakeCategoryRepository(
-                existingCategory = Category(
-                    id = 22L,
-                    name = "Work",
-                    iconKey = "ic_work_bag",
-                    itemCount = 5,
-                    lastModifiedAt = 0L
-                ),
-                shouldFailOnDelete = true
+                existingCategory = category(id = 22L),
+                shouldFailOnDeleteWithAssociatedPasswords = true
             )
         )
 
@@ -61,10 +50,8 @@ class DeleteCategoryUseCaseTest {
 
     private class FakeCategoryRepository(
         private val existingCategory: Category?,
-        private val shouldFailOnDelete: Boolean = false
+        private val shouldFailOnDeleteWithAssociatedPasswords: Boolean = false
     ) : CategoryRepository {
-        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
-
         override suspend fun transferPasswordsToCategory(
             sourceCategoryId: Long,
             targetCategoryId: Long
@@ -72,6 +59,7 @@ class DeleteCategoryUseCaseTest {
 
 
         var deletedCategoryId: Long? = null
+        var deletedCategoryWithAssociatedPasswordsId: Long? = null
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
@@ -82,10 +70,24 @@ class DeleteCategoryUseCaseTest {
         override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) {
-            if (shouldFailOnDelete) error("delete failure")
             deletedCategoryId = categoryId
+        }
+
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) {
+            if (shouldFailOnDeleteWithAssociatedPasswords) error("delete with associated failure")
+            deletedCategoryWithAssociatedPasswordsId = categoryId
         }
 
         override fun observeCategories(): Flow<List<Category>> = emptyFlow()
     }
 }
+
+private fun category(
+    id: Long
+) = Category(
+    id = id,
+    name = "Pessoal",
+    iconKey = "ic_directory",
+    itemCount = 0,
+    lastModifiedAt = 0L
+)

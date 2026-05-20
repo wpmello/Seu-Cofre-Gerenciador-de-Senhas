@@ -43,6 +43,7 @@ class GeneratePasswordTitleUseCaseTest {
         private val passwordCount: Int
     ) : PasswordRepository {
 
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =

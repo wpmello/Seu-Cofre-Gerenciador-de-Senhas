@@ -195,6 +195,28 @@ class CategoryRepositoryImplTest {
     }
 
     @Test
+    fun givenCategoryId_whenDeletingWithAssociatedPasswords_thenDelegatesTransactionalDeleteToLocalSource() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(emptyList())
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
+
+        repository.deleteCategoryWithAssociatedPasswords(52L)
+
+        assertEquals(52L, localDataSource.deletedCategoryWithAssociatedPasswordsId)
+    }
+
+    @Test
+    fun givenSourceAndTarget_whenTransferringPasswords_thenDelegatesBatchTransferWithTimestamp() = runTest {
+        val localDataSource = FakeCategoriesLocalDataSource(emptyList())
+        val repository = CategoryRepositoryImpl(localDataSource, timeProvider)
+
+        repository.transferPasswordsToCategory(sourceCategoryId = 9L, targetCategoryId = 10L)
+
+        assertEquals(9L, localDataSource.transferSourceCategoryId)
+        assertEquals(10L, localDataSource.transferTargetCategoryId)
+        assertEquals(123L, localDataSource.transferLastModifiedAt)
+    }
+
+    @Test
     fun givenLocalDataSourceFailure_whenObservingCategories_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("local source failure")
         val repository = CategoryRepositoryImpl(
@@ -211,6 +233,14 @@ class CategoryRepositoryImplTest {
                 ) = Unit
 
                 override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
+                override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+                override suspend fun transferPasswordsToCategory(
+                    sourceCategoryId: Long,
+                    targetCategoryId: Long,
+                    lastModifiedAt: Long
+                ) = Unit
 
                 override fun observeCategories(): Flow<List<CategoryEntity>> = flow {
                     throw expected
@@ -243,6 +273,10 @@ class CategoryRepositoryImplTest {
         var touchedCategoryId: Long? = null
         var touchedLastModifiedAt: Long? = null
         var deletedCategoryId: Long? = null
+        var deletedCategoryWithAssociatedPasswordsId: Long? = null
+        var transferSourceCategoryId: Long? = null
+        var transferTargetCategoryId: Long? = null
+        var transferLastModifiedAt: Long? = null
         var lastSearchQuery: String? = null
 
         override suspend fun insertCategory(category: CategoryEntity): Long {
@@ -263,6 +297,20 @@ class CategoryRepositoryImplTest {
 
         override suspend fun deleteCategoryById(categoryId: Long) {
             deletedCategoryId = categoryId
+        }
+
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) {
+            deletedCategoryWithAssociatedPasswordsId = categoryId
+        }
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long,
+            lastModifiedAt: Long
+        ) {
+            transferSourceCategoryId = sourceCategoryId
+            transferTargetCategoryId = targetCategoryId
+            transferLastModifiedAt = lastModifiedAt
         }
 
         override fun observeCategories(): Flow<List<CategoryEntity>> = categoriesFlow

@@ -129,6 +129,7 @@ class ObserveVaultSecuritySummaryUseCaseTest {
         snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
 
+
         private val snapshotsFlow = MutableStateFlow(snapshots)
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(emptyList())

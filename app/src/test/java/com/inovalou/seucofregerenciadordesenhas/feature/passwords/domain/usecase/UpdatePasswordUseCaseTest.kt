@@ -240,6 +240,7 @@ class UpdatePasswordUseCaseTest {
         private val shouldFailOnUpdate: Boolean = false
     ) : PasswordRepository {
 
+
         var updatedPassword: PasswordDetails? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
@@ -269,6 +270,13 @@ class UpdatePasswordUseCaseTest {
     private class FakeCategoryRepository(
         private val validCategory: Category?
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 0L
 

@@ -109,6 +109,13 @@ class VaultHomeViewModelTest {
     fun givenRepositoryFailure_whenObserved_thenEmitsErrorState() = runTest {
         val viewModel = buildViewModel(
             categoryRepository = object : CategoryRepository {
+                override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+                override suspend fun transferPasswordsToCategory(
+                    sourceCategoryId: Long,
+                    targetCategoryId: Long
+                ) = Unit
+
                 override suspend fun createCategory(name: String, iconKey: String): Long = 0L
                 override suspend fun getCategoryById(categoryId: Long): Category? = null
                 override suspend fun updateCategory(category: Category) = Unit
@@ -333,6 +340,13 @@ class VaultHomeViewModelTest {
     private class FakeCategoryRepository(
         categories: List<Category>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
         private val categoriesFlow = MutableStateFlow(categories)
         override suspend fun createCategory(name: String, iconKey: String): Long = 0L
         override suspend fun getCategoryById(categoryId: Long): Category? = null
@@ -346,6 +360,7 @@ class VaultHomeViewModelTest {
         private val passwords: List<PasswordSummary>,
         private val snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = MutableStateFlow(passwords)
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
             MutableStateFlow(passwords)
@@ -368,6 +383,7 @@ class VaultHomeViewModelTest {
     private class FailingSecurityPasswordRepository(
         private val passwords: List<PasswordSummary>
     ) : PasswordRepository {
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = MutableStateFlow(passwords)
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
             MutableStateFlow(passwords)

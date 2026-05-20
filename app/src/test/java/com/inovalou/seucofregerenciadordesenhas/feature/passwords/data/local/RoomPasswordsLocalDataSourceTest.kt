@@ -304,6 +304,9 @@ class RoomPasswordsLocalDataSourceTest {
         var lastUpdatedFingerprintPasswordId: Long? = null
         var lastUpdatedFingerprint: String? = null
         var lastSearchPattern: String? = null
+        var deletedPasswordId: Long? = null
+        var deletedPasswordsCategoryId: Long? = null
+        var updatedPasswordsCategory: Pair<Long, Long>? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
@@ -355,6 +358,15 @@ class RoomPasswordsLocalDataSourceTest {
         override suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String) {
             lastUpdatedFingerprintPasswordId = passwordId
             lastUpdatedFingerprint = passwordFingerprint
+        }
+
+
+        override suspend fun deletePasswordsByCategoryId(categoryId: Long) {
+            deletedPasswordsCategoryId = categoryId
+        }
+
+        override suspend fun updatePasswordsCategory(sourceCategoryId: Long, targetCategoryId: Long) {
+            updatedPasswordsCategory = sourceCategoryId to targetCategoryId
         }
     }
 }

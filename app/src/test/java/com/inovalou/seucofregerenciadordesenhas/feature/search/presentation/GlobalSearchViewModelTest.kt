@@ -154,6 +154,13 @@ class GlobalSearchViewModelTest {
     private class FakeCategoryRepository(
         private val categories: List<Category>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
         var lastObservedQuery: String? = null
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 0L
@@ -175,6 +182,13 @@ class GlobalSearchViewModelTest {
     }
 
     private class FailingCategoryRepository : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
         override suspend fun createCategory(name: String, iconKey: String): Long = 0L
 
         override suspend fun getCategoryById(categoryId: Long): Category? = null
@@ -195,6 +209,7 @@ class GlobalSearchViewModelTest {
     private class FakePasswordRepository(
         private val passwords: List<PasswordSearchResult>
     ) : PasswordRepository {
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =

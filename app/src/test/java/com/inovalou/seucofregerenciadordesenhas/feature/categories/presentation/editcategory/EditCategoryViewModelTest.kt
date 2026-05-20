@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
-import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.DeleteCategoryResult
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.DeleteCategoryUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.DeleteCategoryWithAssociatedPasswordsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.GetCategoryByIdUseCase
-import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.UpdateCategoryResult
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.TransferPasswordsToCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.UpdateCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
@@ -18,11 +20,13 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -40,13 +44,7 @@ class EditCategoryViewModelTest {
     @Test
     fun givenExistingCategoryId_whenViewModelLoads_thenFillsInitialStateWithPersistedValues() = runTest {
         val viewModel = buildViewModel(
-            category = Category(
-                id = 9L,
-                name = "Trabalho",
-                iconKey = "ic_work_bag_add_category",
-                itemCount = 4,
-                lastModifiedAt = 0L
-            )
+            currentCategory = category(id = 9L, name = "Trabalho", iconKey = "ic_work_bag_add_category")
         )
 
         advanceUntilIdle()
@@ -59,23 +57,11 @@ class EditCategoryViewModelTest {
     }
 
     @Test
-    fun givenAssociatedPasswords_whenViewModelLoads_thenExposesPasswordsSectionContent() = runTest {
+    fun givenAssociatedPasswords_whenViewModelLoads_thenExposesPasswordsSectionContentAndCount() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(
-                    id = 100L,
-                    title = "GitHub",
-                    login = "dev@empresa.com",
-                    categoryId = 9L,
-                    categoryName = "Trabalho"
-                ),
-                PasswordSummary(
-                    id = 101L,
-                    title = "Banco",
-                    login = "conta@banco.com",
-                    categoryId = 9L,
-                    categoryName = "Trabalho"
-                )
+                passwordSummary(id = 100L, title = "GitHub", login = "dev@empresa.com"),
+                passwordSummary(id = 101L, title = "Banco", login = "conta@banco.com")
             ),
             passwordSecuritySnapshots = listOf(
                 PasswordSecuritySnapshot(
@@ -93,40 +79,32 @@ class EditCategoryViewModelTest {
 
         advanceUntilIdle()
 
-        val state = viewModel.uiState.value.passwordsSectionState
-        assertTrue(state is CategoryPasswordsSectionUiState.Content)
-        state as CategoryPasswordsSectionUiState.Content
-        assertEquals("GitHub", state.passwords.first().title)
-        assertEquals("dev@empresa.com", state.passwords.first().supportingText)
+        val state = viewModel.uiState.value
+        assertEquals(2, state.associatedPasswordsCount)
+        assertTrue(state.passwordsSectionState is CategoryPasswordsSectionUiState.Content)
+        val passwords = (state.passwordsSectionState as CategoryPasswordsSectionUiState.Content).passwords
+        assertEquals("GitHub", passwords.first().title)
+        assertEquals("dev@empresa.com", passwords.first().supportingText)
         assertEquals(
             listOf(
                 CategoryPasswordItemSecurityLevel.Moderate,
                 CategoryPasswordItemSecurityLevel.Safe
             ),
-            state.passwords.map { password -> password.securityLevel }
+            passwords.map { password -> password.securityLevel }
         )
     }
 
     @Test
     fun givenAssociatedPasswordWithoutLogin_whenViewModelLoads_thenKeepsSupportingTextEmpty() = runTest {
         val viewModel = buildViewModel(
-            passwords = listOf(
-                PasswordSummary(
-                    id = 100L,
-                    title = "GitHub",
-                    login = "",
-                    categoryId = 9L,
-                    categoryName = "Trabalho"
-                )
-            )
+            passwords = listOf(passwordSummary(id = 100L, title = "GitHub", login = ""))
         )
 
         advanceUntilIdle()
 
         val state = viewModel.uiState.value.passwordsSectionState
         assertTrue(state is CategoryPasswordsSectionUiState.Content)
-        state as CategoryPasswordsSectionUiState.Content
-        assertEquals("", state.passwords.single().supportingText)
+        assertEquals("", (state as CategoryPasswordsSectionUiState.Content).passwords.single().supportingText)
     }
 
     @Test
@@ -206,8 +184,8 @@ class EditCategoryViewModelTest {
 
     @Test
     fun givenValidChanges_whenSaving_thenPersistsNameAndIconAndNavigatesBack() = runTest {
-        val fakeUpdateUseCase = FakeUpdateCategoryUseCase()
-        val viewModel = buildViewModel(updateCategoryUseCase = fakeUpdateUseCase)
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(categoryRepository = repository)
         advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
@@ -216,45 +194,297 @@ class EditCategoryViewModelTest {
         viewModel.onAction(EditCategoryAction.OnSaveClick)
         advanceUntilIdle()
 
-        assertEquals(9L, fakeUpdateUseCase.lastCategoryId)
-        assertEquals("Corporativo", fakeUpdateUseCase.lastName)
-        assertEquals("ic_directory", fakeUpdateUseCase.lastIconKey)
+        assertEquals(9L, repository.updatedCategory?.id)
+        assertEquals("Corporativo", repository.updatedCategory?.name)
+        assertEquals("ic_directory", repository.updatedCategory?.iconKey)
         assertEquals(EditCategoryEffect.NavigateToCategories, effect.await())
     }
 
     @Test
-    fun givenDeleteClick_whenDialogIsCancelled_thenKeepsCategoryWithoutDeleting() = runTest {
-        val fakeDeleteUseCase = FakeDeleteCategoryUseCase()
-        val viewModel = buildViewModel(deleteCategoryUseCase = fakeDeleteUseCase)
+    fun givenCategoryWithoutPasswords_whenDeleteButtonClick_thenShowsSimpleDeleteConfirmation() = runTest {
+        val viewModel = buildViewModel(passwords = emptyList())
         advanceUntilIdle()
 
-        viewModel.onAction(EditCategoryAction.OnDeleteClick)
-        assertTrue(viewModel.uiState.value.isDeleteConfirmationVisible)
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
 
-        viewModel.onAction(EditCategoryAction.OnDeleteDismissed)
-
-        assertFalse(viewModel.uiState.value.isDeleteConfirmationVisible)
-        assertEquals(null, fakeDeleteUseCase.deletedCategoryId)
+        assertEquals(
+            EditCategoryDeleteFlowState.SimpleDeleteConfirmation,
+            viewModel.uiState.value.deleteFlowState
+        )
     }
 
     @Test
-    fun givenDeleteConfirmed_whenDeletionSucceeds_thenNavigatesBack() = runTest {
-        val fakeDeleteUseCase = FakeDeleteCategoryUseCase()
-        val viewModel = buildViewModel(deleteCategoryUseCase = fakeDeleteUseCase)
+    fun givenSimpleDeleteDialog_whenCancelled_thenKeepsCategoryWithoutDeleting() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(categoryRepository = repository, passwords = emptyList())
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnDeleteDialogDismissed)
+
+        assertEquals(EditCategoryDeleteFlowState.Idle, viewModel.uiState.value.deleteFlowState)
+        assertEquals(null, repository.deletedCategoryId)
+    }
+
+    @Test
+    fun givenCategoryWithoutPasswords_whenSimpleDeleteIsConfirmed_thenDeletesCategoryAndNavigates() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(categoryRepository = repository, passwords = emptyList())
         advanceUntilIdle()
         val effect = async { viewModel.effects.first() }
 
-        viewModel.onAction(EditCategoryAction.OnDeleteClick)
-        viewModel.onAction(EditCategoryAction.OnDeleteConfirmed)
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnSimpleDeleteConfirmed)
         advanceUntilIdle()
 
-        assertEquals(9L, fakeDeleteUseCase.deletedCategoryId)
+        assertEquals(9L, repository.deletedCategoryId)
+        assertEquals(null, repository.deletedCategoryWithAssociatedPasswordsId)
         assertEquals(EditCategoryEffect.NavigateToCategories, effect.await())
+    }
+
+    @Test
+    fun givenPasswordsAppearBeforeSimpleDeleteConfirmation_whenConfirmed_thenShowsAssociatedPasswordChoice() = runTest {
+        val repository = FakeCategoryRepository()
+        val passwordRepository = FakePasswordRepository(passwords = emptyList(), snapshots = emptyList())
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwordRepository = passwordRepository
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        passwordRepository.emitPasswords(listOf(passwordSummary(id = 1L)))
+        advanceUntilIdle()
+        viewModel.onAction(EditCategoryAction.OnSimpleDeleteConfirmed)
+
+        val state = viewModel.uiState.value.deleteFlowState
+        assertTrue(state is EditCategoryDeleteFlowState.AssociatedPasswordsChoice)
+        assertEquals(1, (state as EditCategoryDeleteFlowState.AssociatedPasswordsChoice).passwordCount)
+        assertEquals(null, repository.deletedCategoryId)
+    }
+
+    @Test
+    fun givenCategoryWithPasswords_whenDeleteButtonClick_thenShowsAssociatedPasswordsChoice() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(passwordSummary(id = 1L), passwordSummary(id = 2L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+
+        val state = viewModel.uiState.value.deleteFlowState
+        assertTrue(state is EditCategoryDeleteFlowState.AssociatedPasswordsChoice)
+        assertEquals(2, (state as EditCategoryDeleteFlowState.AssociatedPasswordsChoice).passwordCount)
+    }
+
+    @Test
+    fun givenDeleteAllSelected_whenCancelled_thenReturnsToAssociatedPasswordsChoice() = runTest {
+        val viewModel = buildViewModel(passwords = listOf(passwordSummary(id = 1L)))
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnDeleteAllSelected)
+        viewModel.onAction(EditCategoryAction.OnDeleteAllCancelled)
+
+        assertTrue(viewModel.uiState.value.deleteFlowState is EditCategoryDeleteFlowState.AssociatedPasswordsChoice)
+    }
+
+    @Test
+    fun givenDeleteAllConfirmed_whenOperationSucceeds_thenDeletesPasswordsAndCategoryTransactionallyAndNavigates() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnDeleteAllSelected)
+        viewModel.onAction(EditCategoryAction.OnDeleteAllConfirmed)
+        advanceUntilIdle()
+
+        assertEquals(9L, repository.deletedCategoryWithAssociatedPasswordsId)
+        assertEquals(null, repository.deletedCategoryId)
+        assertEquals(EditCategoryEffect.NavigateToCategories, effect.await())
+    }
+
+    @Test
+    fun givenTransferSelected_whenSelectionOpens_thenCurrentCategoryIsNotAvailableAsDestination() = runTest {
+        val viewModel = buildViewModel(
+            categories = listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal")
+            ),
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+
+        val state = viewModel.uiState.value.deleteFlowState
+        assertTrue(state is EditCategoryDeleteFlowState.TransferSelection)
+        val transferSelection = state as EditCategoryDeleteFlowState.TransferSelection
+        assertEquals(listOf(10L), transferSelection.categories.map { it.id })
+        assertEquals(null, transferSelection.selectedCategoryId)
+    }
+
+    @Test
+    fun givenNoTransferDestination_whenSelectionOpens_thenExposesEmptyDestinationList() = runTest {
+        val viewModel = buildViewModel(
+            categories = listOf(category(id = 9L, name = "Trabalho")),
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+
+        val state = viewModel.uiState.value.deleteFlowState
+        assertTrue(state is EditCategoryDeleteFlowState.TransferSelection)
+        assertTrue((state as EditCategoryDeleteFlowState.TransferSelection).categories.isEmpty())
+        assertEquals(null, state.selectedCategoryId)
+    }
+
+    @Test
+    fun givenDestinationSelected_whenTransferConfirmed_thenTransfersInBatchAndAsksWhetherToDeleteOriginalCategory() = runTest {
+        val repository = FakeCategoryRepository(
+            categories = listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal")
+            )
+        )
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+        viewModel.onAction(EditCategoryAction.OnTransferCategorySelected(10L))
+        viewModel.onAction(EditCategoryAction.OnTransferConfirmed)
+        advanceUntilIdle()
+
+        assertEquals(9L to 10L, repository.transfers.single())
+        assertEquals(
+            EditCategoryDeleteFlowState.PostTransferDeleteConfirmation,
+            viewModel.uiState.value.deleteFlowState
+        )
+    }
+
+    @Test
+    fun givenTransferCompleted_whenPostTransferDeleteIsCancelled_thenKeepsOriginalCategory() = runTest {
+        val repository = FakeCategoryRepository(
+            categories = listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal")
+            )
+        )
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+        viewModel.onAction(EditCategoryAction.OnTransferCategorySelected(10L))
+        viewModel.onAction(EditCategoryAction.OnTransferConfirmed)
+        advanceUntilIdle()
+        viewModel.onAction(EditCategoryAction.OnPostTransferDeleteCancelled)
+
+        assertEquals(EditCategoryDeleteFlowState.Idle, viewModel.uiState.value.deleteFlowState)
+        assertEquals(null, repository.deletedCategoryId)
+        assertEquals(9L to 10L, repository.transfers.single())
+    }
+
+    @Test
+    fun givenTransferCompleted_whenPostTransferDeleteIsConfirmed_thenDeletesOriginalCategoryAndNavigates() = runTest {
+        val repository = FakeCategoryRepository(
+            categories = listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal")
+            )
+        )
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+        viewModel.onAction(EditCategoryAction.OnTransferCategorySelected(10L))
+        viewModel.onAction(EditCategoryAction.OnTransferConfirmed)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditCategoryAction.OnPostTransferDeleteConfirmed)
+        advanceUntilIdle()
+
+        assertEquals(9L, repository.deletedCategoryId)
+        assertEquals(EditCategoryEffect.NavigateToCategories, effect.await())
+    }
+
+    @Test
+    fun givenCriticalOperationInProgress_whenConfirmIsClickedAgain_thenDoesNotDuplicateTransfer() = runTest {
+        val transferGate = CompletableDeferred<Unit>()
+        val repository = FakeCategoryRepository(
+            categories = listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal")
+            ),
+            transferGate = transferGate
+        )
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+        viewModel.onAction(EditCategoryAction.OnTransferCategorySelected(10L))
+        viewModel.onAction(EditCategoryAction.OnTransferConfirmed)
+        advanceUntilIdle()
+        viewModel.onAction(EditCategoryAction.OnTransferConfirmed)
+
+        assertTrue(viewModel.uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation)
+        assertEquals(1, repository.transferCalls)
+
+        transferGate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(
+            EditCategoryDeleteFlowState.PostTransferDeleteConfirmation,
+            viewModel.uiState.value.deleteFlowState
+        )
+    }
+
+    @Test
+    fun givenRepositoryFailure_whenDeleteAllIsConfirmed_thenExposesErrorAndDoesNotNavigate() = runTest {
+        val repository = FakeCategoryRepository(failDeleteWithAssociatedPasswords = true)
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnDeleteAllSelected)
+        viewModel.onAction(EditCategoryAction.OnDeleteAllConfirmed)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.deleteFlowState is EditCategoryDeleteFlowState.Error)
+        assertEquals(R.string.edit_category_delete_error, state.operationErrorResId)
     }
 
     @Test
     fun givenCategoryNotFound_whenViewModelLoads_thenExposesErrorState() = runTest {
-        val viewModel = buildViewModel(category = null)
+        val viewModel = buildViewModel(currentCategory = null, categories = emptyList())
 
         advanceUntilIdle()
 
@@ -262,130 +492,96 @@ class EditCategoryViewModelTest {
         assertTrue(state.contentState is EditCategoryContentState.Error)
     }
 
-    @Test
-    fun givenUpdateFailure_whenSaving_thenExposesSubmitError() = runTest {
-        val viewModel = buildViewModel(
-            updateCategoryUseCase = FakeUpdateCategoryUseCase(
-                result = UpdateCategoryResult.Failure
-            )
-        )
-        advanceUntilIdle()
-
-        viewModel.onAction(EditCategoryAction.OnSaveClick)
-        advanceUntilIdle()
-
-        assertEquals(R.string.edit_category_update_error, viewModel.uiState.value.submitErrorResId)
-    }
-
-    @Test
-    fun givenDeleteFailure_whenDeleteIsConfirmed_thenExposesDeleteError() = runTest {
-        val viewModel = buildViewModel(
-            deleteCategoryUseCase = FakeDeleteCategoryUseCase(
-                result = DeleteCategoryResult.Failure
-            )
-        )
-        advanceUntilIdle()
-
-        viewModel.onAction(EditCategoryAction.OnDeleteClick)
-        viewModel.onAction(EditCategoryAction.OnDeleteConfirmed)
-        advanceUntilIdle()
-
-        assertEquals(R.string.edit_category_delete_error, viewModel.uiState.value.deleteErrorResId)
-        assertTrue(viewModel.uiState.value.isDeleteConfirmationVisible)
-    }
-
     private fun buildViewModel(
-        category: Category? = Category(
-            id = 9L,
-            name = "Trabalho",
-            iconKey = "ic_work_bag_add_category",
-            itemCount = 4,
-            lastModifiedAt = 0L
+        currentCategory: Category? = category(id = 9L, name = "Trabalho", iconKey = "ic_work_bag_add_category"),
+        categories: List<Category> = listOf(
+            category(id = 9L, name = "Trabalho", iconKey = "ic_work_bag_add_category"),
+            category(id = 10L, name = "Pessoal", iconKey = "ic_directory")
         ),
         passwords: List<PasswordSummary> = emptyList(),
         passwordSecuritySnapshots: List<PasswordSecuritySnapshot> = emptyList(),
         openedFrom: EditCategoryOpenedFrom = EditCategoryOpenedFrom.Categories,
-        updateCategoryUseCase: FakeUpdateCategoryUseCase = FakeUpdateCategoryUseCase(),
-        deleteCategoryUseCase: FakeDeleteCategoryUseCase = FakeDeleteCategoryUseCase()
-    ): EditCategoryViewModel = EditCategoryViewModel(
-        savedStateHandle = SavedStateHandle(
-            mapOf(
-                EditCategoryRoute.categoryIdArg to 9L,
-                EditCategoryRoute.openedFromArg to openedFrom.routeValue
-            )
+        categoryRepository: FakeCategoryRepository = FakeCategoryRepository(
+            currentCategory = currentCategory,
+            categories = categories
         ),
-        getCategoryByIdUseCase = GetCategoryByIdUseCase(FakeCategoryLookupRepository(category)),
-        observePasswordsByCategoryUseCase = ObservePasswordsByCategoryUseCase(
-            repository = FakePasswordRepository(
-                passwords = passwords,
-                snapshots = passwordSecuritySnapshots
+        passwordRepository: FakePasswordRepository = FakePasswordRepository(
+            passwords = passwords,
+            snapshots = passwordSecuritySnapshots
+        )
+    ): EditCategoryViewModel {
+        return EditCategoryViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(
+                    EditCategoryRoute.categoryIdArg to 9L,
+                    EditCategoryRoute.openedFromArg to openedFrom.routeValue
+                )
             ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
-        ),
-        updateCategoryUseCase = UpdateCategoryUseCase(updateCategoryUseCase),
-        deleteCategoryUseCase = DeleteCategoryUseCase(deleteCategoryUseCase),
-        categoryIconCatalog = FakeCategoryIconCatalog()
-    )
-
-    private class FakeCategoryLookupRepository(
-        private val category: Category?
-    ) : com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository {
-        override suspend fun createCategory(name: String, iconKey: String): Long = 1L
-        override suspend fun getCategoryById(categoryId: Long): Category? = category
-        override suspend fun updateCategory(category: Category) = Unit
-        override suspend fun touchCategory(categoryId: Long) = Unit
-        override suspend fun deleteCategoryById(categoryId: Long) = Unit
-        override fun observeCategories() = kotlinx.coroutines.flow.emptyFlow<List<Category>>()
+            getCategoryByIdUseCase = GetCategoryByIdUseCase(categoryRepository),
+            observePasswordsByCategoryUseCase = ObservePasswordsByCategoryUseCase(
+                repository = passwordRepository,
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            ),
+            updateCategoryUseCase = UpdateCategoryUseCase(categoryRepository),
+            deleteCategoryUseCase = DeleteCategoryUseCase(categoryRepository),
+            deleteCategoryWithAssociatedPasswordsUseCase = DeleteCategoryWithAssociatedPasswordsUseCase(
+                categoryRepository
+            ),
+            transferPasswordsToCategoryUseCase = TransferPasswordsToCategoryUseCase(categoryRepository),
+            categoryIconCatalog = FakeCategoryIconCatalog(),
+            observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository)
+        )
     }
 
-    private class FakeUpdateCategoryUseCase(
-        private val result: UpdateCategoryResult = UpdateCategoryResult.Success
-    ) : com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository {
+    private class FakeCategoryRepository(
+        currentCategory: Category? = category(id = 9L, name = "Trabalho", iconKey = "ic_work_bag_add_category"),
+        categories: List<Category> = listOf(
+            category(id = 9L, name = "Trabalho", iconKey = "ic_work_bag_add_category"),
+            category(id = 10L, name = "Pessoal", iconKey = "ic_directory")
+        ),
+        private val failDeleteWithAssociatedPasswords: Boolean = false,
+        private val failSimpleDelete: Boolean = false,
+        private val transferGate: CompletableDeferred<Unit>? = null
+    ) : CategoryRepository {
 
-        var lastCategoryId: Long? = null
-        var lastName: String? = null
-        var lastIconKey: String? = null
+        private val categoryById = (categories + listOfNotNull(currentCategory)).associateBy { it.id }
+        private val categoriesFlow = MutableStateFlow(categories)
+        var updatedCategory: Category? = null
+        var deletedCategoryId: Long? = null
+        var deletedCategoryWithAssociatedPasswordsId: Long? = null
+        val transfers = mutableListOf<Pair<Long, Long>>()
+        var transferCalls: Int = 0
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
-        override suspend fun getCategoryById(categoryId: Long): Category? =
-            Category(id = categoryId, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 4, lastModifiedAt = 0L)
+        override suspend fun getCategoryById(categoryId: Long): Category? = categoryById[categoryId]
 
         override suspend fun updateCategory(category: Category) {
-            lastCategoryId = category.id
-            lastName = category.name
-            lastIconKey = category.iconKey
-            if (result is UpdateCategoryResult.Failure) error("update failure")
+            updatedCategory = category
         }
-
-        override suspend fun touchCategory(categoryId: Long) = Unit
-
-        override suspend fun deleteCategoryById(categoryId: Long) = Unit
-
-        override fun observeCategories() = kotlinx.coroutines.flow.emptyFlow<List<Category>>()
-    }
-
-    private class FakeDeleteCategoryUseCase(
-        private val result: DeleteCategoryResult = DeleteCategoryResult.Success
-    ) : com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository {
-
-        var deletedCategoryId: Long? = null
-
-        override suspend fun createCategory(name: String, iconKey: String): Long = 1L
-
-        override suspend fun getCategoryById(categoryId: Long): Category? =
-            Category(id = categoryId, name = "Trabalho", iconKey = "ic_work_bag_add_category", itemCount = 4, lastModifiedAt = 0L)
-
-        override suspend fun updateCategory(category: Category) = Unit
 
         override suspend fun touchCategory(categoryId: Long) = Unit
 
         override suspend fun deleteCategoryById(categoryId: Long) {
-            if (result is DeleteCategoryResult.Failure) error("delete failure")
+            if (failSimpleDelete) error("simple delete failure")
             deletedCategoryId = categoryId
         }
 
-        override fun observeCategories() = kotlinx.coroutines.flow.emptyFlow<List<Category>>()
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) {
+            if (failDeleteWithAssociatedPasswords) error("delete with associated passwords failure")
+            deletedCategoryWithAssociatedPasswordsId = categoryId
+        }
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) {
+            transferCalls += 1
+            transferGate?.await()
+            transfers += sourceCategoryId to targetCategoryId
+        }
+
+        override fun observeCategories(): Flow<List<Category>> = categoriesFlow
     }
 
     private class FakeCategoryIconCatalog : CategoryIconCatalog {
@@ -408,6 +604,7 @@ class EditCategoryViewModelTest {
         private val snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
 
+
         private val passwordsFlow = MutableStateFlow(passwords)
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = passwordsFlow
@@ -416,7 +613,7 @@ class EditCategoryViewModelTest {
             passwordsFlow
 
         override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
-            kotlinx.coroutines.flow.flowOf(snapshots)
+            flowOf(snapshots)
 
         override suspend fun getPasswordCount(): Int = passwordsFlow.value.size
 
@@ -430,5 +627,35 @@ class EditCategoryViewModelTest {
             password: String,
             excludePasswordId: Long?
         ): Boolean = false
+
+        fun emitPasswords(passwords: List<PasswordSummary>) {
+            passwordsFlow.value = passwords
+        }
     }
 }
+
+private fun category(
+    id: Long,
+    name: String,
+    iconKey: String = "ic_directory",
+    itemCount: Int = 0,
+    lastModifiedAt: Long = 0L
+) = Category(
+    id = id,
+    name = name,
+    iconKey = iconKey,
+    itemCount = itemCount,
+    lastModifiedAt = lastModifiedAt
+)
+
+private fun passwordSummary(
+    id: Long,
+    title: String = "GitHub",
+    login: String = "dev@empresa.com"
+) = PasswordSummary(
+    id = id,
+    title = title,
+    login = login,
+    categoryId = 9L,
+    categoryName = "Trabalho"
+)

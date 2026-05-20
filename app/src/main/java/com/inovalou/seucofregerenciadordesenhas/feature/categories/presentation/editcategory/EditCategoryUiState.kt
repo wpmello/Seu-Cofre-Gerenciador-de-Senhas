@@ -9,15 +9,41 @@ data class EditCategoryUiState(
     val selectedIconKey: String? = null,
     val contentState: EditCategoryContentState = EditCategoryContentState.Loading,
     val isIconPickerVisible: Boolean = false,
-    val isDeleteConfirmationVisible: Boolean = false,
+    val deleteFlowState: EditCategoryDeleteFlowState = EditCategoryDeleteFlowState.Idle,
+    val associatedPasswordsCount: Int = 0,
+    val availableTransferCategories: List<CategoryTransferOptionUiModel> = emptyList(),
+    val selectedTransferCategoryId: Long? = null,
     @StringRes val nameErrorResId: Int? = null,
     @StringRes val iconErrorResId: Int? = null,
     @StringRes val submitErrorResId: Int? = null,
-    @StringRes val deleteErrorResId: Int? = null,
+    @StringRes val operationErrorResId: Int? = null,
     val isSaving: Boolean = false,
-    val isDeleting: Boolean = false,
     val passwordsSectionState: CategoryPasswordsSectionUiState = CategoryPasswordsSectionUiState.Empty
 )
+
+sealed interface EditCategoryDeleteFlowState {
+    data object Idle : EditCategoryDeleteFlowState
+    data object SimpleDeleteConfirmation : EditCategoryDeleteFlowState
+    data class AssociatedPasswordsChoice(
+        val passwordCount: Int
+    ) : EditCategoryDeleteFlowState
+    data class DeleteAllConfirmation(
+        val passwordCount: Int
+    ) : EditCategoryDeleteFlowState
+    data class TransferSelection(
+        val passwordCount: Int,
+        val categories: List<CategoryTransferOptionUiModel>,
+        val selectedCategoryId: Long?
+    ) : EditCategoryDeleteFlowState
+    data object PostTransferDeleteConfirmation : EditCategoryDeleteFlowState
+    data class CriticalOperation(
+        @StringRes val titleResId: Int,
+        @StringRes val messageResId: Int,
+        @StringRes val stepResIds: List<Int>,
+        val activeStepIndex: Int
+    ) : EditCategoryDeleteFlowState
+    data class Error(@StringRes val messageResId: Int) : EditCategoryDeleteFlowState
+}
 
 sealed interface EditCategoryContentState {
     data object Loading : EditCategoryContentState
@@ -37,6 +63,14 @@ data class CategoryPasswordItemUiModel(
     val title: String,
     val supportingText: String,
     val securityLevel: CategoryPasswordItemSecurityLevel = CategoryPasswordItemSecurityLevel.Weak
+)
+
+data class CategoryTransferOptionUiModel(
+    val id: Long,
+    val name: String,
+    val iconKey: String,
+    val iconResId: Int,
+    val itemCount: Int
 )
 
 enum class CategoryPasswordItemSecurityLevel {

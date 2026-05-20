@@ -159,6 +159,13 @@ class AllCategoriesViewModelTest {
     @Test
     fun givenRepositoryFails_whenObservingState_thenShowsErrorState() = runTest {
         val repository = object : CategoryRepository {
+            override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+            override suspend fun transferPasswordsToCategory(
+                sourceCategoryId: Long,
+                targetCategoryId: Long
+            ) = Unit
+
             override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
             override suspend fun getCategoryById(categoryId: Long): Category? = null
@@ -196,6 +203,13 @@ class AllCategoriesViewModelTest {
     private class FakeCategoryRepository(
         categories: List<Category>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         private val categoriesFlow = MutableStateFlow(categories)
 
