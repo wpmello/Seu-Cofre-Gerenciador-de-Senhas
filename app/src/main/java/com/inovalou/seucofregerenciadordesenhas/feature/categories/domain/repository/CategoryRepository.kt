@@ -19,6 +19,13 @@ interface CategoryRepository {
 
     suspend fun deleteCategoryById(categoryId: Long)
 
+    suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long)
+
+    suspend fun transferPasswordsToCategory(
+        sourceCategoryId: Long,
+        targetCategoryId: Long
+    )
+
     fun observeCategories(): Flow<List<Category>>
 
     fun observeCategoriesMatchingQuery(query: String): Flow<List<Category>> =

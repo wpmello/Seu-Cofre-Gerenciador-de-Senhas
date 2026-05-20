@@ -67,6 +67,13 @@ class SearchVaultItemsUseCaseTest {
     private class FakeCategoryRepository(
         private val categories: List<Category>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
         var lastObservedQuery: String? = null
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 0L
@@ -90,6 +97,7 @@ class SearchVaultItemsUseCaseTest {
     private class FakePasswordRepository(
         private val passwords: List<PasswordSearchResult>
     ) : PasswordRepository {
+
         var lastObservedQuery: String? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()

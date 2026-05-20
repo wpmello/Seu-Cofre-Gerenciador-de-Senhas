@@ -53,6 +53,13 @@ class ObserveCategoriesUseCaseTest {
     private class FakeCategoryRepository(
         private val categoriesFlow: Flow<List<Category>>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 

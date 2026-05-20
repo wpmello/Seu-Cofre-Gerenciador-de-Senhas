@@ -3,7 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.useca
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import javax.inject.Inject
 
-class DeleteCategoryUseCase @Inject constructor(
+class DeleteCategoryWithAssociatedPasswordsUseCase @Inject constructor(
     private val categoryRepository: CategoryRepository
 ) {
 
@@ -12,16 +12,10 @@ class DeleteCategoryUseCase @Inject constructor(
             ?: return DeleteCategoryResult.NotFound
 
         return try {
-            categoryRepository.deleteCategoryById(categoryId)
+            categoryRepository.deleteCategoryWithAssociatedPasswords(categoryId)
             DeleteCategoryResult.Success
         } catch (_: Exception) {
             DeleteCategoryResult.Failure
         }
     }
-}
-
-sealed interface DeleteCategoryResult {
-    data object Success : DeleteCategoryResult
-    data object NotFound : DeleteCategoryResult
-    data object Failure : DeleteCategoryResult
 }

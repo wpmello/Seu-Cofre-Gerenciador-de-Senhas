@@ -440,6 +440,7 @@ class EditPasswordViewModelTest {
         private val duplicatePasswords: Set<String> = emptySet()
     ) : PasswordRepository {
 
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
@@ -474,6 +475,7 @@ class EditPasswordViewModelTest {
             updatedAt = 1_710_000_000_000L
         )
     ) : PasswordRepository {
+
 
         var lastPasswordId: Long? = null
         var lastTitle: String? = null
@@ -531,6 +533,13 @@ class EditPasswordViewModelTest {
             )
         )
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         private val categoriesFlow = MutableStateFlow(initialCategories)
 

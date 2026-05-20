@@ -72,6 +72,13 @@ class CreateCategoryUseCaseTest {
     private class FakeCategoryRepository(
         private val shouldFailOnCreate: Boolean = false
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         var createdName: String? = null
         var createdIconKey: String? = null

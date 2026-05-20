@@ -49,6 +49,7 @@ class GetPasswordDetailsUseCaseTest {
         private val passwordDetails: PasswordDetails?
     ) : PasswordRepository {
 
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =

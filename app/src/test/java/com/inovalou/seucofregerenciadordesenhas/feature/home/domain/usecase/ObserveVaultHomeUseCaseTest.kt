@@ -178,6 +178,13 @@ class ObserveVaultHomeUseCaseTest {
     private class FakeCategoryRepository(
         private val categories: List<Category>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
         override suspend fun createCategory(name: String, iconKey: String): Long = 0L
         override suspend fun getCategoryById(categoryId: Long): Category? = null
         override suspend fun updateCategory(category: Category) = Unit
@@ -190,6 +197,7 @@ class ObserveVaultHomeUseCaseTest {
         private val passwords: List<PasswordSummary>,
         private val snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(passwords)
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
             flowOf(passwords)

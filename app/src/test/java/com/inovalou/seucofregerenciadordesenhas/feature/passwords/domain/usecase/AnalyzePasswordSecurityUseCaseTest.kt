@@ -36,6 +36,7 @@ class AnalyzePasswordSecurityUseCaseTest {
         private val isDuplicate: Boolean
     ) : PasswordRepository {
 
+
         var lastDuplicateLookupPassword: String? = null
         var lastDuplicateLookupExcludedId: Long? = null
 

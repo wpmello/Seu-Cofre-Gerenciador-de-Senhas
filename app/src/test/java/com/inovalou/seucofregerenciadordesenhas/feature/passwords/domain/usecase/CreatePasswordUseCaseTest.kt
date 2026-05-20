@@ -231,6 +231,7 @@ class CreatePasswordUseCaseTest {
         private val shouldFailOnCreate: Boolean = false
     ) : PasswordRepository {
 
+
         var createdPassword: NewPassword? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
@@ -261,6 +262,13 @@ class CreatePasswordUseCaseTest {
     private class FakeCategoryRepository(
         categories: List<Category>
     ) : CategoryRepository {
+        override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+        override suspend fun transferPasswordsToCategory(
+            sourceCategoryId: Long,
+            targetCategoryId: Long
+        ) = Unit
+
 
         private val categoriesFlow = MutableStateFlow(categories)
         var touchedCategoryId: Long? = null

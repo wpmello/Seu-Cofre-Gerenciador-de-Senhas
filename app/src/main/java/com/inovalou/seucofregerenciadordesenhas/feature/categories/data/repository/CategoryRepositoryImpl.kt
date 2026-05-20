@@ -56,5 +56,20 @@ class CategoryRepositoryImpl @Inject constructor(
     override fun observeCategoriesMatchingQuery(query: String): Flow<List<Category>> =
         localDataSource.observeCategoriesMatchingQuery(query).map { entities ->
             entities.map { entity -> entity.toDomain() }
-        }
+    }
+
+    override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) {
+        localDataSource.deleteCategoryWithAssociatedPasswords(categoryId)
+    }
+
+    override suspend fun transferPasswordsToCategory(
+        sourceCategoryId: Long,
+        targetCategoryId: Long
+    ) {
+        localDataSource.transferPasswordsToCategory(
+            sourceCategoryId = sourceCategoryId,
+            targetCategoryId = targetCategoryId,
+            lastModifiedAt = timeProvider.currentTimeMillis()
+        )
+    }
 }

@@ -75,6 +75,7 @@ class ObservePasswordsByCategoryUseCaseTest {
         private val snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
 
+
         var lastObservedCategoryId: Long? = null
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = flowOf(passwords)

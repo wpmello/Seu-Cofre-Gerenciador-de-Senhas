@@ -111,6 +111,7 @@ class ObserveVaultSecurityDetailsUseCaseTest {
         snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
 
+
         private val passwordsFlow = MutableStateFlow(passwords)
         private val snapshotsFlow = MutableStateFlow(snapshots)
 

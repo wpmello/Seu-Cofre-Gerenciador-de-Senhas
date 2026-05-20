@@ -398,6 +398,7 @@ class PasswordRepositoryImplTest {
                     passwordId: Long,
                     passwordFingerprint: String
                 ) = Unit
+
             }
         )
 
@@ -580,6 +581,7 @@ class PasswordRepositoryImplTest {
         var lastDuplicateExcludedId: Long? = null
         var lastFingerprintUpdatePasswordId: Long? = null
         var lastFingerprintUpdateValue: String? = null
+        var deletedPasswordId: Long? = null
 
         override fun observePasswords(): Flow<List<PasswordEntity>> = passwordsFlow
 
@@ -629,6 +631,7 @@ class PasswordRepositoryImplTest {
             lastFingerprintUpdatePasswordId = passwordId
             lastFingerprintUpdateValue = passwordFingerprint
         }
+
 
         fun emit(passwords: List<PasswordEntity>) {
             passwordsFlow.value = passwords

@@ -130,6 +130,7 @@ class SecurityDetailsViewModelTest {
     @Test
     fun givenRepositoryFails_whenObserved_thenShowsErrorState() = runTest {
         val repository = object : PasswordRepository {
+
             override fun observePasswords(): Flow<List<PasswordSummary>> = flow {
                 throw IllegalStateException("repository failure")
             }
@@ -195,6 +196,7 @@ class SecurityDetailsViewModelTest {
         passwords: List<PasswordSummary>,
         snapshots: List<PasswordSecuritySnapshot>
     ) : PasswordRepository {
+
 
         private val passwordsFlow = MutableStateFlow(passwords)
         private val snapshotsFlow = MutableStateFlow(snapshots)

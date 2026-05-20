@@ -178,4 +178,16 @@ interface PasswordDao {
         """
     )
     suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String)
+
+    @Query("DELETE FROM passwords WHERE category_id = :categoryId")
+    suspend fun deletePasswordsByCategoryId(categoryId: Long)
+
+    @Query(
+        """
+        UPDATE passwords
+        SET category_id = :targetCategoryId
+        WHERE category_id = :sourceCategoryId
+        """
+    )
+    suspend fun updatePasswordsCategory(sourceCategoryId: Long, targetCategoryId: Long)
 }
