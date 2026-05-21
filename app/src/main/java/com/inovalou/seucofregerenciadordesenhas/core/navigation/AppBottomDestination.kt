@@ -2,10 +2,10 @@ package com.inovalou.seucofregerenciadordesenhas.core.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.rounded.Security
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.inovalou.seucofregerenciadordesenhas.R
 
@@ -17,7 +17,7 @@ enum class AppBottomDestination(
     Vault(
         route = "vault",
         labelResId = R.string.bottom_nav_vault,
-        icon = Icons.Outlined.Shield
+        icon = Icons.Rounded.Security
     ),
     Passwords(
         route = "passwords",
@@ -27,7 +27,7 @@ enum class AppBottomDestination(
     Categories(
         route = "categories",
         labelResId = R.string.bottom_nav_categories,
-        icon = Icons.Outlined.Category
+        icon = Icons.Outlined.GridView
     ),
     Settings(
         route = "settings",
