@@ -1,5 +1,8 @@
 package com.inovalou.seucofregerenciadordesenhas.core.navigation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.rounded.Security
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -15,10 +18,26 @@ class AppBottomDestinationTest {
     }
 
     @Test
+    fun givenVaultDestination_whenInspectingIcon_thenUsesSettingsActiveEncryptionIcon() {
+        assertEquals(
+            Icons.Rounded.Security.name,
+            AppBottomDestination.Vault.icon.name
+        )
+    }
+
+    @Test
     fun givenCategoriesRoute_whenResolvingDestination_thenReturnsCategoriesTab() {
         assertEquals(
             AppBottomDestination.Categories,
             appBottomDestinationForRoute("categories")
+        )
+    }
+
+    @Test
+    fun givenCategoriesDestination_whenInspectingIcon_thenUsesNewPasswordCategoryFieldIcon() {
+        assertEquals(
+            Icons.Outlined.GridView.name,
+            AppBottomDestination.Categories.icon.name
         )
     }
 

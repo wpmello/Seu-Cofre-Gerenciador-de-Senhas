@@ -21,8 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -321,7 +321,7 @@ private fun VaultHomeSummaryOverviewCard(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Outlined.Shield,
+                imageVector = Icons.Rounded.Security,
                 contentDescription = null,
                 tint = colors.onAccent,
                 modifier = Modifier.size(34.dp)
@@ -623,12 +623,16 @@ private fun VaultHomeSecuritySummaryTag(
     ) {
         Box(
             modifier = Modifier
-                .size(8.dp)
-                .background(
-                    color = tag.accentColor,
-                    shape = CircleShape
-                )
-        )
+                .size(18.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Security,
+                contentDescription = null,
+                tint = tag.accentColor,
+                modifier = Modifier.size(16.dp)
+            )
+        }
         Text(
             text = pluralStringResource(
                 tag.labelResId,
