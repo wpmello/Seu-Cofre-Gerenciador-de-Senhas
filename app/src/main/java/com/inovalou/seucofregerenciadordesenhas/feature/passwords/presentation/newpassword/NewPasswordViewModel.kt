@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
@@ -25,9 +26,14 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class NewPasswordViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val createPasswordUseCase: CreatePasswordUseCase,
     observeCategoriesUseCase: ObserveCategoriesUseCase
 ) : ViewModel() {
+
+    private val openedFrom = NewPasswordOpenedFrom.fromRouteValue(
+        savedStateHandle[NewPasswordDestination.openedFromArg]
+    )
 
     private val _uiState = MutableStateFlow(NewPasswordUiState())
     val uiState: StateFlow<NewPasswordUiState> = _uiState.asStateFlow()
@@ -102,7 +108,7 @@ class NewPasswordViewModel @Inject constructor(
             ) {
                 CreatePasswordResult.Success -> {
                     _uiState.update { state -> state.copy(isSaving = false) }
-                    _effects.emit(NewPasswordEffect.NavigateBack)
+                    _effects.emit(NewPasswordEffect.NavigateBackToOrigin(openedFrom))
                 }
 
                 CreatePasswordResult.Failure -> {

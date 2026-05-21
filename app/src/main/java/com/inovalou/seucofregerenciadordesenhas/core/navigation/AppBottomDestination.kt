@@ -38,5 +38,5 @@ enum class AppBottomDestination(
 
 fun appBottomDestinationForRoute(route: String?): AppBottomDestination? =
     AppBottomDestination.entries.firstOrNull { destination ->
-        route?.substringBefore("/") == destination.route
+        route == destination.route
     }

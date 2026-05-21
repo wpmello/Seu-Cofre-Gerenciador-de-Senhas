@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword
 
+import androidx.lifecycle.SavedStateHandle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
@@ -177,7 +178,7 @@ class NewPasswordViewModelTest {
     }
 
     @Test
-    fun givenValidForm_whenSaving_thenEmitsNavigateBackAndPersistsPassword() = runTest {
+    fun givenValidForm_whenSaving_thenEmitsNavigateBackToPasswordsOriginAndPersistsPassword() = runTest {
         val repository = FakePasswordRepository(passwordCount = 0)
         val viewModel = buildViewModel(
             repository = repository,
@@ -196,12 +197,38 @@ class NewPasswordViewModelTest {
 
         advanceUntilIdle()
 
-        assertEquals(NewPasswordEffect.NavigateBack, effect.await())
+        assertEquals(
+            NewPasswordEffect.NavigateBackToOrigin(NewPasswordOpenedFrom.Passwords),
+            effect.await()
+        )
         assertEquals("App 1", repository.createdPassword?.title)
         assertEquals("user@email.com", repository.createdPassword?.login)
         assertEquals(2L, repository.createdPassword?.categoryId)
         assertEquals("Pessoal", repository.createdPassword?.categoryName)
         assertEquals("Conta principal do streaming", repository.createdPassword?.note)
+    }
+
+    @Test
+    fun givenVaultOrigin_whenSavingValidForm_thenEmitsNavigateBackToVaultOrigin() = runTest {
+        val viewModel = buildViewModel(
+            openedFrom = NewPasswordOpenedFrom.Vault,
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 0, lastModifiedAt = 0L))
+            )
+        )
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(2L))
+        viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
+        viewModel.onAction(NewPasswordAction.OnSaveClick)
+
+        advanceUntilIdle()
+
+        assertEquals(
+            NewPasswordEffect.NavigateBackToOrigin(NewPasswordOpenedFrom.Vault),
+            effect.await()
+        )
     }
 
     @Test
@@ -305,8 +332,12 @@ class NewPasswordViewModelTest {
 
     private fun buildViewModel(
         repository: FakePasswordRepository = FakePasswordRepository(),
-        categoryRepository: FakeCategoryRepository = FakeCategoryRepository(emptyList())
+        categoryRepository: FakeCategoryRepository = FakeCategoryRepository(emptyList()),
+        openedFrom: NewPasswordOpenedFrom = NewPasswordOpenedFrom.Passwords
     ): NewPasswordViewModel = NewPasswordViewModel(
+        savedStateHandle = SavedStateHandle(
+            mapOf(NewPasswordDestination.openedFromArg to openedFrom.routeValue)
+        ),
         createPasswordUseCase = CreatePasswordUseCase(
             passwordRepository = repository,
             categoryRepository = categoryRepository,

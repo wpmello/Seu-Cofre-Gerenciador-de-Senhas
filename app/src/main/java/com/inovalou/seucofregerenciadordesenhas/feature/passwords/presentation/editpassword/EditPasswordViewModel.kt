@@ -261,7 +261,7 @@ class EditPasswordViewModel @Inject constructor(
             ) {
                 UpdatePasswordResult.Success -> {
                     _uiState.update { it.copy(isSaving = false) }
-                    _effects.emit(EditPasswordEffect.NavigateBackToOrigin(openedFrom))
+                    _effects.emit(EditPasswordEffect.NavigateAfterSave(openedFrom))
                 }
 
                 UpdatePasswordResult.NotFound -> {

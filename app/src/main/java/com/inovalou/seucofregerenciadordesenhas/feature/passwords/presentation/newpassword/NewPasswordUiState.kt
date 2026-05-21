@@ -22,4 +22,7 @@ data class NewPasswordUiState(
 
 sealed interface NewPasswordEffect {
     data object NavigateBack : NewPasswordEffect
+    data class NavigateBackToOrigin(
+        val openedFrom: NewPasswordOpenedFrom
+    ) : NewPasswordEffect
 }

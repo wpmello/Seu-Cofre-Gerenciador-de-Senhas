@@ -82,6 +82,7 @@ import java.util.Locale
 @Composable
 fun EditPasswordRoute(
     onNavigateBackToOrigin: (EditPasswordOpenedFrom) -> Unit,
+    onNavigateAfterSave: (EditPasswordOpenedFrom) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EditPasswordViewModel = hiltViewModel()
 ) {
@@ -93,6 +94,9 @@ fun EditPasswordRoute(
             when (effect) {
                 is EditPasswordEffect.NavigateBackToOrigin -> {
                     onNavigateBackToOrigin(effect.openedFrom)
+                }
+                is EditPasswordEffect.NavigateAfterSave -> {
+                    onNavigateAfterSave(effect.openedFrom)
                 }
                 is EditPasswordEffect.CopyToClipboard -> {
                     context.copyToClipboard(

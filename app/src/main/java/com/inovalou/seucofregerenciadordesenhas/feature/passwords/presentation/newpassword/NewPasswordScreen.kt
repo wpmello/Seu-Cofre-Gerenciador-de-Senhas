@@ -60,6 +60,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 @Composable
 fun NewPasswordRoute(
     onNavigateBack: () -> Unit,
+    onNavigateBackToOrigin: (NewPasswordOpenedFrom) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewPasswordViewModel = hiltViewModel()
 ) {
@@ -69,6 +70,9 @@ fun NewPasswordRoute(
         viewModel.effects.collect { effect ->
             when (effect) {
                 NewPasswordEffect.NavigateBack -> onNavigateBack()
+                is NewPasswordEffect.NavigateBackToOrigin -> {
+                    onNavigateBackToOrigin(effect.openedFrom)
+                }
             }
         }
     }

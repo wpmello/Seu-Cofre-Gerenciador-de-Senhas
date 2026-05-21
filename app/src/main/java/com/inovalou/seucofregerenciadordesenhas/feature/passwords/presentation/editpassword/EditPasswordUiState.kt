@@ -53,6 +53,7 @@ enum class EditPasswordSecurityVisualState {
 
 sealed interface EditPasswordEffect {
     data class NavigateBackToOrigin(val openedFrom: EditPasswordOpenedFrom) : EditPasswordEffect
+    data class NavigateAfterSave(val openedFrom: EditPasswordOpenedFrom) : EditPasswordEffect
     data class CopyToClipboard(
         val value: String,
         val isSensitive: Boolean
