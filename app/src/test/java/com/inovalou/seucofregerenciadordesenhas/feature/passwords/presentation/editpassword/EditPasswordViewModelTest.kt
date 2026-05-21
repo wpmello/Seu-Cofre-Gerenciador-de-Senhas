@@ -291,6 +291,20 @@ class EditPasswordViewModelTest {
     }
 
     @Test
+    fun givenVaultOrigin_whenBackActionIsHandled_thenNavigatesBackToVaultOrigin() = runTest {
+        val viewModel = buildViewModel(openedFrom = EditPasswordOpenedFrom.Vault)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditPasswordAction.OnBackClick)
+
+        assertEquals(
+            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.Vault),
+            effect.await()
+        )
+    }
+
+    @Test
     fun givenValidChanges_whenSaving_thenDelegatesRealUpdateAndNavigatesBack() = runTest {
         val updateUseCase = FakeUpdatePasswordUseCase()
         val viewModel = buildViewModel(updatePasswordUseCase = updateUseCase)
@@ -313,7 +327,7 @@ class EditPasswordViewModelTest {
         assertEquals("new-secret", updateUseCase.lastPassword)
         assertEquals("Atualizar após renovação anual.", updateUseCase.lastNote)
         assertEquals(
-            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.Passwords),
+            EditPasswordEffect.NavigateAfterSave(EditPasswordOpenedFrom.Passwords),
             effect.await()
         )
     }
@@ -329,7 +343,23 @@ class EditPasswordViewModelTest {
         advanceUntilIdle()
 
         assertEquals(
-            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.EditCategory),
+            EditPasswordEffect.NavigateAfterSave(EditPasswordOpenedFrom.EditCategory),
+            effect.await()
+        )
+    }
+
+    @Test
+    fun givenVaultOrigin_whenSavingValidChanges_thenNavigatesAfterSaveWithVaultOrigin() = runTest {
+        val viewModel = buildViewModel(openedFrom = EditPasswordOpenedFrom.Vault)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+        advanceUntilIdle()
+
+        assertEquals(
+            EditPasswordEffect.NavigateAfterSave(EditPasswordOpenedFrom.Vault),
             effect.await()
         )
     }
