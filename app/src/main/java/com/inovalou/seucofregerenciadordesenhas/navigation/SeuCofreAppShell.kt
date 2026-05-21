@@ -30,6 +30,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.e
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.editpassword.EditPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordDestination
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordOpenedFrom
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.newpassword.NewPasswordRoute
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.securitydetails.SecurityDetailsRoute
@@ -48,6 +49,30 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
         currentBackStackEntry.value?.destination?.route
     )
 
+    fun navigateToTopLevel(
+        destination: AppBottomDestination,
+        intent: TopLevelNavigationIntent = TopLevelNavigationIntent.BottomDestinationSelection
+    ) {
+        val navigationOptions = topLevelNavigationOptionsFor(
+            intent = intent,
+            destination = destination
+        )
+        navController.navigate(destination.route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = navigationOptions.saveState
+            }
+            launchSingleTop = true
+            restoreState = navigationOptions.restoreState
+        }
+    }
+
+    fun navigateAfterInternalFlowToTopLevel(destination: AppBottomDestination) {
+        navigateToTopLevel(
+            destination = destination,
+            intent = TopLevelNavigationIntent.InternalFlowCompletion
+        )
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
@@ -55,13 +80,7 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 SeuCofreBottomBar(
                     currentDestination = destination,
                     onDestinationSelected = { selectedDestination ->
-                        navController.navigate(selectedDestination.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navigateToTopLevel(selectedDestination)
                     }
                 )
             }
@@ -86,13 +105,7 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         navController.navigate(AllCategoriesRoute.route)
                     },
                     onOpenPasswords = {
-                        navController.navigate(AppBottomDestination.Passwords.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navigateToTopLevel(AppBottomDestination.Passwords)
                     },
                     onOpenPassword = { passwordId ->
                         navController.navigate(
@@ -103,7 +116,11 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         )
                     },
                     onAddPassword = {
-                        navController.navigate(NewPasswordDestination.route)
+                        navController.navigate(
+                            NewPasswordDestination.createRoute(
+                                openedFrom = NewPasswordOpenedFrom.Vault
+                            )
+                        )
                     },
                     onOpenGlobalSearch = {
                         navController.navigate(GlobalSearchDestination.route) {
@@ -118,7 +135,11 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         navController.navigate(EditPasswordDestination.createRoute(passwordId))
                     },
                     onAddPassword = {
-                        navController.navigate(NewPasswordDestination.route)
+                        navController.navigate(
+                            NewPasswordDestination.createRoute(
+                                openedFrom = NewPasswordOpenedFrom.Passwords
+                            )
+                        )
                     },
                     onOpenGlobalSearch = {
                         navController.navigate(GlobalSearchDestination.route) {
@@ -127,10 +148,37 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                     }
                 )
             }
-            composable(NewPasswordDestination.route) {
+            composable(
+                route = NewPasswordDestination.routePattern,
+                arguments = listOf(
+                    navArgument(NewPasswordDestination.openedFromArg) {
+                        type = NavType.StringType
+                        defaultValue = NewPasswordOpenedFrom.Passwords.routeValue
+                    }
+                )
+            ) {
                 NewPasswordRoute(
                     onNavigateBack = {
                         navController.popBackStack()
+                    },
+                    onNavigateBackToOrigin = { openedFrom ->
+                        when (openedFrom) {
+                            NewPasswordOpenedFrom.Vault -> {
+                                navigateAfterInternalFlowToTopLevel(AppBottomDestination.Passwords)
+                            }
+
+                            NewPasswordOpenedFrom.Passwords -> {
+                                val returnedToPasswords = navController.popBackStack(
+                                    AppBottomDestination.Passwords.route,
+                                    inclusive = false
+                                )
+                                if (!returnedToPasswords) {
+                                    navigateAfterInternalFlowToTopLevel(
+                                        AppBottomDestination.Passwords
+                                    )
+                                }
+                            }
+                        }
                     }
                 )
             }
@@ -161,6 +209,40 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                                     AppBottomDestination.Passwords.route,
                                     inclusive = false
                                 )
+                            }
+
+                            EditPasswordOpenedFrom.EditCategory -> {
+                                navController.popBackStack()
+                            }
+
+                            EditPasswordOpenedFrom.SecurityDetails -> {
+                                navController.popBackStack(
+                                    SecurityDetailsDestination.route,
+                                    inclusive = false
+                                )
+                            }
+
+                            EditPasswordOpenedFrom.GlobalSearch -> {
+                                navController.popBackStack()
+                            }
+                        }
+                    },
+                    onNavigateAfterSave = { openedFrom ->
+                        when (openedFrom) {
+                            EditPasswordOpenedFrom.Vault -> {
+                                navigateAfterInternalFlowToTopLevel(AppBottomDestination.Passwords)
+                            }
+
+                            EditPasswordOpenedFrom.Passwords -> {
+                                val returnedToPasswords = navController.popBackStack(
+                                    AppBottomDestination.Passwords.route,
+                                    inclusive = false
+                                )
+                                if (!returnedToPasswords) {
+                                    navigateAfterInternalFlowToTopLevel(
+                                        AppBottomDestination.Passwords
+                                    )
+                                }
                             }
 
                             EditPasswordOpenedFrom.EditCategory -> {
@@ -314,10 +396,13 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                         }
                     },
                     onNavigateToCategories = {
-                        navController.popBackStack(
+                        val returnedToCategories = navController.popBackStack(
                             AppBottomDestination.Categories.route,
                             inclusive = false
                         )
+                        if (!returnedToCategories) {
+                            navigateAfterInternalFlowToTopLevel(AppBottomDestination.Categories)
+                        }
                     },
                     onOpenPassword = { passwordId ->
                         navController.navigate(
