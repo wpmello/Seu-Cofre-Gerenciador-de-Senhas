@@ -201,6 +201,25 @@ class EditCategoryViewModelTest {
     }
 
     @Test
+    fun givenSaveAlreadyInProgress_whenSaveClickedAgain_thenUpdatesCategoryOnlyOnce() = runTest {
+        val updateGate = CompletableDeferred<Unit>()
+        val repository = FakeCategoryRepository(updateGate = updateGate)
+        val viewModel = buildViewModel(categoryRepository = repository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnNameChanged("Corporativo"))
+        viewModel.onAction(EditCategoryAction.OnSaveClick)
+        advanceUntilIdle()
+        viewModel.onAction(EditCategoryAction.OnSaveClick)
+
+        assertTrue(viewModel.uiState.value.isSaving)
+        assertEquals(1, repository.updateCalls)
+
+        updateGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
     fun givenCategoryWithoutPasswords_whenDeleteButtonClick_thenShowsSimpleDeleteConfirmation() = runTest {
         val viewModel = buildViewModel(passwords = emptyList())
         advanceUntilIdle()
@@ -541,7 +560,8 @@ class EditCategoryViewModelTest {
         ),
         private val failDeleteWithAssociatedPasswords: Boolean = false,
         private val failSimpleDelete: Boolean = false,
-        private val transferGate: CompletableDeferred<Unit>? = null
+        private val transferGate: CompletableDeferred<Unit>? = null,
+        private val updateGate: CompletableDeferred<Unit>? = null
     ) : CategoryRepository {
 
         private val categoryById = (categories + listOfNotNull(currentCategory)).associateBy { it.id }
@@ -551,12 +571,15 @@ class EditCategoryViewModelTest {
         var deletedCategoryWithAssociatedPasswordsId: Long? = null
         val transfers = mutableListOf<Pair<Long, Long>>()
         var transferCalls: Int = 0
+        var updateCalls: Int = 0
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
         override suspend fun getCategoryById(categoryId: Long): Category? = categoryById[categoryId]
 
         override suspend fun updateCategory(category: Category) {
+            updateCalls += 1
+            updateGate?.await()
             updatedCategory = category
         }
 

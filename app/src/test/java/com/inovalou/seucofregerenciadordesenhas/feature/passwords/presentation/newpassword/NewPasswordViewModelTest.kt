@@ -14,6 +14,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.reposit
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -209,6 +210,31 @@ class NewPasswordViewModelTest {
     }
 
     @Test
+    fun givenSaveAlreadyInProgress_whenSaveClickedAgain_thenPersistsPasswordOnlyOnce() = runTest {
+        val createGate = CompletableDeferred<Unit>()
+        val repository = FakePasswordRepository(createGate = createGate)
+        val viewModel = buildViewModel(
+            repository = repository,
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 0, lastModifiedAt = 0L))
+            )
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(2L))
+        viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
+        viewModel.onAction(NewPasswordAction.OnSaveClick)
+        advanceUntilIdle()
+        viewModel.onAction(NewPasswordAction.OnSaveClick)
+
+        assertTrue(viewModel.uiState.value.isSaving)
+        assertEquals(1, repository.createCalls)
+
+        createGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
     fun givenVaultOrigin_whenSavingValidForm_thenEmitsNavigateBackToVaultOrigin() = runTest {
         val viewModel = buildViewModel(
             openedFrom = NewPasswordOpenedFrom.Vault,
@@ -349,11 +375,13 @@ class NewPasswordViewModelTest {
 
     private class FakePasswordRepository(
         private val passwordCount: Int = 0,
-        private val shouldFailOnCreate: Boolean = false
+        private val shouldFailOnCreate: Boolean = false,
+        private val createGate: CompletableDeferred<Unit>? = null
     ) : PasswordRepository {
 
 
         var createdPassword: NewPassword? = null
+        var createCalls: Int = 0
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
@@ -362,6 +390,8 @@ class NewPasswordViewModelTest {
         override suspend fun getPasswordCount(): Int = passwordCount
 
         override suspend fun createPassword(password: NewPassword): Long {
+            createCalls += 1
+            createGate?.await()
             if (shouldFailOnCreate) {
                 error("repository failure")
             }

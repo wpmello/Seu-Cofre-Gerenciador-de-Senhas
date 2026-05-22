@@ -11,6 +11,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.usecase.
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.usecase.UpdateUserNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -86,10 +87,26 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun saveUserName() {
-        val draftName = transientState.value.nameEditor?.draftName ?: return
+        val editor = transientState.value.nameEditor ?: return
+        if (editor.isSaving) {
+            return
+        }
+        transientState.update { state ->
+            state.copy(nameEditor = state.nameEditor?.copy(isSaving = true))
+        }
         viewModelScope.launch {
-            updateUserNameUseCase(draftName)
-            closeUserNameEditor()
+            try {
+                updateUserNameUseCase(editor.draftName)
+                closeUserNameEditor()
+            } catch (exception: Exception) {
+                if (exception is CancellationException) {
+                    throw exception
+                }
+                transientState.update { state ->
+                    state.copy(nameEditor = state.nameEditor?.copy(isSaving = false))
+                }
+                throw exception
+            }
         }
     }
 
@@ -124,10 +141,26 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun saveLanguage() {
-        val language = transientState.value.languageDialog?.draftLanguage ?: return
+        val dialog = transientState.value.languageDialog ?: return
+        if (dialog.isSaving) {
+            return
+        }
+        transientState.update { state ->
+            state.copy(languageDialog = state.languageDialog?.copy(isSaving = true))
+        }
         viewModelScope.launch {
-            updateAppLanguageUseCase(language)
-            closeLanguageDialog()
+            try {
+                updateAppLanguageUseCase(dialog.draftLanguage)
+                closeLanguageDialog()
+            } catch (exception: Exception) {
+                if (exception is CancellationException) {
+                    throw exception
+                }
+                transientState.update { state ->
+                    state.copy(languageDialog = state.languageDialog?.copy(isSaving = false))
+                }
+                throw exception
+            }
         }
     }
 
@@ -154,10 +187,26 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun saveTheme() {
-        val themePreference = transientState.value.themeDialog?.draftTheme ?: return
+        val dialog = transientState.value.themeDialog ?: return
+        if (dialog.isSaving) {
+            return
+        }
+        transientState.update { state ->
+            state.copy(themeDialog = state.themeDialog?.copy(isSaving = true))
+        }
         viewModelScope.launch {
-            updateAppThemePreferenceUseCase(themePreference)
-            closeThemeDialog()
+            try {
+                updateAppThemePreferenceUseCase(dialog.draftTheme)
+                closeThemeDialog()
+            } catch (exception: Exception) {
+                if (exception is CancellationException) {
+                    throw exception
+                }
+                transientState.update { state ->
+                    state.copy(themeDialog = state.themeDialog?.copy(isSaving = false))
+                }
+                throw exception
+            }
         }
     }
 

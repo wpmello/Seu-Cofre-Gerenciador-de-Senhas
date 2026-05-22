@@ -86,28 +86,31 @@ class NewPasswordViewModel @Inject constructor(
     }
 
     private fun savePassword() {
-        viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    isSaving = true,
-                    categoryErrorResId = null,
-                    passwordErrorResId = null,
-                    submitErrorResId = null
-                )
-            }
+        val currentState = _uiState.value
+        if (currentState.isSaving) {
+            return
+        }
+        _uiState.update { state ->
+            state.copy(
+                isSaving = true,
+                categoryErrorResId = null,
+                passwordErrorResId = null,
+                submitErrorResId = null
+            )
+        }
 
+        viewModelScope.launch {
             when (
                 val result = createPasswordUseCase(
-                    title = _uiState.value.title,
-                    login = _uiState.value.login,
-                    categoryId = _uiState.value.selectedCategoryId,
-                    categoryName = _uiState.value.selectedCategoryName,
-                    password = _uiState.value.password,
-                    note = _uiState.value.note
+                    title = currentState.title,
+                    login = currentState.login,
+                    categoryId = currentState.selectedCategoryId,
+                    categoryName = currentState.selectedCategoryName,
+                    password = currentState.password,
+                    note = currentState.note
                 )
             ) {
                 CreatePasswordResult.Success -> {
-                    _uiState.update { state -> state.copy(isSaving = false) }
                     _effects.emit(NewPasswordEffect.NavigateBackToOrigin(openedFrom))
                 }
 

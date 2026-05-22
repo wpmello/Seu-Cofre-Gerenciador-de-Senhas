@@ -182,28 +182,31 @@ class EditCategoryViewModel @Inject constructor(
 
     private fun saveCategory() {
         val resolvedCategoryId = categoryId ?: return
-        if (_uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
+        val currentState = _uiState.value
+        if (
+            currentState.isSaving ||
+            currentState.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation
+        ) {
             return
         }
-        viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    isSaving = true,
-                    nameErrorResId = null,
-                    iconErrorResId = null,
-                    submitErrorResId = null
-                )
-            }
+        _uiState.update { state ->
+            state.copy(
+                isSaving = true,
+                nameErrorResId = null,
+                iconErrorResId = null,
+                submitErrorResId = null
+            )
+        }
 
+        viewModelScope.launch {
             when (
                 val result = updateCategoryUseCase(
                     categoryId = resolvedCategoryId,
-                    name = _uiState.value.name,
-                    iconKey = _uiState.value.selectedIconKey
+                    name = currentState.name,
+                    iconKey = currentState.selectedIconKey
                 )
             ) {
                 UpdateCategoryResult.Success -> {
-                    _uiState.update { it.copy(isSaving = false) }
                     _effects.emit(EditCategoryEffect.NavigateToCategories)
                 }
                 is UpdateCategoryResult.ValidationError -> {

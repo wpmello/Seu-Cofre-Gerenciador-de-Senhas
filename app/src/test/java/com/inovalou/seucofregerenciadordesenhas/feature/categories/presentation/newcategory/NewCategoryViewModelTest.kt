@@ -8,6 +8,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.reposi
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconOption
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -96,6 +97,28 @@ class NewCategoryViewModelTest {
     }
 
     @Test
+    fun givenCreateAlreadyInProgress_whenCreateClickedAgain_thenCreatesCategoryOnlyOnce() = runTest {
+        val createGate = CompletableDeferred<Unit>()
+        val repository = FakeCategoryRepository(createGate = createGate)
+        val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
+            createCategoryUseCase = CreateCategoryUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+
+        viewModel.onAction(NewCategoryAction.OnNameChanged("Trabalho"))
+        viewModel.onAction(NewCategoryAction.OnCreateCategoryClick)
+        advanceUntilIdle()
+        viewModel.onAction(NewCategoryAction.OnCreateCategoryClick)
+
+        assertTrue(viewModel.uiState.value.isSaving)
+        assertEquals(1, repository.createCalls)
+
+        createGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
     fun givenScreenOpenedFromAllCategories_whenSubmitting_thenEmitsNavigateBackToAllCategoriesOrigin() = runTest {
         val repository = FakeCategoryRepository()
         val viewModel = NewCategoryViewModel(
@@ -156,7 +179,8 @@ class NewCategoryViewModelTest {
     }
 
     private class FakeCategoryRepository(
-        private val shouldFailOnCreate: Boolean = false
+        private val shouldFailOnCreate: Boolean = false,
+        private val createGate: CompletableDeferred<Unit>? = null
     ) : CategoryRepository {
         override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
 
@@ -168,8 +192,11 @@ class NewCategoryViewModelTest {
 
         var createdName: String? = null
         var createdIconKey: String? = null
+        var createCalls: Int = 0
 
         override suspend fun createCategory(name: String, iconKey: String): Long {
+            createCalls += 1
+            createGate?.await()
             if (shouldFailOnCreate) error("repository failure")
             createdName = name
             createdIconKey = iconKey

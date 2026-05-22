@@ -237,30 +237,32 @@ class EditPasswordViewModel @Inject constructor(
 
     private fun saveChanges() {
         val resolvedPasswordId = passwordId ?: return
+        val currentState = _uiState.value
+        if (currentState.isSaving) {
+            return
+        }
+        _uiState.update {
+            it.copy(
+                isSaving = true,
+                categoryErrorResId = null,
+                passwordErrorResId = null,
+                submitErrorResId = null
+            )
+        }
 
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isSaving = true,
-                    categoryErrorResId = null,
-                    passwordErrorResId = null,
-                    submitErrorResId = null
-                )
-            }
-
             when (
                 val result = updatePasswordUseCase(
                     passwordId = resolvedPasswordId,
-                    title = _uiState.value.title,
-                    login = _uiState.value.email,
-                    categoryId = _uiState.value.selectedCategoryId,
-                    categoryName = _uiState.value.selectedCategoryName,
-                    password = _uiState.value.password,
-                    note = _uiState.value.note
+                    title = currentState.title,
+                    login = currentState.email,
+                    categoryId = currentState.selectedCategoryId,
+                    categoryName = currentState.selectedCategoryName,
+                    password = currentState.password,
+                    note = currentState.note
                 )
             ) {
                 UpdatePasswordResult.Success -> {
-                    _uiState.update { it.copy(isSaving = false) }
                     _effects.emit(EditPasswordEffect.NavigateAfterSave(openedFrom))
                 }
 

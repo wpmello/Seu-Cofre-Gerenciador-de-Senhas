@@ -103,17 +103,20 @@ data class SettingsTransientUiState(
 )
 
 data class SettingsNameEditorUiState(
-    val draftName: String
+    val draftName: String,
+    val isSaving: Boolean = false
 )
 
 data class SettingsLanguageDialogUiState(
     val selectedLanguage: AppLanguage,
-    val draftLanguage: AppLanguage
+    val draftLanguage: AppLanguage,
+    val isSaving: Boolean = false
 )
 
 data class SettingsThemeDialogUiState(
     val selectedTheme: AppThemePreference,
-    val draftTheme: AppThemePreference
+    val draftTheme: AppThemePreference,
+    val isSaving: Boolean = false
 )
 
 @StringRes

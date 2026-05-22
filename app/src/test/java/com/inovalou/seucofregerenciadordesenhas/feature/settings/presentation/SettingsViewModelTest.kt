@@ -10,6 +10,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.usecase.
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.usecase.UpdateAppThemePreferenceUseCase
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.usecase.UpdateUserNameUseCase
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,6 +73,27 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun givenUserNameSaveAlreadyInProgress_whenSaveClickedAgain_thenPersistsNameOnlyOnce() = runTest {
+        val userNameGate = CompletableDeferred<Unit>()
+        val repository = FakeAppPreferencesRepository(userNameGate = userNameGate)
+        val viewModel = buildViewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(SettingsAction.OnUserCardClick)
+        viewModel.onAction(SettingsAction.OnUserNameDraftChange("Maria Silva"))
+        viewModel.onAction(SettingsAction.OnSaveUserNameClick)
+        advanceUntilIdle()
+        viewModel.onAction(SettingsAction.OnSaveUserNameClick)
+
+        assertEquals(1, repository.userNameUpdateCalls)
+        assertTrue(viewModel.uiState.value.nameEditor?.isSaving == true)
+
+        userNameGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
     fun givenLanguageDialog_whenEnglishIsSaved_thenRepositoryAndStateUseEnglish() = runTest {
         val repository = FakeAppPreferencesRepository()
         val viewModel = buildViewModel(repository)
@@ -86,6 +108,27 @@ class SettingsViewModelTest {
         assertEquals(AppLanguage.English, repository.current.language)
         assertEquals(AppLanguage.English, viewModel.uiState.value.selectedLanguage)
         assertNull(viewModel.uiState.value.languageDialog)
+    }
+
+    @Test
+    fun givenLanguageSaveAlreadyInProgress_whenSaveClickedAgain_thenPersistsLanguageOnlyOnce() = runTest {
+        val languageGate = CompletableDeferred<Unit>()
+        val repository = FakeAppPreferencesRepository(languageGate = languageGate)
+        val viewModel = buildViewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(SettingsAction.OnItemClick(SettingsItemKind.Language))
+        viewModel.onAction(SettingsAction.OnLanguageDraftSelected(AppLanguage.English))
+        viewModel.onAction(SettingsAction.OnSaveLanguageClick)
+        advanceUntilIdle()
+        viewModel.onAction(SettingsAction.OnSaveLanguageClick)
+
+        assertEquals(1, repository.languageUpdateCalls)
+        assertTrue(viewModel.uiState.value.languageDialog?.isSaving == true)
+
+        languageGate.complete(Unit)
+        advanceUntilIdle()
     }
 
     @Test
@@ -104,6 +147,27 @@ class SettingsViewModelTest {
         assertEquals(AppThemePreference.Light, viewModel.uiState.value.selectedTheme)
         assertEquals(R.string.settings_theme_current_light, viewModel.uiState.value.items[1].trailingLabelResId)
         assertNull(viewModel.uiState.value.themeDialog)
+    }
+
+    @Test
+    fun givenThemeSaveAlreadyInProgress_whenSaveClickedAgain_thenPersistsThemeOnlyOnce() = runTest {
+        val themeGate = CompletableDeferred<Unit>()
+        val repository = FakeAppPreferencesRepository(themeGate = themeGate)
+        val viewModel = buildViewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(SettingsAction.OnItemClick(SettingsItemKind.Theme))
+        viewModel.onAction(SettingsAction.OnThemeDraftSelected(AppThemePreference.Light))
+        viewModel.onAction(SettingsAction.OnSaveThemeClick)
+        advanceUntilIdle()
+        viewModel.onAction(SettingsAction.OnSaveThemeClick)
+
+        assertEquals(1, repository.themeUpdateCalls)
+        assertTrue(viewModel.uiState.value.themeDialog?.isSaving == true)
+
+        themeGate.complete(Unit)
+        advanceUntilIdle()
     }
 
     @Test
@@ -134,22 +198,34 @@ class SettingsViewModelTest {
         )
 
     private class FakeAppPreferencesRepository(
-        initialPreferences: AppPreferences = AppPreferences()
+        initialPreferences: AppPreferences = AppPreferences(),
+        private val userNameGate: CompletableDeferred<Unit>? = null,
+        private val languageGate: CompletableDeferred<Unit>? = null,
+        private val themeGate: CompletableDeferred<Unit>? = null
     ) : AppPreferencesRepository {
         private val preferencesFlow = MutableStateFlow(initialPreferences)
         val current: AppPreferences get() = preferencesFlow.value
+        var userNameUpdateCalls: Int = 0
+        var languageUpdateCalls: Int = 0
+        var themeUpdateCalls: Int = 0
 
         override fun observePreferences(): Flow<AppPreferences> = preferencesFlow
 
         override suspend fun updateUserName(userName: String) {
+            userNameUpdateCalls += 1
+            userNameGate?.await()
             preferencesFlow.value = preferencesFlow.value.copy(userName = userName.trim())
         }
 
         override suspend fun updateLanguage(language: AppLanguage) {
+            languageUpdateCalls += 1
+            languageGate?.await()
             preferencesFlow.value = preferencesFlow.value.copy(language = language)
         }
 
         override suspend fun updateThemePreference(themePreference: AppThemePreference) {
+            themeUpdateCalls += 1
+            themeGate?.await()
             preferencesFlow.value = preferencesFlow.value.copy(themePreference = themePreference)
         }
     }
