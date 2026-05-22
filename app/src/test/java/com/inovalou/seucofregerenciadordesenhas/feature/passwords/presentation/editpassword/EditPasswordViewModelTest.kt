@@ -21,6 +21,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordValidation
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordPasswordError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -333,6 +334,25 @@ class EditPasswordViewModelTest {
     }
 
     @Test
+    fun givenSaveAlreadyInProgress_whenSaveClickedAgain_thenUpdatesPasswordOnlyOnce() = runTest {
+        val updateGate = CompletableDeferred<Unit>()
+        val updateUseCase = FakeUpdatePasswordUseCase(updateGate = updateGate)
+        val viewModel = buildViewModel(updatePasswordUseCase = updateUseCase)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+        advanceUntilIdle()
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+
+        assertTrue(viewModel.uiState.value.isSaving)
+        assertEquals(1, updateUseCase.updateCalls)
+
+        updateGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
     fun givenEditCategoryOrigin_whenSavingValidChanges_thenNavigatesBackToEditCategoryOrigin() = runTest {
         val viewModel = buildViewModel(openedFrom = EditPasswordOpenedFrom.EditCategory)
         advanceUntilIdle()
@@ -503,7 +523,8 @@ class EditPasswordViewModelTest {
             iconKey = "sp",
             createdAt = 1_700_000_000_000L,
             updatedAt = 1_710_000_000_000L
-        )
+        ),
+        private val updateGate: CompletableDeferred<Unit>? = null
     ) : PasswordRepository {
 
 
@@ -514,6 +535,7 @@ class EditPasswordViewModelTest {
         var lastCategoryName: String? = null
         var lastPassword: String? = null
         var lastNote: String? = null
+        var updateCalls: Int = 0
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
@@ -527,6 +549,8 @@ class EditPasswordViewModelTest {
         override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = passwordDetails
 
         override suspend fun updatePassword(password: PasswordDetails) {
+            updateCalls += 1
+            updateGate?.await()
             lastPasswordId = password.id
             lastTitle = password.title
             lastLogin = password.login

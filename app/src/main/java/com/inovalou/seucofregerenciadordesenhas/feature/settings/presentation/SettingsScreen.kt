@@ -348,6 +348,7 @@ private fun UserNameEditorBottomSheet(
             OutlinedTextField(
                 value = state.draftName,
                 onValueChange = onNameChange,
+                enabled = !state.isSaving,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("settings_user_name_input"),
@@ -360,11 +361,15 @@ private fun UserNameEditorBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    enabled = !state.isSaving
+                ) {
                     Text(text = stringResource(R.string.settings_cancel))
                 }
                 Button(
                     onClick = onSaveClick,
+                    enabled = !state.isSaving,
                     modifier = Modifier.testTag("settings_user_name_save")
                 ) {
                     Text(text = stringResource(R.string.settings_save))
@@ -503,7 +508,7 @@ private fun LanguageSelectionDialog(
     val colors = MaterialTheme.vaultColors
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!state.isSaving) onDismiss() },
         containerColor = colors.surface,
         titleContentColor = colors.textPrimary,
         textContentColor = colors.textSecondary,
@@ -517,6 +522,7 @@ private fun LanguageSelectionDialog(
                     SettingsRadioOption(
                         label = stringResource(language.labelResId()),
                         selected = state.draftLanguage == language,
+                        enabled = !state.isSaving,
                         onClick = { onLanguageSelected(language) }
                     )
                 }
@@ -525,13 +531,17 @@ private fun LanguageSelectionDialog(
         confirmButton = {
             TextButton(
                 onClick = onSaveClick,
+                enabled = !state.isSaving,
                 modifier = Modifier.testTag("settings_language_save")
             ) {
                 Text(text = stringResource(R.string.settings_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !state.isSaving
+            ) {
                 Text(text = stringResource(R.string.settings_cancel))
             }
         }
@@ -548,7 +558,7 @@ private fun ThemeSelectionDialog(
     val colors = MaterialTheme.vaultColors
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!state.isSaving) onDismiss() },
         containerColor = colors.surface,
         titleContentColor = colors.textPrimary,
         textContentColor = colors.textSecondary,
@@ -562,6 +572,7 @@ private fun ThemeSelectionDialog(
                     SettingsRadioOption(
                         label = stringResource(themePreference.labelResId()),
                         selected = state.draftTheme == themePreference,
+                        enabled = !state.isSaving,
                         onClick = { onThemeSelected(themePreference) }
                     )
                 }
@@ -570,13 +581,17 @@ private fun ThemeSelectionDialog(
         confirmButton = {
             TextButton(
                 onClick = onSaveClick,
+                enabled = !state.isSaving,
                 modifier = Modifier.testTag("settings_theme_save")
             ) {
                 Text(text = stringResource(R.string.settings_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !state.isSaving
+            ) {
                 Text(text = stringResource(R.string.settings_cancel))
             }
         }
@@ -587,6 +602,7 @@ private fun ThemeSelectionDialog(
 private fun SettingsRadioOption(
     label: String,
     selected: Boolean,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -596,7 +612,10 @@ private fun SettingsRadioOption(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
+            .clickable(
+                enabled = enabled,
+                onClick = onClick
+            )
             .background(colors.surfaceBright.copy(alpha = if (selected) 0.52f else 0.22f))
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -604,7 +623,8 @@ private fun SettingsRadioOption(
     ) {
         RadioButton(
             selected = selected,
-            onClick = onClick
+            onClick = onClick,
+            enabled = enabled
         )
         Text(
             text = label,

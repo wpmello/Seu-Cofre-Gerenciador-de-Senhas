@@ -90,22 +90,25 @@ class NewCategoryViewModel @Inject constructor(
     }
 
     private fun createCategory() {
-        viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    isSaving = true,
-                    nameErrorResId = null,
-                    iconErrorResId = null,
-                    submitErrorResId = null
-                )
-            }
+        val currentState = _uiState.value
+        if (currentState.isSaving) {
+            return
+        }
+        _uiState.update { state ->
+            state.copy(
+                isSaving = true,
+                nameErrorResId = null,
+                iconErrorResId = null,
+                submitErrorResId = null
+            )
+        }
 
+        viewModelScope.launch {
             when (val result = createCategoryUseCase(
-                name = _uiState.value.name,
-                iconKey = _uiState.value.selectedIconKey
+                name = currentState.name,
+                iconKey = currentState.selectedIconKey
             )) {
                 CreateCategoryResult.Success -> {
-                    _uiState.update { state -> state.copy(isSaving = false) }
                     _effects.emit(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
                 }
 
