@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -448,10 +449,13 @@ private fun HighlightedCategoryCard(
 
         Text(
             text = currentCategory.name,
+            modifier = Modifier.testTag("highlighted_category_name"),
             color = Color.White,
             fontSize = 24.sp,
             lineHeight = 32.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = pluralStringResource(
