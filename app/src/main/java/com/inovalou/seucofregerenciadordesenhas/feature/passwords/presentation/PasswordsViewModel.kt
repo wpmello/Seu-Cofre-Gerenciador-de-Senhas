@@ -9,14 +9,14 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -48,8 +48,8 @@ class PasswordsViewModel @Inject constructor(
             initialValue = PasswordsUiState()
         )
 
-    private val _effects = MutableSharedFlow<PasswordsEffect>()
-    val effects: SharedFlow<PasswordsEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<PasswordsEffect>(Channel.BUFFERED)
+    val effects: Flow<PasswordsEffect> = _effects.receiveAsFlow()
 
     fun onAction(action: PasswordsAction) {
         when (action) {
@@ -59,7 +59,7 @@ class PasswordsViewModel @Inject constructor(
 
             is PasswordsAction.OnPasswordClick -> {
                 viewModelScope.launch {
-                    _effects.emit(
+                    _effects.send(
                         PasswordsEffect.OpenPasswordDetails(passwordId = action.passwordId)
                     )
                 }
@@ -67,7 +67,7 @@ class PasswordsViewModel @Inject constructor(
 
             PasswordsAction.OnAddPasswordClick -> {
                 viewModelScope.launch {
-                    _effects.emit(PasswordsEffect.NavigateToNewPassword)
+                    _effects.send(PasswordsEffect.NavigateToNewPassword)
                 }
             }
         }

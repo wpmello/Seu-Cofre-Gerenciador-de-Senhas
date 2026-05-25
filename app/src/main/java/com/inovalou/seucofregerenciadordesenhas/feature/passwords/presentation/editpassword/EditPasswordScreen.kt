@@ -46,7 +46,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.CollectEffectWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
@@ -91,21 +91,19 @@ fun EditPasswordRoute(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    LaunchedEffect(viewModel) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                is EditPasswordEffect.NavigateBackToOrigin -> {
-                    onNavigateBackToOrigin(effect.openedFrom)
-                }
-                is EditPasswordEffect.NavigateAfterSave -> {
-                    onNavigateAfterSave(effect.openedFrom)
-                }
-                is EditPasswordEffect.CopyToClipboard -> {
-                    context.copyToClipboard(
-                        value = effect.value,
-                        isSensitive = effect.isSensitive
-                    )
-                }
+    CollectEffectWithLifecycle(viewModel.effects) { effect ->
+        when (effect) {
+            is EditPasswordEffect.NavigateBackToOrigin -> {
+                onNavigateBackToOrigin(effect.openedFrom)
+            }
+            is EditPasswordEffect.NavigateAfterSave -> {
+                onNavigateAfterSave(effect.openedFrom)
+            }
+            is EditPasswordEffect.CopyToClipboard -> {
+                context.copyToClipboard(
+                    value = effect.value,
+                    isSensitive = effect.isSensitive
+                )
             }
         }
     }

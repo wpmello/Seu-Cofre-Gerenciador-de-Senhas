@@ -16,18 +16,18 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -103,8 +103,8 @@ class VaultHomeViewModel @Inject constructor(
         initialValue = VaultHomeUiState()
     )
 
-    private val _effects = MutableSharedFlow<VaultHomeEffect>()
-    val effects: SharedFlow<VaultHomeEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<VaultHomeEffect>(Channel.BUFFERED)
+    val effects: Flow<VaultHomeEffect> = _effects.receiveAsFlow()
 
     fun onAction(action: VaultHomeAction) {
         when (action) {
@@ -132,7 +132,7 @@ class VaultHomeViewModel @Inject constructor(
 
     private fun emitEffect(effect: VaultHomeEffect) {
         viewModelScope.launch {
-            _effects.emit(effect)
+            _effects.send(effect)
         }
     }
 

@@ -42,7 +42,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +66,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.CollectEffectWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
@@ -88,13 +88,11 @@ fun EditCategoryEntry(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(viewModel) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                EditCategoryEffect.NavigateToCategories -> onNavigateToCategories()
-                is EditCategoryEffect.NavigateBackToOrigin -> onNavigateBackToOrigin(effect.openedFrom)
-                is EditCategoryEffect.OpenPassword -> onOpenPassword(effect.passwordId)
-            }
+    CollectEffectWithLifecycle(viewModel.effects) { effect ->
+        when (effect) {
+            EditCategoryEffect.NavigateToCategories -> onNavigateToCategories()
+            is EditCategoryEffect.NavigateBackToOrigin -> onNavigateBackToOrigin(effect.openedFrom)
+            is EditCategoryEffect.OpenPassword -> onOpenPassword(effect.passwordId)
         }
     }
 

@@ -29,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.CollectEffectWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultFloatingTopBar
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultGradientFab
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListColumn
@@ -78,15 +78,13 @@ fun VaultHomeRoute(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(viewModel) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                is VaultHomeEffect.NavigateToCategoryDetails -> onOpenCategory(effect.categoryId)
-                VaultHomeEffect.NavigateToAllCategories -> onOpenAllCategories()
-                VaultHomeEffect.NavigateToPasswords -> onOpenPasswords()
-                is VaultHomeEffect.NavigateToPasswordDetails -> onOpenPassword(effect.passwordId)
-                VaultHomeEffect.NavigateToNewPassword -> onAddPassword()
-            }
+    CollectEffectWithLifecycle(viewModel.effects) { effect ->
+        when (effect) {
+            is VaultHomeEffect.NavigateToCategoryDetails -> onOpenCategory(effect.categoryId)
+            VaultHomeEffect.NavigateToAllCategories -> onOpenAllCategories()
+            VaultHomeEffect.NavigateToPasswords -> onOpenPasswords()
+            is VaultHomeEffect.NavigateToPasswordDetails -> onOpenPassword(effect.passwordId)
+            VaultHomeEffect.NavigateToNewPassword -> onAddPassword()
         }
     }
 

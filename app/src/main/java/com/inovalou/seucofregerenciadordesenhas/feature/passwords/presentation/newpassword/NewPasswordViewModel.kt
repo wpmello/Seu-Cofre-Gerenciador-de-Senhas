@@ -17,12 +17,12 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.s
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.withSelection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -40,8 +40,8 @@ class NewPasswordViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NewPasswordUiState())
     val uiState: StateFlow<NewPasswordUiState> = _uiState.asStateFlow()
 
-    private val _effects = MutableSharedFlow<NewPasswordEffect>()
-    val effects: SharedFlow<NewPasswordEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<NewPasswordEffect>(Channel.BUFFERED)
+    val effects: Flow<NewPasswordEffect> = _effects.receiveAsFlow()
 
     init {
         observeCategoriesUseCase()
@@ -113,7 +113,7 @@ class NewPasswordViewModel @Inject constructor(
                 )
             ) {
                 CreatePasswordResult.Success -> {
-                    _effects.emit(NewPasswordEffect.NavigateBackToOrigin(openedFrom))
+                    _effects.send(NewPasswordEffect.NavigateBackToOrigin(openedFrom))
                 }
 
                 CreatePasswordResult.Failure -> {
@@ -140,7 +140,7 @@ class NewPasswordViewModel @Inject constructor(
 
     private fun navigateBack() {
         viewModelScope.launch {
-            _effects.emit(NewPasswordEffect.NavigateBack)
+            _effects.send(NewPasswordEffect.NavigateBack)
         }
     }
 
