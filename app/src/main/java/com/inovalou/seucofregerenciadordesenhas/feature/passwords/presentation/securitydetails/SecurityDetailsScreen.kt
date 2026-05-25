@@ -613,7 +613,7 @@ private fun SecurityDetailsScreenPreview() {
                     SecurityDetailsPasswordUiModel(
                         id = 1L,
                         title = "Banco Aurora",
-                        supportingText = "usuario@email.com",
+                        supportingText = "u***@e***.c***",
                         initials = "BA",
                         scorePercent = 35,
                         visualState = SecurityDetailsVisualState.Moderate,

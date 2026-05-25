@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.home.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.maskCredentialIdentifierForDisplay
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import com.inovalou.seucofregerenciadordesenhas.feature.home.domain.model.VaultHome
@@ -177,7 +178,7 @@ private fun VaultHomePassword.toUiModel(): VaultHomeRecentPasswordUiModel =
     VaultHomeRecentPasswordUiModel(
         id = id,
         title = title,
-        supportingText = login,
+        supportingText = login.maskCredentialIdentifierForDisplay(),
         initials = title.toInitials(),
         securityLevel = securityRiskLevel.toVaultPasswordListSecurityLevel()
     )
@@ -186,7 +187,7 @@ private fun VaultHomeSecurityPassword.toUiModel(): VaultHomeSummaryPasswordUiMod
     VaultHomeSummaryPasswordUiModel(
         id = id,
         title = title,
-        supportingText = login,
+        supportingText = login.maskCredentialIdentifierForDisplay(),
         initials = title.toInitials(),
         bucket = bucket,
         securityLevel = bucket.toVaultPasswordListSecurityLevel(),

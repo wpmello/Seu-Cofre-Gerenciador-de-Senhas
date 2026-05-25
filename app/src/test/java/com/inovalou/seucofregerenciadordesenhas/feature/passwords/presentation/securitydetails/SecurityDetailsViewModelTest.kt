@@ -82,6 +82,10 @@ class SecurityDetailsViewModelTest {
             state.tabs.map { tab -> tab.count }
         )
         assertEquals(listOf("Sequencia", "Curta mista"), state.visiblePasswords.map { password -> password.title })
+        assertEquals(
+            listOf("u***@e***.c***", "u***@e***.c***"),
+            state.visiblePasswords.map { password -> password.supportingText }
+        )
     }
 
     @Test

@@ -84,7 +84,7 @@ class EditCategoryViewModelTest {
         assertTrue(state.passwordsSectionState is CategoryPasswordsSectionUiState.Content)
         val passwords = (state.passwordsSectionState as CategoryPasswordsSectionUiState.Content).passwords
         assertEquals("GitHub", passwords.first().title)
-        assertEquals("dev@empresa.com", passwords.first().supportingText)
+        assertEquals("d***@e***.c***", passwords.first().supportingText)
         assertEquals(
             listOf(
                 CategoryPasswordItemSecurityLevel.Moderate,

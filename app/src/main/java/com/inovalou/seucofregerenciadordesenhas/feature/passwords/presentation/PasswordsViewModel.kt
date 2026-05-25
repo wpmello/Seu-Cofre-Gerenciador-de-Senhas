@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.maskCredentialIdentifierForDisplay
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsUseCase
@@ -76,39 +77,40 @@ class PasswordsViewModel @Inject constructor(
 private fun List<PasswordSummary>.toUiState(
     query: String
 ): PasswordsUiState {
-    val allPasswords = map { password ->
-        PasswordListItemUiModel(
-            id = password.id,
-            title = password.title,
-            supportingText = password.login,
-            initials = password.title.toInitials(),
-            securityLevel = password.securityRiskLevel.toListItemSecurityLevel()
-        )
-    }
     val normalizedQuery = query.trim()
     val filteredPasswords = if (normalizedQuery.isBlank()) {
-        allPasswords
+        this
     } else {
-        allPasswords.filter { password ->
-            password.title.contains(normalizedQuery, ignoreCase = true) ||
-                password.supportingText.contains(normalizedQuery, ignoreCase = true)
+        filter { password ->
+            password.title.contains(normalizedQuery, ignoreCase = true)
         }
     }
+    val allPasswordItems = map { password -> password.toUiModel() }
+    val filteredPasswordItems = filteredPasswords.map { password -> password.toUiModel() }
 
     val contentState = when {
-        allPasswords.isEmpty() -> PasswordsContentState.EmptyPasswords
-        filteredPasswords.isEmpty() -> PasswordsContentState.EmptySearchResult
+        allPasswordItems.isEmpty() -> PasswordsContentState.EmptyPasswords
+        filteredPasswordItems.isEmpty() -> PasswordsContentState.EmptySearchResult
         else -> PasswordsContentState.Content
     }
 
     return PasswordsUiState(
         query = query,
-        allPasswords = allPasswords,
-        filteredPasswords = filteredPasswords,
-        totalPasswords = allPasswords.size,
+        allPasswords = allPasswordItems,
+        filteredPasswords = filteredPasswordItems,
+        totalPasswords = allPasswordItems.size,
         contentState = contentState
     )
 }
+
+private fun PasswordSummary.toUiModel(): PasswordListItemUiModel =
+    PasswordListItemUiModel(
+        id = id,
+        title = title,
+        supportingText = login.maskCredentialIdentifierForDisplay(),
+        initials = title.toInitials(),
+        securityLevel = securityRiskLevel.toListItemSecurityLevel()
+    )
 
 private fun String.toInitials(): String {
     val parts = trim()

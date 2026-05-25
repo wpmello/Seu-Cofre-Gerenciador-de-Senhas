@@ -96,6 +96,14 @@ class VaultHomeViewModelTest {
         assertEquals(listOf("Email", "Banco", "Facebook"), state.recentPasswords.map { it.title })
         assertEquals(
             listOf(
+                "u***@e***.c***",
+                "u***@e***.c***",
+                "u***@e***.c***"
+            ),
+            state.recentPasswords.map { it.supportingText }
+        )
+        assertEquals(
+            listOf(
                 VaultPasswordListSecurityLevel.Safe,
                 VaultPasswordListSecurityLevel.Moderate,
                 VaultPasswordListSecurityLevel.Weak
@@ -185,6 +193,7 @@ class VaultHomeViewModelTest {
         require(summaryState is VaultHomeSummaryCardState.Content)
         assertEquals(VaultHomeSecurityFilter.Weak, summaryState.filter)
         assertEquals(listOf("Weak"), summaryState.passwords.map { password -> password.title })
+        assertEquals(listOf("u***@e***.c***"), summaryState.passwords.map { password -> password.supportingText })
         assertEquals(PasswordSecurityBucket.Weak, summaryState.passwords.single().bucket)
     }
 

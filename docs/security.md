@@ -117,6 +117,7 @@ Regras:
 ### Regras obrigatórias
 - Dados sensíveis não devem aparecer por padrão em texto claro sem necessidade funcional.
 - A UI deve privilegiar estado mascarado para segredos até que a ação apropriada aconteça.
+- Identificadores de credenciais, como e-mail, login ou username salvos em uma senha, devem ser mascarados em listas, resumos, previews e estados renderizáveis de consulta usando o padrão visual `***`, preservando somente o mínimo necessário para reconhecimento.
 - Previews, mocks, screenshots de documentação, seeds e dados de teste não devem conter credenciais reais.
 - O projeto deve avaliar e, para telas sensíveis, preferir proteção contra captura usando `FLAG_SECURE` ou mecanismo equivalente apropriado, documentando a decisão e seus trade-offs.
 - Não mostrar erros técnicos crus ou detalhes de infraestrutura ao usuário final.
