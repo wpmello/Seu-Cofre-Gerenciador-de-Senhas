@@ -8,7 +8,11 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
@@ -196,6 +200,65 @@ class CategoriesScreenTest {
     }
 
     @Test
+    fun givenLongCategoryName_whenRenderedInGridCard_thenLimitsNameToTwoEllipsizedLines() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        categoriesState = CategoriesContentUiState.Content(
+                            categories = listOf(
+                                CategoryCardUiModel(
+                                    id = 1L,
+                                    name = longCategoryName(),
+                                    iconKey = "ic_work_bag_add_category",
+                                    iconResId = R.drawable.ic_work_bag_add_category,
+                                    itemCount = 42
+                                )
+                            )
+                        )
+                    ),
+                    onAction = {},
+                    onCategoryClick = {},
+                    onViewAllClick = {},
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("category_card_name_1")
+            .assertTextIsLimitedToTwoEllipsizedLines()
+    }
+
+    @Test
+    fun givenLongCategoryName_whenRenderedInHighlightedCard_thenLimitsNameToTwoEllipsizedLines() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        currentCategory = HighlightedCategoryUiModel(
+                            id = 7L,
+                            name = longCategoryName(),
+                            itemCount = 3
+                        ),
+                        categoriesState = CategoriesContentUiState.Empty
+                    ),
+                    onAction = {},
+                    onCategoryClick = {},
+                    onViewAllClick = {},
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("highlighted_category_name")
+            .assertTextIsLimitedToTwoEllipsizedLines()
+    }
+
+    @Test
     fun givenSecuritySummaryStatus_whenRendered_thenDisplaysMappedStatusText() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -256,5 +319,19 @@ class CategoriesScreenTest {
             iconResId = R.drawable.ic_work_bag_add_category,
             itemCount = 42
         )
+    }
+
+    private fun longCategoryName(): String =
+        "Categoria Corporativa Internacional ".repeat(12).trim()
+
+    private fun SemanticsNodeInteraction.assertTextIsLimitedToTwoEllipsizedLines() {
+        val textLayoutResults = mutableListOf<TextLayoutResult>()
+        performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action ->
+            action(textLayoutResults)
+        }
+        val textLayoutResult = textLayoutResults.single()
+
+        assertTrue(textLayoutResult.lineCount <= 2)
+        assertTrue(textLayoutResult.isLineEllipsized(textLayoutResult.lineCount - 1))
     }
 }

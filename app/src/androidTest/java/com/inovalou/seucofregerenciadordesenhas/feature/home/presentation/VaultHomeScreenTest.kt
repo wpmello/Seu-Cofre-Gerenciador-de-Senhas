@@ -11,7 +11,11 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
@@ -175,6 +179,33 @@ class VaultHomeScreenTest {
         composeRule.onNodeWithTag("vault_home_category_1").performClick()
 
         assertEquals(1L, clickedId)
+    }
+
+    @Test
+    fun givenLongCategoryName_whenRenderedInHomeCategoryCard_thenLimitsNameToTwoEllipsizedLines() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(
+                        categories = listOf(
+                            VaultHomeCategoryUiModel(
+                                id = 1L,
+                                name = longCategoryName(),
+                                iconKey = "ic_global",
+                                iconResId = R.drawable.ic_global,
+                                itemCount = 2
+                            )
+                        ),
+                        showOtherCategories = false
+                    ),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("vault_home_category_name_1")
+            .assertTextIsLimitedToTwoEllipsizedLines()
     }
 
     @Test
@@ -440,4 +471,18 @@ class VaultHomeScreenTest {
         summaryCardState = summaryCardState,
         contentState = VaultHomeContentState.Content
     )
+
+    private fun longCategoryName(): String =
+        "Categoria Corporativa Internacional ".repeat(12).trim()
+
+    private fun SemanticsNodeInteraction.assertTextIsLimitedToTwoEllipsizedLines() {
+        val textLayoutResults = mutableListOf<TextLayoutResult>()
+        performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action ->
+            action(textLayoutResults)
+        }
+        val textLayoutResult = textLayoutResults.single()
+
+        assertTrue(textLayoutResult.lineCount <= 2)
+        assertTrue(textLayoutResult.isLineEllipsized(textLayoutResult.lineCount - 1))
+    }
 }

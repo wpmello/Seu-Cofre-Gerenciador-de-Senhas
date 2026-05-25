@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -70,6 +71,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeade
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.vaultPasswordListItems
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
@@ -940,11 +942,18 @@ private fun CategoryEditCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CategorySectionLabel(label = stringResource(R.string.edit_category_name_label))
+            val nameTextFieldState = rememberEndCursorTextFieldState(
+                text = name,
+                onTextChange = onNameChanged
+            )
             TextField(
-                value = name,
-                onValueChange = onNameChanged,
+                value = nameTextFieldState.value,
+                onValueChange = nameTextFieldState.onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        nameTextFieldState.onFocusChanged(focusState.isFocused)
+                    }
                     .testTag("edit_category_name_input"),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),

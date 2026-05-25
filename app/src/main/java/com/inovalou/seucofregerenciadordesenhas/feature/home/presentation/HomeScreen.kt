@@ -48,6 +48,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -782,11 +783,13 @@ private fun VaultHomeCategoryCard(
 
         Text(
             text = category.name,
+            modifier = Modifier.testTag("vault_home_category_name_${category.id}"),
             color = colors.textPrimary,
             fontSize = 16.sp,
             lineHeight = 22.sp,
             fontWeight = FontWeight.SemiBold,
-            maxLines = 2
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

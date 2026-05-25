@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -73,6 +74,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 import java.text.SimpleDateFormat
@@ -542,6 +544,11 @@ private fun CredentialField(
     trailingContent: @Composable () -> Unit
 ) {
     val colors = MaterialTheme.vaultColors
+    val textFieldState = rememberEndCursorTextFieldState(
+        text = value,
+        onTextChange = onValueChange,
+        moveCursorToEndOnFocus = !readOnly
+    )
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -553,10 +560,13 @@ private fun CredentialField(
             fontWeight = FontWeight.SemiBold
         )
         TextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = textFieldState.value,
+            onValueChange = textFieldState.onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    textFieldState.onFocusChanged(focusState.isFocused)
+                }
                 .testTag(testTag),
             shape = RoundedCornerShape(20.dp),
             keyboardOptions = keyboardOptions,
@@ -884,6 +894,10 @@ private fun NotesCard(
     onNoteChanged: (String) -> Unit
 ) {
     val colors = MaterialTheme.vaultColors
+    val noteTextFieldState = rememberEndCursorTextFieldState(
+        text = note,
+        onTextChange = onNoteChanged
+    )
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -906,11 +920,14 @@ private fun NotesCard(
                 fontWeight = FontWeight.SemiBold
             )
             TextField(
-                value = note,
-                onValueChange = onNoteChanged,
+                value = noteTextFieldState.value,
+                onValueChange = noteTextFieldState.onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 140.dp)
+                    .onFocusChanged { focusState ->
+                        noteTextFieldState.onFocusChanged(focusState.isFocused)
+                    }
                     .testTag("edit_password_note_input"),
                 shape = RoundedCornerShape(20.dp),
                 singleLine = false,

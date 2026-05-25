@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -54,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
@@ -227,6 +229,11 @@ private fun PasswordTextField(
 ) {
     val colors = MaterialTheme.vaultColors
     val fieldContainerColor = containerColor ?: colors.surfaceHigh
+    val textFieldState = rememberEndCursorTextFieldState(
+        text = value,
+        onTextChange = onValueChange,
+        moveCursorToEndOnFocus = !readOnly
+    )
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         label?.let {
@@ -234,10 +241,13 @@ private fun PasswordTextField(
         }
 
         TextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = textFieldState.value,
+            onValueChange = textFieldState.onValueChange,
             modifier = modifier
                 .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    textFieldState.onFocusChanged(focusState.isFocused)
+                }
                 .testTag(testTag),
             singleLine = singleLine,
             minLines = minLines,

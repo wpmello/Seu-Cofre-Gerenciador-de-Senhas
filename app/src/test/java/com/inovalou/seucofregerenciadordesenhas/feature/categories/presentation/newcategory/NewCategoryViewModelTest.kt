@@ -57,6 +57,19 @@ class NewCategoryViewModelTest {
     }
 
     @Test
+    fun givenNameExceedsLimit_whenTyping_thenLimitsEditableState() = runTest {
+        val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(),
+            createCategoryUseCase = CreateCategoryUseCase(FakeCategoryRepository()),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+
+        viewModel.onAction(NewCategoryAction.OnNameChanged("a".repeat(101)))
+
+        assertEquals(100, viewModel.uiState.value.name.length)
+    }
+
+    @Test
     fun givenNoAvailableIcons_whenSubmitting_thenExposesIconValidationError() = runTest {
         val viewModel = NewCategoryViewModel(
             savedStateHandle = SavedStateHandle(),
