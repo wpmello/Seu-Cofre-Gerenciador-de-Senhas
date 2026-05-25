@@ -10,15 +10,14 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -51,8 +50,8 @@ class AllCategoriesViewModel @Inject constructor(
             initialValue = AllCategoriesUiState()
         )
 
-    private val _effects = MutableSharedFlow<AllCategoriesEffect>()
-    val effects: SharedFlow<AllCategoriesEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<AllCategoriesEffect>(Channel.BUFFERED)
+    val effects: Flow<AllCategoriesEffect> = _effects.receiveAsFlow()
 
     fun onAction(action: AllCategoriesAction) {
         when (action) {
@@ -62,7 +61,7 @@ class AllCategoriesViewModel @Inject constructor(
 
             is AllCategoriesAction.OnCategoryClick -> {
                 viewModelScope.launch {
-                    _effects.emit(
+                    _effects.send(
                         AllCategoriesEffect.NavigateToEditCategory(
                             categoryId = action.categoryId,
                             openedFrom = EditCategoryOpenedFrom.AllCategories

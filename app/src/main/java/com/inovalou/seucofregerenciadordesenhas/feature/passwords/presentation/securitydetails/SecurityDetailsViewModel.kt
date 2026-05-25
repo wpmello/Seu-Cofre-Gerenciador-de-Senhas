@@ -12,14 +12,14 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.V
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObserveVaultSecurityDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -49,20 +49,20 @@ class SecurityDetailsViewModel @Inject constructor(
             initialValue = SecurityDetailsUiState()
         )
 
-    private val _effects = MutableSharedFlow<SecurityDetailsEffect>()
-    val effects: SharedFlow<SecurityDetailsEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<SecurityDetailsEffect>(Channel.BUFFERED)
+    val effects: Flow<SecurityDetailsEffect> = _effects.receiveAsFlow()
 
     fun onAction(action: SecurityDetailsAction) {
         when (action) {
             SecurityDetailsAction.OnBackClick -> {
                 viewModelScope.launch {
-                    _effects.emit(SecurityDetailsEffect.NavigateBack)
+                    _effects.send(SecurityDetailsEffect.NavigateBack)
                 }
             }
 
             is SecurityDetailsAction.OnPasswordClick -> {
                 viewModelScope.launch {
-                    _effects.emit(SecurityDetailsEffect.OpenPassword(action.passwordId))
+                    _effects.send(SecurityDetailsEffect.OpenPassword(action.passwordId))
                 }
             }
 

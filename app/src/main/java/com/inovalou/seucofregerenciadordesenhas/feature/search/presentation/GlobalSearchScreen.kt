@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.ui.CollectEffectWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultSearchField
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
@@ -52,12 +52,10 @@ fun GlobalSearchRoute(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(viewModel) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                is GlobalSearchEffect.OpenCategoryDetails -> onOpenCategory(effect.categoryId)
-                is GlobalSearchEffect.OpenPasswordDetails -> onOpenPassword(effect.passwordId)
-            }
+    CollectEffectWithLifecycle(viewModel.effects) { effect ->
+        when (effect) {
+            is GlobalSearchEffect.OpenCategoryDetails -> onOpenCategory(effect.categoryId)
+            is GlobalSearchEffect.OpenPasswordDetails -> onOpenPassword(effect.passwordId)
         }
     }
 

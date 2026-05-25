@@ -19,12 +19,12 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.s
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.withSelection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -46,8 +46,8 @@ class EditPasswordViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EditPasswordUiState())
     val uiState: StateFlow<EditPasswordUiState> = _uiState.asStateFlow()
 
-    private val _effects = MutableSharedFlow<EditPasswordEffect>()
-    val effects: SharedFlow<EditPasswordEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<EditPasswordEffect>(Channel.BUFFERED)
+    val effects: Flow<EditPasswordEffect> = _effects.receiveAsFlow()
     private var securityAnalysisJob: Job? = null
 
     init {
@@ -134,7 +134,7 @@ class EditPasswordViewModel @Inject constructor(
 
     private fun navigateBack() {
         viewModelScope.launch {
-            _effects.emit(EditPasswordEffect.NavigateBackToOrigin(openedFrom))
+            _effects.send(EditPasswordEffect.NavigateBackToOrigin(openedFrom))
         }
     }
 
@@ -221,7 +221,7 @@ class EditPasswordViewModel @Inject constructor(
 
         _uiState.update { it.copy(lastCopiedField = EditPasswordCopiedField.Email) }
         viewModelScope.launch {
-            _effects.emit(EditPasswordEffect.CopyToClipboard(email, isSensitive = false))
+            _effects.send(EditPasswordEffect.CopyToClipboard(email, isSensitive = false))
         }
     }
 
@@ -233,7 +233,7 @@ class EditPasswordViewModel @Inject constructor(
 
         _uiState.update { it.copy(lastCopiedField = EditPasswordCopiedField.Password) }
         viewModelScope.launch {
-            _effects.emit(EditPasswordEffect.CopyToClipboard(password, isSensitive = true))
+            _effects.send(EditPasswordEffect.CopyToClipboard(password, isSensitive = true))
         }
     }
 
@@ -265,7 +265,7 @@ class EditPasswordViewModel @Inject constructor(
                 )
             ) {
                 UpdatePasswordResult.Success -> {
-                    _effects.emit(EditPasswordEffect.NavigateAfterSave(openedFrom))
+                    _effects.send(EditPasswordEffect.NavigateAfterSave(openedFrom))
                 }
 
                 UpdatePasswordResult.NotFound -> {

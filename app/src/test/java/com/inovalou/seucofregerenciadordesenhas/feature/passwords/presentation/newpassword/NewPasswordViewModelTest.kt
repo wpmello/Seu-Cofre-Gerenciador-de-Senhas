@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -176,6 +178,81 @@ class NewPasswordViewModelTest {
             PasswordCategorySelectionUiState.Empty,
             viewModel.uiState.value.categorySelectionState
         )
+    }
+
+    @Test
+    fun givenUserTypedForm_whenCategoriesRefresh_thenKeepsEditableFields() = runTest {
+        val categoryRepository = FakeCategoryRepository(
+            listOf(Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2, lastModifiedAt = 0L))
+        )
+        val viewModel = buildViewModel(categoryRepository = categoryRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnTitleChanged("Banco"))
+        viewModel.onAction(NewPasswordAction.OnLoginChanged("user@bank.com"))
+        viewModel.onAction(NewPasswordAction.OnPasswordChanged("plain-secret"))
+        viewModel.onAction(NewPasswordAction.OnNoteChanged("Conta principal"))
+
+        categoryRepository.emit(
+            listOf(Category(id = 9L, name = "Trabalho", iconKey = "ic_work", itemCount = 1, lastModifiedAt = 1L))
+        )
+        advanceUntilIdle()
+
+        assertEquals("Banco", viewModel.uiState.value.title)
+        assertEquals("user@bank.com", viewModel.uiState.value.login)
+        assertEquals("plain-secret", viewModel.uiState.value.password)
+        assertEquals("Conta principal", viewModel.uiState.value.note)
+    }
+
+    @Test
+    fun givenSelectedCategoryStillExists_whenCategoriesRefresh_thenKeepsSelection() = runTest {
+        val categoryRepository = FakeCategoryRepository(
+            listOf(Category(id = 8L, name = "Financeiro", iconKey = "ic_bank", itemCount = 2, lastModifiedAt = 0L))
+        )
+        val viewModel = buildViewModel(categoryRepository = categoryRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(categoryId = 8L))
+        categoryRepository.emit(
+            listOf(
+                Category(
+                    id = 8L,
+                    name = "Financeiro atualizado",
+                    iconKey = "ic_bank",
+                    itemCount = 3,
+                    lastModifiedAt = 1L
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        assertEquals(8L, viewModel.uiState.value.selectedCategoryId)
+        assertEquals("Financeiro atualizado", viewModel.uiState.value.selectedCategoryName)
+        val selectionState = viewModel.uiState.value.categorySelectionState
+        assertTrue(selectionState is PasswordCategorySelectionUiState.Content)
+        selectionState as PasswordCategorySelectionUiState.Content
+        assertEquals(8L, selectionState.categories.single { it.isSelected }.id)
+    }
+
+    @Test
+    fun givenSaveCompletesBeforeEffectCollectorStarts_whenCollectorStarts_thenReceivesNavigateOnce() = runTest {
+        val viewModel = buildViewModel(
+            categoryRepository = FakeCategoryRepository(
+                listOf(Category(id = 2L, name = "Pessoal", iconKey = "ic_home", itemCount = 0, lastModifiedAt = 0L))
+            )
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(NewPasswordAction.OnCategorySelected(2L))
+        viewModel.onAction(NewPasswordAction.OnPasswordChanged("abc123"))
+        viewModel.onAction(NewPasswordAction.OnSaveClick)
+        advanceUntilIdle()
+
+        assertEquals(
+            NewPasswordEffect.NavigateBackToOrigin(NewPasswordOpenedFrom.Passwords),
+            withTimeout(1_000) { viewModel.effects.first() }
+        )
+        assertNull(withTimeoutOrNull(100) { viewModel.effects.first() })
     }
 
     @Test

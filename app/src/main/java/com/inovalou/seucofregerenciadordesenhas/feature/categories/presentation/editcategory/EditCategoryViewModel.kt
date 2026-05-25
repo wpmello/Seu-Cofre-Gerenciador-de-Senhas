@@ -25,15 +25,15 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObservePasswordsByCategoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class EditCategoryViewModel @Inject constructor(
@@ -69,8 +69,8 @@ class EditCategoryViewModel @Inject constructor(
     )
     val uiState: StateFlow<EditCategoryUiState> = _uiState.asStateFlow()
 
-    private val _effects = MutableSharedFlow<EditCategoryEffect>()
-    val effects: SharedFlow<EditCategoryEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<EditCategoryEffect>(Channel.BUFFERED)
+    val effects: Flow<EditCategoryEffect> = _effects.receiveAsFlow()
 
     init {
         loadCategory()
@@ -149,7 +149,7 @@ class EditCategoryViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            _effects.emit(EditCategoryEffect.NavigateBackToOrigin(openedFrom))
+            _effects.send(EditCategoryEffect.NavigateBackToOrigin(openedFrom))
         }
     }
 
@@ -179,7 +179,7 @@ class EditCategoryViewModel @Inject constructor(
 
     private fun openPassword(passwordId: Long) {
         viewModelScope.launch {
-            _effects.emit(EditCategoryEffect.OpenPassword(passwordId))
+            _effects.send(EditCategoryEffect.OpenPassword(passwordId))
         }
     }
 
@@ -210,7 +210,7 @@ class EditCategoryViewModel @Inject constructor(
                 )
             ) {
                 UpdateCategoryResult.Success -> {
-                    _effects.emit(EditCategoryEffect.NavigateToCategories)
+                    _effects.send(EditCategoryEffect.NavigateToCategories)
                 }
                 is UpdateCategoryResult.ValidationError -> {
                     _uiState.update { state ->
@@ -279,7 +279,7 @@ class EditCategoryViewModel @Inject constructor(
             when (deleteCategoryUseCase(resolvedCategoryId)) {
                 DeleteCategoryResult.Success -> {
                     _uiState.update { it.copy(deleteFlowState = EditCategoryDeleteFlowState.Idle) }
-                    _effects.emit(EditCategoryEffect.NavigateToCategories)
+                    _effects.send(EditCategoryEffect.NavigateToCategories)
                 }
                 DeleteCategoryResult.NotFound -> {
                     _uiState.update { state ->
@@ -330,7 +330,7 @@ class EditCategoryViewModel @Inject constructor(
             when (deleteCategoryWithAssociatedPasswordsUseCase(resolvedCategoryId)) {
                 DeleteCategoryResult.Success -> {
                     _uiState.update { it.copy(deleteFlowState = EditCategoryDeleteFlowState.Idle) }
-                    _effects.emit(EditCategoryEffect.NavigateToCategories)
+                    _effects.send(EditCategoryEffect.NavigateToCategories)
                 }
                 DeleteCategoryResult.NotFound -> {
                     _uiState.update { state ->

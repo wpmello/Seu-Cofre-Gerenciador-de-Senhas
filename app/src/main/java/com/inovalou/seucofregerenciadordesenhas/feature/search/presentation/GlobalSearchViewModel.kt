@@ -12,12 +12,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -26,6 +25,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -78,8 +78,8 @@ class GlobalSearchViewModel @Inject constructor(
             initialValue = GlobalSearchUiState()
         )
 
-    private val _effects = MutableSharedFlow<GlobalSearchEffect>()
-    val effects: SharedFlow<GlobalSearchEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<GlobalSearchEffect>(Channel.BUFFERED)
+    val effects: Flow<GlobalSearchEffect> = _effects.receiveAsFlow()
 
     fun onAction(action: GlobalSearchAction) {
         when (action) {
@@ -99,7 +99,7 @@ class GlobalSearchViewModel @Inject constructor(
 
     private fun emitEffect(effect: GlobalSearchEffect) {
         viewModelScope.launch {
-            _effects.emit(effect)
+            _effects.send(effect)
         }
     }
 

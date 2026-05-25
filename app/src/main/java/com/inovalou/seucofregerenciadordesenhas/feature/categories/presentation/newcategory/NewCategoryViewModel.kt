@@ -14,12 +14,12 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.icon.CategoryIconCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -50,8 +50,8 @@ class NewCategoryViewModel @Inject constructor(
     )
     val uiState: StateFlow<NewCategoryUiState> = _uiState.asStateFlow()
 
-    private val _effects = MutableSharedFlow<NewCategoryEffect>()
-    val effects: SharedFlow<NewCategoryEffect> = _effects.asSharedFlow()
+    private val _effects = Channel<NewCategoryEffect>(Channel.BUFFERED)
+    val effects: Flow<NewCategoryEffect> = _effects.receiveAsFlow()
 
     fun onAction(action: NewCategoryAction) {
         when (action) {
@@ -64,7 +64,7 @@ class NewCategoryViewModel @Inject constructor(
 
     private fun navigateBackToOrigin() {
         viewModelScope.launch {
-            _effects.emit(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
+            _effects.send(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
         }
     }
 
@@ -111,7 +111,7 @@ class NewCategoryViewModel @Inject constructor(
                 iconKey = currentState.selectedIconKey
             )) {
                 CreateCategoryResult.Success -> {
-                    _effects.emit(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
+                    _effects.send(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
                 }
 
                 CreateCategoryResult.Failure -> {
