@@ -10,6 +10,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -28,12 +29,19 @@ fun VaultSearchField(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
+    val textFieldState = rememberEndCursorTextFieldState(
+        text = value,
+        onTextChange = onValueChange
+    )
 
     TextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = textFieldState.value,
+        onValueChange = textFieldState.onValueChange,
         modifier = modifier
             .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                textFieldState.onFocusChanged(focusState.isFocused)
+            }
             .testTag(testTag),
         singleLine = true,
         leadingIcon = {

@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategoryIconSelectionGrid
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySectionLabel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.component.CategorySelectableIconUiModel
@@ -100,11 +102,18 @@ fun NewCategoryScreen(
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CategorySectionLabel(label = stringResource(R.string.new_category_name_label))
+                val nameTextFieldState = rememberEndCursorTextFieldState(
+                    text = uiState.name,
+                    onTextChange = { onAction(NewCategoryAction.OnNameChanged(it)) }
+                )
                 TextField(
-                    value = uiState.name,
-                    onValueChange = { onAction(NewCategoryAction.OnNameChanged(it)) },
+                    value = nameTextFieldState.value,
+                    onValueChange = nameTextFieldState.onValueChange,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            nameTextFieldState.onFocusChanged(focusState.isFocused)
+                        }
                         .testTag("new_category_name_input"),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),

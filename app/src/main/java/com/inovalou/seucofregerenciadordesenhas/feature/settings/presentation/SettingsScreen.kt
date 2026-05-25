@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -54,6 +55,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.Ap
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppThemePreference
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultEncryptedIndicator
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultFloatingTopBar
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
@@ -314,6 +316,10 @@ private fun UserNameEditorBottomSheet(
     onDismiss: () -> Unit
 ) {
     val colors = MaterialTheme.vaultColors
+    val nameTextFieldState = rememberEndCursorTextFieldState(
+        text = state.draftName,
+        onTextChange = onNameChange
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -346,11 +352,14 @@ private fun UserNameEditorBottomSheet(
             }
 
             OutlinedTextField(
-                value = state.draftName,
-                onValueChange = onNameChange,
+                value = nameTextFieldState.value,
+                onValueChange = nameTextFieldState.onValueChange,
                 enabled = !state.isSaving,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        nameTextFieldState.onFocusChanged(focusState.isFocused)
+                    }
                     .testTag("settings_user_name_input"),
                 label = { Text(text = stringResource(R.string.settings_user_name_input_label)) },
                 singleLine = true
