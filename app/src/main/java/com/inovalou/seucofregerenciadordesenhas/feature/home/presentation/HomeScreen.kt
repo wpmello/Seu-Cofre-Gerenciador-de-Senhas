@@ -990,7 +990,7 @@ private fun VaultHomeScreenPreview() {
                     VaultHomeRecentPasswordUiModel(
                         id = 1L,
                         title = "Facebook",
-                        supportingText = "usuario@email.com",
+                        supportingText = "u***@e***.c***",
                         initials = "F",
                         securityLevel = VaultPasswordListSecurityLevel.Weak
                     )

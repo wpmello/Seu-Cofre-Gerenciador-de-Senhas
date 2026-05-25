@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.maskCredentialIdentifierForDisplay
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityDetailsItem
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityTag
@@ -102,7 +103,7 @@ private fun PasswordSecurityDetailsItem.toUiModel(): SecurityDetailsPasswordUiMo
     SecurityDetailsPasswordUiModel(
         id = id,
         title = title,
-        supportingText = login,
+        supportingText = login.maskCredentialIdentifierForDisplay(),
         initials = title.toInitials(),
         scorePercent = scorePercent,
         visualState = bucket.toVisualState(),

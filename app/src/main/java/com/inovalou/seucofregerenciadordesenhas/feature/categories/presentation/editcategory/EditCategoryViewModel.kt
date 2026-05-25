@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.maskCredentialIdentifierForDisplay
 import com.inovalou.seucofregerenciadordesenhas.core.text.TextInputLimits
 import com.inovalou.seucofregerenciadordesenhas.core.text.limitToMaxCharacters
 import com.inovalou.seucofregerenciadordesenhas.core.ui.icon.VaultIconCatalog
@@ -622,7 +623,7 @@ private fun List<PasswordSummary>.toPasswordsSectionState(): CategoryPasswordsSe
             CategoryPasswordItemUiModel(
                 id = password.id,
                 title = password.title,
-                supportingText = password.login,
+                supportingText = password.login.maskCredentialIdentifierForDisplay(),
                 securityLevel = password.securityRiskLevel.toCategoryPasswordItemSecurityLevel()
             )
         }

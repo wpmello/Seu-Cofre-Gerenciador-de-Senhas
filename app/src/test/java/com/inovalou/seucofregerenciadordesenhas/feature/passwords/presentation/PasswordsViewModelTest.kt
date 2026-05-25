@@ -67,17 +67,16 @@ class PasswordsViewModelTest {
         assertEquals(2, state.allPasswords.size)
         assertEquals(2, state.filteredPasswords.size)
         assertEquals("Netflix", state.filteredPasswords.first().title)
+        assertEquals("j***@e***.c***", state.filteredPasswords.first().supportingText)
         assertEquals("N", state.filteredPasswords.first().initials)
         assertEquals(2, state.totalPasswords)
     }
 
     @Test
-    fun givenSearchQueryMatchesPasswords_whenQueryChanges_thenFiltersListByTitleOrLoginIgnoringCase() = runTest {
+    fun givenSearchQueryMatchesPlainLogin_whenQueryChanges_thenShowsEmptySearchResult() = runTest {
         val viewModel = buildViewModel(
             passwords = listOf(
-                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming"),
-                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", categoryId = 2L, categoryName = "Work"),
-                PasswordSummary(id = 3L, title = "Workspace", login = "work@empresa.com", categoryId = 2L, categoryName = "Work")
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", categoryId = 2L, categoryName = "Work")
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -88,7 +87,48 @@ class PasswordsViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals("jsilva", state.query)
+        assertTrue(state.contentState is PasswordsContentState.EmptySearchResult)
+        assertTrue(state.filteredPasswords.isEmpty())
+    }
+
+    @Test
+    fun givenSearchQueryMatchesEmailLogin_whenQueryChanges_thenShowsEmptySearchResult() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming")
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(PasswordsAction.OnSearchQueryChanged("joao@email"))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("joao@email", state.query)
+        assertTrue(state.contentState is PasswordsContentState.EmptySearchResult)
+        assertTrue(state.filteredPasswords.isEmpty())
+    }
+
+    @Test
+    fun givenSearchQueryMatchesPasswordTitle_whenQueryChanges_thenFiltersListByTitleWithoutExposingRawLogin() = runTest {
+        val viewModel = buildViewModel(
+            passwords = listOf(
+                PasswordSummary(id = 1L, title = "Netflix", login = "joao@email.com", categoryId = 1L, categoryName = "Streaming"),
+                PasswordSummary(id = 2L, title = "GitHub", login = "jsilva_dev", categoryId = 2L, categoryName = "Work")
+            )
+        )
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(PasswordsAction.OnSearchQueryChanged("github"))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("github", state.query)
+        assertTrue(state.contentState is PasswordsContentState.Content)
         assertEquals(listOf("GitHub"), state.filteredPasswords.map { it.title })
+        assertEquals(listOf("j***"), state.filteredPasswords.map { it.supportingText })
     }
 
     @Test
