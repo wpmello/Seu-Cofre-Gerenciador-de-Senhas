@@ -2,6 +2,8 @@ package com.inovalou.seucofregerenciadordesenhas.feature.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.inovalou.seucofregerenciadordesenhas.core.text.TextInputLimits
+import com.inovalou.seucofregerenciadordesenhas.core.text.limitToMaxCharacters
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppLanguage
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppPreferences
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppThemePreference
@@ -82,7 +84,11 @@ class SettingsViewModel @Inject constructor(
 
     private fun updateUserNameDraft(userName: String) {
         transientState.update { state ->
-            state.copy(nameEditor = state.nameEditor?.copy(draftName = userName))
+            state.copy(
+                nameEditor = state.nameEditor?.copy(
+                    draftName = userName.limitToMaxCharacters(TextInputLimits.NAME_MAX_LENGTH)
+                )
+            )
         }
     }
 

@@ -73,6 +73,20 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun givenUserNameExceedsLimit_whenTyping_thenLimitsDraftName() = runTest {
+        val repository = FakeAppPreferencesRepository()
+        val viewModel = buildViewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(SettingsAction.OnUserCardClick)
+        viewModel.onAction(SettingsAction.OnUserNameDraftChange("a".repeat(101)))
+        advanceUntilIdle()
+
+        assertEquals(100, viewModel.uiState.value.nameEditor?.draftName?.length)
+    }
+
+    @Test
     fun givenUserNameSaveAlreadyInProgress_whenSaveClickedAgain_thenPersistsNameOnlyOnce() = runTest {
         val userNameGate = CompletableDeferred<Unit>()
         val repository = FakeAppPreferencesRepository(userNameGate = userNameGate)

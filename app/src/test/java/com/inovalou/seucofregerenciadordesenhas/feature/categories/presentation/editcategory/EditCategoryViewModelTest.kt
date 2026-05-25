@@ -129,6 +129,16 @@ class EditCategoryViewModelTest {
     }
 
     @Test
+    fun givenNameExceedsLimit_whenNameChanges_thenLimitsEditableState() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnNameChanged("a".repeat(101)))
+
+        assertEquals(100, viewModel.uiState.value.name.length)
+    }
+
+    @Test
     fun givenScreenOpenedFromCategories_whenBackIsClicked_thenNavigatesBackToCategoriesOrigin() = runTest {
         val viewModel = buildViewModel(openedFrom = EditCategoryOpenedFrom.Categories)
         advanceUntilIdle()

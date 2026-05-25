@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.TextInputLimits
+import com.inovalou.seucofregerenciadordesenhas.core.text.limitToMaxCharacters
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryIconError
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryNameError
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.CreateCategoryResult
@@ -69,7 +71,7 @@ class NewCategoryViewModel @Inject constructor(
     private fun onNameChanged(name: String) {
         _uiState.update { state ->
             state.copy(
-                name = name,
+                name = name.limitToMaxCharacters(TextInputLimits.NAME_MAX_LENGTH),
                 nameErrorResId = null,
                 submitErrorResId = null
             )

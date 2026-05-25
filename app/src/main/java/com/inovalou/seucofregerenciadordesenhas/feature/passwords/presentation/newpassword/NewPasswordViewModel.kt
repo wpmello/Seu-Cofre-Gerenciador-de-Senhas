@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.TextInputLimits
+import com.inovalou.seucofregerenciadordesenhas.core.text.limitToMaxCharacters
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
@@ -69,10 +71,10 @@ class NewPasswordViewModel @Inject constructor(
     ) {
         _uiState.update { state ->
             state.copy(
-                title = title,
-                login = login,
+                title = title.limitToMaxCharacters(TextInputLimits.NAME_MAX_LENGTH),
+                login = login.limitToMaxCharacters(TextInputLimits.EMAIL_MAX_LENGTH),
                 password = password,
-                note = note,
+                note = note.limitToMaxCharacters(TextInputLimits.NOTE_MAX_LENGTH),
                 passwordErrorResId = null,
                 submitErrorResId = null
             )

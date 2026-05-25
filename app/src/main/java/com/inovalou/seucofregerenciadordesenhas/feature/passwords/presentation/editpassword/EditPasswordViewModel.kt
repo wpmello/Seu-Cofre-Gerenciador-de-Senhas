@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.text.TextInputLimits
+import com.inovalou.seucofregerenciadordesenhas.core.text.limitToMaxCharacters
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.AnalyzePasswordSecurityUseCase
@@ -139,7 +141,7 @@ class EditPasswordViewModel @Inject constructor(
     private fun updateEmail(email: String) {
         _uiState.update {
             it.copy(
-                email = email,
+                email = email.limitToMaxCharacters(TextInputLimits.EMAIL_MAX_LENGTH),
                 submitErrorResId = null
             )
         }
@@ -179,7 +181,7 @@ class EditPasswordViewModel @Inject constructor(
     private fun updateTitle(title: String) {
         _uiState.update {
             it.copy(
-                title = title,
+                title = title.limitToMaxCharacters(TextInputLimits.NAME_MAX_LENGTH),
                 submitErrorResId = null
             )
         }
@@ -199,7 +201,7 @@ class EditPasswordViewModel @Inject constructor(
     private fun updateNote(note: String) {
         _uiState.update {
             it.copy(
-                note = note,
+                note = note.limitToMaxCharacters(TextInputLimits.NOTE_MAX_LENGTH),
                 submitErrorResId = null
             )
         }

@@ -210,6 +210,19 @@ class NewPasswordViewModelTest {
     }
 
     @Test
+    fun givenTextFieldsExceedLimits_whenHandled_thenLimitsEditableState() = runTest {
+        val viewModel = buildViewModel()
+
+        viewModel.onAction(NewPasswordAction.OnTitleChanged("a".repeat(101)))
+        viewModel.onAction(NewPasswordAction.OnLoginChanged("b".repeat(255)))
+        viewModel.onAction(NewPasswordAction.OnNoteChanged("c".repeat(1_501)))
+
+        assertEquals(100, viewModel.uiState.value.title.length)
+        assertEquals(254, viewModel.uiState.value.login.length)
+        assertEquals(1_500, viewModel.uiState.value.note.length)
+    }
+
+    @Test
     fun givenSaveAlreadyInProgress_whenSaveClickedAgain_thenPersistsPasswordOnlyOnce() = runTest {
         val createGate = CompletableDeferred<Unit>()
         val repository = FakePasswordRepository(createGate = createGate)

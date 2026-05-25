@@ -174,6 +174,20 @@ class EditPasswordViewModelTest {
     }
 
     @Test
+    fun givenTextFieldsExceedLimits_whenHandled_thenLimitsEditableState() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("a".repeat(101)))
+        viewModel.onAction(EditPasswordAction.OnEmailChanged("b".repeat(255)))
+        viewModel.onAction(EditPasswordAction.OnNoteChanged("c".repeat(1_501)))
+
+        assertEquals(100, viewModel.uiState.value.title.length)
+        assertEquals(254, viewModel.uiState.value.email.length)
+        assertEquals(1_500, viewModel.uiState.value.note.length)
+    }
+
+    @Test
     fun givenPersistedPasswordWithoutEmail_whenViewModelLoads_thenKeepsEditableEmailEmpty() = runTest {
         val viewModel = buildViewModel(passwordDetails = persistedPassword(login = ""))
 
