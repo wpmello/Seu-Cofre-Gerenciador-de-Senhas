@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -178,6 +180,35 @@ class EditCategoryViewModelTest {
         assertEquals("ic_directory", state.selectedIconKey)
         assertFalse(state.isIconPickerVisible)
         assertTrue(state.availableIcons.any { it.iconKey == "ic_directory" && it.isSelected })
+    }
+
+    @Test
+    fun givenUserEditsNameAndIcon_whenPasswordsOrCategoriesRefresh_thenKeepsEditableFields() = runTest {
+        val categoryRepository = FakeCategoryRepository()
+        val passwordRepository = FakePasswordRepository(passwords = emptyList(), snapshots = emptyList())
+        val viewModel = buildViewModel(
+            categoryRepository = categoryRepository,
+            passwordRepository = passwordRepository
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnNameChanged("Corporativo"))
+        viewModel.onAction(EditCategoryAction.OnIconSelected("ic_star"))
+        viewModel.onAction(EditCategoryAction.OnEditIconClick)
+        categoryRepository.emitCategories(
+            listOf(
+                category(id = 9L, name = "Trabalho atualizado", iconKey = "ic_work_bag_add_category"),
+                category(id = 10L, name = "Pessoal", iconKey = "ic_directory")
+            )
+        )
+        passwordRepository.emitPasswords(listOf(passwordSummary(id = 100L)))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("Corporativo", state.name)
+        assertEquals("ic_star", state.selectedIconKey)
+        assertTrue(state.isIconPickerVisible)
+        assertTrue(state.availableIcons.any { it.iconKey == "ic_star" && it.isSelected })
     }
 
     @Test
@@ -404,6 +435,41 @@ class EditCategoryViewModelTest {
     }
 
     @Test
+    fun givenSelectedTransferCategoryStillExists_whenCategoriesRefresh_thenKeepsTransferSelection() = runTest {
+        val repository = FakeCategoryRepository(
+            categories = listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal"),
+                category(id = 11L, name = "Financeiro")
+            )
+        )
+        val viewModel = buildViewModel(
+            categoryRepository = repository,
+            passwords = listOf(passwordSummary(id = 1L))
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnTransferSelected)
+        viewModel.onAction(EditCategoryAction.OnTransferCategorySelected(10L))
+        repository.emitCategories(
+            listOf(
+                category(id = 9L, name = "Trabalho"),
+                category(id = 10L, name = "Pessoal atualizado"),
+                category(id = 11L, name = "Financeiro")
+            )
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value.deleteFlowState
+        assertTrue(state is EditCategoryDeleteFlowState.TransferSelection)
+        state as EditCategoryDeleteFlowState.TransferSelection
+        assertEquals(10L, viewModel.uiState.value.selectedTransferCategoryId)
+        assertEquals(10L, state.selectedCategoryId)
+        assertEquals(listOf(10L, 11L), state.categories.map { it.id })
+    }
+
+    @Test
     fun givenTransferCompleted_whenPostTransferDeleteIsCancelled_thenKeepsOriginalCategory() = runTest {
         val repository = FakeCategoryRepository(
             categories = listOf(
@@ -512,6 +578,23 @@ class EditCategoryViewModelTest {
     }
 
     @Test
+    fun givenDeleteCompletesBeforeEffectCollectorStarts_whenCollectorStarts_thenReceivesNavigateOnce() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(categoryRepository = repository, passwords = emptyList())
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnDeleteButtonClick)
+        viewModel.onAction(EditCategoryAction.OnSimpleDeleteConfirmed)
+        advanceUntilIdle()
+
+        assertEquals(
+            EditCategoryEffect.NavigateToCategories,
+            withTimeout(1_000) { viewModel.effects.first() }
+        )
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.effects.first() })
+    }
+
+    @Test
     fun givenCategoryNotFound_whenViewModelLoads_thenExposesErrorState() = runTest {
         val viewModel = buildViewModel(currentCategory = null, categories = emptyList())
 
@@ -615,6 +698,10 @@ class EditCategoryViewModelTest {
         }
 
         override fun observeCategories(): Flow<List<Category>> = categoriesFlow
+
+        fun emitCategories(categories: List<Category>) {
+            categoriesFlow.value = categories
+        }
     }
 
     private class FakeCategoryIconCatalog : CategoryIconCatalog {

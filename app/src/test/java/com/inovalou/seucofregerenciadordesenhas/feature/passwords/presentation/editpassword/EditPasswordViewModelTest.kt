@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -171,6 +173,75 @@ class EditPasswordViewModelTest {
         assertEquals("new-secret", state.password)
         assertEquals("Nova anotação", state.note)
         assertTrue(state.isCategoryDialogVisible)
+    }
+
+    @Test
+    fun givenUserEditsFields_whenCategoriesRefresh_thenKeepsEditableFields() = runTest {
+        val categoryRepository = FakeCategoryRepository()
+        val viewModel = buildViewModel(categoryRepository = categoryRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Netflix"))
+        viewModel.onAction(EditPasswordAction.OnEmailChanged("new@vault.com"))
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret"))
+        viewModel.onAction(EditPasswordAction.OnNoteChanged("Nova anotação"))
+        viewModel.onAction(EditPasswordAction.OnTogglePasswordVisibility)
+
+        categoryRepository.emit(
+            listOf(
+                Category(
+                    id = 2L,
+                    name = "Music",
+                    iconKey = "music",
+                    itemCount = 5,
+                    lastModifiedAt = 1_720_000_000_000L
+                ),
+                Category(
+                    id = 3L,
+                    name = "Work",
+                    iconKey = "work",
+                    itemCount = 2,
+                    lastModifiedAt = 1_720_000_000_000L
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("Netflix", state.title)
+        assertEquals("new@vault.com", state.email)
+        assertEquals("new-secret", state.password)
+        assertEquals("Nova anotação", state.note)
+        assertTrue(state.isPasswordVisible)
+    }
+
+    @Test
+    fun givenPersistedPasswordLoads_whenCategoriesRefresh_thenDoesNotReinitializeForm() = runTest {
+        val categoryRepository = FakeCategoryRepository()
+        val viewModel = buildViewModel(categoryRepository = categoryRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnTitleChanged("Spotify Family"))
+        viewModel.onAction(EditPasswordAction.OnEmailChanged("family@vault.com"))
+        categoryRepository.emit(
+            listOf(
+                Category(
+                    id = 2L,
+                    name = "Music atualizada",
+                    iconKey = "music",
+                    itemCount = 5,
+                    lastModifiedAt = 1_720_000_000_000L
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        assertEquals("Spotify Family", viewModel.uiState.value.title)
+        assertEquals("family@vault.com", viewModel.uiState.value.email)
+        assertEquals("plain-secret", viewModel.uiState.value.password)
+        assertEquals("Conta principal da família.", viewModel.uiState.value.note)
+        assertEquals(2L, viewModel.uiState.value.selectedCategoryId)
+        assertEquals("Music atualizada", viewModel.uiState.value.selectedCategoryName)
     }
 
     @Test
@@ -345,6 +416,21 @@ class EditPasswordViewModelTest {
             EditPasswordEffect.NavigateAfterSave(EditPasswordOpenedFrom.Passwords),
             effect.await()
         )
+    }
+
+    @Test
+    fun givenSaveCompletesBeforeEffectCollectorStarts_whenCollectorStarts_thenReceivesNavigateOnce() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+        advanceUntilIdle()
+
+        assertEquals(
+            EditPasswordEffect.NavigateAfterSave(EditPasswordOpenedFrom.Passwords),
+            withTimeout(1_000) { viewModel.effects.first() }
+        )
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.effects.first() })
     }
 
     @Test
@@ -623,6 +709,10 @@ class EditPasswordViewModelTest {
         override suspend fun deleteCategoryById(categoryId: Long) = Unit
 
         override fun observeCategories(): Flow<List<Category>> = categoriesFlow
+
+        fun emit(categories: List<Category>) {
+            categoriesFlow.value = categories
+        }
     }
 
     private class FixedTimeProvider(
