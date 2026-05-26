@@ -49,6 +49,8 @@ interface PasswordsLocalDataSource {
     suspend fun getPasswordsMissingFingerprint(): List<PasswordEntity>
 
     suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String)
+
+    suspend fun deletePasswordById(passwordId: Long): Boolean
 }
 
 class RoomPasswordsLocalDataSource @Inject constructor(
@@ -90,6 +92,9 @@ class RoomPasswordsLocalDataSource @Inject constructor(
     override suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String) {
         passwordDao.updatePasswordFingerprint(passwordId, passwordFingerprint)
     }
+
+    override suspend fun deletePasswordById(passwordId: Long): Boolean =
+        passwordDao.deletePasswordById(passwordId) > 0
 }
 
 private fun List<PasswordEntity>.sortedByMostRecentChange(): List<PasswordEntity> =

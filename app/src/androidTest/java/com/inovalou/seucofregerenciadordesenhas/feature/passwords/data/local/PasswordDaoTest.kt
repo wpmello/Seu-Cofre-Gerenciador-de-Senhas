@@ -232,4 +232,30 @@ class PasswordDaoTest {
 
         assertEquals(listOf(1L), missing.map { it.id })
     }
+
+    @Test
+    fun givenPersistedPassword_whenDeletingById_thenRemovesOnlyMatchingPasswordAndUpdatesObservers() = runTest {
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (1, 'Spotify', 'premium@vault.com', 'Music', NULL, 'cipher-a', 'iv-a', 1, '', NULL, 100, 200)
+            """.trimIndent()
+        )
+        database.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO passwords(
+                id, title, login, category, category_id, encrypted_password, password_iv, password_cipher_version, icon_key, note, created_at, updated_at
+            ) VALUES (2, 'GitHub', 'dev@vault.com', 'Work', NULL, 'cipher-b', 'iv-b', 1, '', NULL, 300, 400)
+            """.trimIndent()
+        )
+
+        val affectedRows = passwordDao.deletePasswordById(1L)
+        val remainingPasswords = passwordDao.observePasswords().first()
+        val missingAffectedRows = passwordDao.deletePasswordById(404L)
+
+        assertEquals(1, affectedRows)
+        assertEquals(listOf("GitHub"), remainingPasswords.map { it.title })
+        assertEquals(0, missingAffectedRows)
+    }
 }

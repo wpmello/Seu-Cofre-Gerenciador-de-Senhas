@@ -748,6 +748,8 @@ class EditCategoryViewModelTest {
             excludePasswordId: Long?
         ): Boolean = false
 
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
+
         fun emitPasswords(passwords: List<PasswordSummary>) {
             passwordsFlow.value = passwords
         }

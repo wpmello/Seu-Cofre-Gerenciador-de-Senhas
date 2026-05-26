@@ -180,6 +180,10 @@
     <string name="edit_password_copy_password">Copy password</string>
     <string name="edit_password_save_button">Save changes</string>
     <string name="edit_password_delete_button">Delete</string>
+    <string name="edit_password_delete_dialog_title">Delete password?</string>
+    <string name="edit_password_delete_dialog_message">This action removes the password from the vault. Do you really want to continue?</string>
+    <string name="edit_password_confirm_delete">Yes</string>
+    <string name="edit_password_cancel">No</string>
     <string name="edit_password_created_at_label">Created on</string>
     <string name="edit_password_updated_at_label">Modified on</string>
     <string name="edit_password_notes_label">Notes</string>
@@ -222,6 +226,7 @@
     <string name="edit_password_load_error">Could not load the password.</string>
     <string name="edit_password_not_found_error">Password not found.</string>
     <string name="edit_password_save_error">Could not save the password changes.</string>
+    <string name="edit_password_delete_error">Could not delete the password.</string>
     <string name="edit_password_category_error_missing">Select a category to continue.</string>
     <string name="edit_password_category_error_invalid">Select a valid category to continue.</string>
     <string name="edit_password_password_error_blank">Enter a password to continue.</string>

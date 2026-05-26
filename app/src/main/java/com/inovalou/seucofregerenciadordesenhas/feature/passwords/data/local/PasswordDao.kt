@@ -179,6 +179,9 @@ interface PasswordDao {
     )
     suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String)
 
+    @Query("DELETE FROM passwords WHERE id = :passwordId")
+    suspend fun deletePasswordById(passwordId: Long): Int
+
     @Query("DELETE FROM passwords WHERE category_id = :categoryId")
     suspend fun deletePasswordsByCategoryId(categoryId: Long)
 

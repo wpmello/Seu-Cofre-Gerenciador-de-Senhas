@@ -155,6 +155,8 @@ class SecurityDetailsViewModelTest {
 
             override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
                 false
+
+            override suspend fun deletePasswordById(passwordId: Long): Boolean = false
         }
         val viewModel = SecurityDetailsViewModel(
             observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
@@ -223,5 +225,7 @@ class SecurityDetailsViewModelTest {
 
         override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
             false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }
 }

@@ -13,6 +13,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.AnalyzePasswordSecurityUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.DeletePasswordByIdUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GetPasswordDetailsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GeneratePasswordTitleUseCase
@@ -519,14 +520,128 @@ class EditPasswordViewModelTest {
     }
 
     @Test
-    fun givenDeleteAction_whenHandled_thenKeepsFlowNonDestructive() = runTest {
-        val viewModel = buildViewModel()
+    fun givenDeleteAction_whenHandled_thenShowsDeleteConfirmationWithoutDeleting() = runTest {
+        val deleteRepository = FakeDeletePasswordRepository()
+        val viewModel = buildViewModel(deletePasswordRepository = deleteRepository)
         advanceUntilIdle()
 
         viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        advanceUntilIdle()
 
+        assertEquals(EditPasswordDeleteFlowState.Confirmation, viewModel.uiState.value.deleteFlowState)
+        assertEquals(0, deleteRepository.deleteCalls)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.effects.first() })
+    }
+
+    @Test
+    fun givenDeleteConfirmation_whenDismissed_thenKeepsPasswordWithoutDeleting() = runTest {
+        val deleteRepository = FakeDeletePasswordRepository()
+        val viewModel = buildViewModel(deletePasswordRepository = deleteRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteDialogDismissed)
+        advanceUntilIdle()
+
+        assertEquals(EditPasswordDeleteFlowState.Idle, viewModel.uiState.value.deleteFlowState)
+        assertEquals(0, deleteRepository.deleteCalls)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.effects.first() })
+    }
+
+    @Test
+    fun givenDeleteConfirmed_whenHandled_thenDeletesPasswordAndNavigatesBackToOrigin() = runTest {
+        val deleteRepository = FakeDeletePasswordRepository()
+        val viewModel = buildViewModel(deletePasswordRepository = deleteRepository)
+        advanceUntilIdle()
+        val effect = async { viewModel.effects.first() }
+
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteConfirmed)
+        advanceUntilIdle()
+
+        assertEquals(8L, deleteRepository.deletedPasswordId)
+        assertFalse(viewModel.uiState.value.isDeleting)
+        assertEquals(EditPasswordDeleteFlowState.Idle, viewModel.uiState.value.deleteFlowState)
+        assertEquals(
+            EditPasswordEffect.NavigateBackToOrigin(EditPasswordOpenedFrom.Passwords),
+            effect.await()
+        )
+    }
+
+    @Test
+    fun givenDeleteAlreadyInProgress_whenDeleteClickedAgain_thenDeletesPasswordOnlyOnce() = runTest {
+        val deleteGate = CompletableDeferred<Unit>()
+        val deleteRepository = FakeDeletePasswordRepository(deleteGate = deleteGate)
+        val viewModel = buildViewModel(deletePasswordRepository = deleteRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteConfirmed)
+        advanceUntilIdle()
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteConfirmed)
+
+        assertTrue(viewModel.uiState.value.isDeleting)
+        assertEquals(1, deleteRepository.deleteCalls)
+
+        deleteGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun givenDeleteInProgress_whenSaveClicked_thenDoesNotPersistConcurrentUpdate() = runTest {
+        val deleteGate = CompletableDeferred<Unit>()
+        val deleteRepository = FakeDeletePasswordRepository(deleteGate = deleteGate)
+        val updateUseCase = FakeUpdatePasswordUseCase()
+        val viewModel = buildViewModel(
+            updatePasswordUseCase = updateUseCase,
+            deletePasswordRepository = deleteRepository
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteConfirmed)
+        advanceUntilIdle()
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+
+        assertTrue(viewModel.uiState.value.isDeleting)
+        assertEquals(0, updateUseCase.updateCalls)
+
+        deleteGate.complete(Unit)
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun givenDeleteFailure_whenDeleteCompletes_thenShowsDeleteErrorAndKeepsContentVisible() = runTest {
+        val deleteRepository = FakeDeletePasswordRepository(failDelete = true)
+        val viewModel = buildViewModel(deletePasswordRepository = deleteRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteConfirmed)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isDeleting)
+        assertEquals(EditPasswordDeleteFlowState.Idle, viewModel.uiState.value.deleteFlowState)
+        assertTrue(viewModel.uiState.value.contentState is EditPasswordContentState.Content)
+        assertEquals(R.string.edit_password_delete_error, viewModel.uiState.value.submitErrorResId)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.effects.first() })
+    }
+
+    @Test
+    fun givenMissingPasswordDuringDelete_whenDeleteCompletes_thenShowsNotFoundErrorState() = runTest {
+        val deleteRepository = FakeDeletePasswordRepository(deleteResult = false)
+        val viewModel = buildViewModel(deletePasswordRepository = deleteRepository)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnDeleteClick)
+        viewModel.onAction(EditPasswordAction.OnDeleteConfirmed)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isDeleting)
+        assertEquals(EditPasswordDeleteFlowState.Idle, viewModel.uiState.value.deleteFlowState)
+        assertTrue(viewModel.uiState.value.contentState is EditPasswordContentState.Error)
         assertEquals(null, viewModel.uiState.value.submitErrorResId)
-        assertFalse(viewModel.uiState.value.isSaving)
     }
 
     private fun buildViewModel(
@@ -534,6 +649,7 @@ class EditPasswordViewModelTest {
         openedFrom: EditPasswordOpenedFrom = EditPasswordOpenedFrom.Passwords,
         passwordDetails: PasswordDetails? = persistedPassword(),
         updatePasswordUseCase: FakeUpdatePasswordUseCase = FakeUpdatePasswordUseCase(),
+        deletePasswordRepository: FakeDeletePasswordRepository = FakeDeletePasswordRepository(),
         categoryRepository: FakeCategoryRepository = FakeCategoryRepository(),
         duplicatePasswords: Set<String> = emptySet()
     ): EditPasswordViewModel = EditPasswordViewModel(
@@ -564,7 +680,8 @@ class EditPasswordViewModelTest {
             categoryRepository = categoryRepository,
             generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(updatePasswordUseCase),
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
-        )
+        ),
+        deletePasswordByIdUseCase = DeletePasswordByIdUseCase(deletePasswordRepository)
     )
 
     private fun persistedPassword(
@@ -608,6 +725,8 @@ class EditPasswordViewModelTest {
             password: String,
             excludePasswordId: Long?
         ): Boolean = duplicatePasswords.contains(password)
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }
 
     private class FakeUpdatePasswordUseCase(
@@ -667,6 +786,46 @@ class EditPasswordViewModelTest {
             password: String,
             excludePasswordId: Long?
         ): Boolean = false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
+    }
+
+    private class FakeDeletePasswordRepository(
+        private val deleteResult: Boolean = true,
+        private val failDelete: Boolean = false,
+        private val deleteGate: CompletableDeferred<Unit>? = null
+    ) : PasswordRepository {
+
+        var deletedPasswordId: Long? = null
+        var deleteCalls: Int = 0
+
+        override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
+
+        override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
+            emptyFlow()
+
+        override suspend fun getPasswordCount(): Int = 0
+
+        override suspend fun createPassword(password: NewPassword): Long = 0L
+
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = null
+
+        override suspend fun updatePassword(password: PasswordDetails) = Unit
+
+        override suspend fun hasPasswordDuplicate(
+            password: String,
+            excludePasswordId: Long?
+        ): Boolean = false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean {
+            deleteCalls += 1
+            deleteGate?.await()
+            deletedPasswordId = passwordId
+            if (failDelete) {
+                error("delete failure")
+            }
+            return deleteResult
+        }
     }
 
     private class FakeCategoryRepository(
