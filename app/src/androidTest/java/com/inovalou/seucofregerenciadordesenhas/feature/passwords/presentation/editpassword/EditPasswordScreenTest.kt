@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.performTextInput
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionUiState
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -116,6 +118,43 @@ class EditPasswordScreenTest {
         composeRule.onNodeWithTag("edit_password_note_input").performTextInput("Observação livre")
 
         composeRule.onNodeWithText("Observação livre").assertIsDisplayed()
+    }
+
+    @Test
+    fun givenDeletingState_whenRendered_thenDisablesDeleteButton() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditPasswordScreen(
+                    uiState = editPasswordUiState().copy(isDeleting = true),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_delete_button").assertIsNotEnabled()
+        composeRule.onNodeWithTag("edit_password_save_button").assertIsNotEnabled()
+    }
+
+    @Test
+    fun givenDeleteConfirmationState_whenRendered_thenDisplaysConfirmationDialogActions() {
+        var lastAction: EditPasswordAction? = null
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditPasswordScreen(
+                    uiState = editPasswordUiState().copy(
+                        deleteFlowState = EditPasswordDeleteFlowState.Confirmation
+                    ),
+                    onAction = { action -> lastAction = action }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_delete_confirmation_dialog").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_cancel_delete_button").performClick()
+        assertEquals(EditPasswordAction.OnDeleteDialogDismissed, lastAction)
+
+        composeRule.onNodeWithTag("edit_password_confirm_delete_button").performClick()
+        assertEquals(EditPasswordAction.OnDeleteConfirmed, lastAction)
     }
 
     @Test

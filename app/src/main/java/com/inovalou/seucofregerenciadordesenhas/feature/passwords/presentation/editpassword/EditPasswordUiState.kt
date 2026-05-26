@@ -18,11 +18,13 @@ data class EditPasswordUiState(
     val updatedAt: Long = 0L,
     val isPasswordVisible: Boolean = false,
     val isSaving: Boolean = false,
+    val isDeleting: Boolean = false,
     @StringRes val categoryErrorResId: Int? = null,
     @StringRes val passwordErrorResId: Int? = null,
     @StringRes val submitErrorResId: Int? = null,
     val lastCopiedField: EditPasswordCopiedField? = null,
     val contentState: EditPasswordContentState = EditPasswordContentState.Loading,
+    val deleteFlowState: EditPasswordDeleteFlowState = EditPasswordDeleteFlowState.Idle,
     val securitySection: EditPasswordSecuritySectionUiState = EditPasswordSecuritySectionUiState()
 )
 
@@ -35,6 +37,11 @@ sealed interface EditPasswordContentState {
     data object Loading : EditPasswordContentState
     data object Content : EditPasswordContentState
     data class Error(@StringRes val messageResId: Int) : EditPasswordContentState
+}
+
+sealed interface EditPasswordDeleteFlowState {
+    data object Idle : EditPasswordDeleteFlowState
+    data object Confirmation : EditPasswordDeleteFlowState
 }
 
 data class EditPasswordSecuritySectionUiState(

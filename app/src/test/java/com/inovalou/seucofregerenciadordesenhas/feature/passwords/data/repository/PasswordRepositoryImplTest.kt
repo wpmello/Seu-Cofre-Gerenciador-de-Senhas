@@ -399,6 +399,8 @@ class PasswordRepositoryImplTest {
                     passwordFingerprint: String
                 ) = Unit
 
+                override suspend fun deletePasswordById(passwordId: Long): Boolean = false
+
             }
         )
 
@@ -484,6 +486,25 @@ class PasswordRepositoryImplTest {
     }
 
     @Test
+    fun givenPasswordId_whenDeleting_thenDelegatesToLocalDataSourceWithoutDecryptingPassword() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            deleteResult = true
+        )
+        val passwordCipher = FakePasswordCipher()
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordCipher = passwordCipher
+        )
+
+        val deleted = repository.deletePasswordById(31L)
+
+        assertTrue(deleted)
+        assertEquals(31L, localDataSource.deletedPasswordId)
+        assertEquals(null, passwordCipher.lastDecryptedCipherText)
+    }
+
+    @Test
     fun givenDuplicateLookup_whenMissingFingerprintsExist_thenBackfillsBeforeCounting() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(
             initialPasswords = emptyList(),
@@ -565,6 +586,7 @@ class PasswordRepositoryImplTest {
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
         private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList(),
+        private val deleteResult: Boolean = false,
         searchResults: List<PasswordSearchResultEntity> = emptyList()
     ) : PasswordsLocalDataSource {
 
@@ -632,6 +654,10 @@ class PasswordRepositoryImplTest {
             lastFingerprintUpdateValue = passwordFingerprint
         }
 
+        override suspend fun deletePasswordById(passwordId: Long): Boolean {
+            deletedPasswordId = passwordId
+            return deleteResult
+        }
 
         fun emit(passwords: List<PasswordEntity>) {
             passwordsFlow.value = passwords

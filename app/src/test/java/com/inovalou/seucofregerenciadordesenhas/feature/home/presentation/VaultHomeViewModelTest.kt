@@ -387,6 +387,8 @@ class VaultHomeViewModelTest {
         override suspend fun updatePassword(password: PasswordDetails) = Unit
         override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
             false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }
 
     private class FailingSecurityPasswordRepository(
@@ -411,6 +413,8 @@ class VaultHomeViewModelTest {
         override suspend fun updatePassword(password: PasswordDetails) = Unit
         override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
             false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }
 
     private class FakeCategoryIconCatalog : CategoryIconCatalog {

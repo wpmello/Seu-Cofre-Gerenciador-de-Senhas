@@ -270,6 +270,7 @@ class RoomCategoriesLocalDataSourceTest {
 
         override suspend fun updatePasswordFingerprint(passwordId: Long, passwordFingerprint: String) = Unit
 
+        override suspend fun deletePasswordById(passwordId: Long): Int = 0
 
         override suspend fun deletePasswordsByCategoryId(categoryId: Long) {
             deletedPasswordsCategoryId = categoryId

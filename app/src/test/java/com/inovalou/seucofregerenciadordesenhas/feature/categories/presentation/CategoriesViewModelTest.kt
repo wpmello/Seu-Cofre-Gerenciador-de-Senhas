@@ -304,6 +304,8 @@ class CategoriesViewModelTest {
 
         override suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long?): Boolean =
             false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }
 
     private class FakeCategoryIconCatalog : CategoryIconCatalog {

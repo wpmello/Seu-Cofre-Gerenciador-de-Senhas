@@ -268,6 +268,8 @@ class PasswordsViewModelTest {
                 password: String,
                 excludePasswordId: Long?
             ): Boolean = false
+
+            override suspend fun deletePasswordById(passwordId: Long): Boolean = false
         }
         val viewModel = PasswordsViewModel(
             observePasswordsUseCase = ObservePasswordsUseCase(
@@ -356,6 +358,8 @@ class PasswordsViewModelTest {
             password: String,
             excludePasswordId: Long?
         ): Boolean = false
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
 
         fun emit(
             passwords: List<PasswordSummary>,
