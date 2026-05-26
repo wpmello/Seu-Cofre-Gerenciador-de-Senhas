@@ -36,6 +36,7 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -257,11 +259,13 @@ fun EditPasswordScreen(
                             onClick = { onAction(EditPasswordAction.OnSaveClick) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .testTag("edit_password_save_button")
+                                .testTag("edit_password_save_button"),
+                            enabled = !uiState.isDeleting
                         )
 
                         OutlinedButton(
                             onClick = { onAction(EditPasswordAction.OnDeleteClick) },
+                            enabled = !uiState.isDeleting && !uiState.isSaving,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(58.dp)
@@ -272,13 +276,21 @@ fun EditPasswordScreen(
                                 color = MaterialTheme.colorScheme.error.copy(alpha = 0.24f)
                             )
                         ) {
-                            Text(
-                                text = stringResource(R.string.edit_password_delete_button),
-                                color = MaterialTheme.colorScheme.error,
-                                fontSize = 16.sp,
-                                lineHeight = 24.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (uiState.isDeleting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = MaterialTheme.colorScheme.error,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.edit_password_delete_button),
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 16.sp,
+                                    lineHeight = 24.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -293,6 +305,68 @@ fun EditPasswordScreen(
             onDismiss = { onAction(EditPasswordAction.OnCategoryDialogDismissed) }
         )
     }
+
+    EditPasswordDeleteFlow(
+        state = uiState.deleteFlowState,
+        onAction = onAction
+    )
+}
+
+@Composable
+private fun EditPasswordDeleteFlow(
+    state: EditPasswordDeleteFlowState,
+    onAction: (EditPasswordAction) -> Unit
+) {
+    when (state) {
+        EditPasswordDeleteFlowState.Idle -> Unit
+        EditPasswordDeleteFlowState.Confirmation -> {
+            DeletePasswordConfirmationDialog(onAction = onAction)
+        }
+    }
+}
+
+@Composable
+private fun DeletePasswordConfirmationDialog(
+    onAction: (EditPasswordAction) -> Unit
+) {
+    val colors = MaterialTheme.vaultColors
+
+    AlertDialog(
+        onDismissRequest = { onAction(EditPasswordAction.OnDeleteDialogDismissed) },
+        modifier = Modifier.testTag("edit_password_delete_confirmation_dialog"),
+        title = {
+            Text(
+                text = stringResource(R.string.edit_password_delete_dialog_title),
+                color = colors.textPrimary
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.edit_password_delete_dialog_message),
+                color = colors.textSecondary
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onAction(EditPasswordAction.OnDeleteConfirmed) },
+                modifier = Modifier.testTag("edit_password_confirm_delete_button")
+            ) {
+                Text(
+                    text = stringResource(R.string.edit_password_confirm_delete),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { onAction(EditPasswordAction.OnDeleteDialogDismissed) },
+                modifier = Modifier.testTag("edit_password_cancel_delete_button")
+            ) {
+                Text(text = stringResource(R.string.edit_password_cancel))
+            }
+        },
+        containerColor = colors.surface
+    )
 }
 
 @Composable

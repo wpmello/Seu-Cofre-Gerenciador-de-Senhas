@@ -48,6 +48,8 @@ interface PasswordRepository {
     suspend fun updatePassword(password: PasswordDetails)
 
     suspend fun hasPasswordDuplicate(password: String, excludePasswordId: Long? = null): Boolean
+
+    suspend fun deletePasswordById(passwordId: Long): Boolean
 }
 
 private fun List<PasswordSummary>.sortedByMostRecentChange(): List<PasswordSummary> =

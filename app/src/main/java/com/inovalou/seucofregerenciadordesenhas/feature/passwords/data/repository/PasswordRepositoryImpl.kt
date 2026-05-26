@@ -133,6 +133,9 @@ class PasswordRepositoryImpl @Inject constructor(
         ) > 0
     }
 
+    override suspend fun deletePasswordById(passwordId: Long): Boolean =
+        localDataSource.deletePasswordById(passwordId)
+
     private suspend fun backfillMissingFingerprints() {
         localDataSource.getPasswordsMissingFingerprint().forEach { entity ->
             val plainPassword = decryptPassword(entity)

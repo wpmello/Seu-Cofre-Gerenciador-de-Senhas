@@ -63,5 +63,7 @@ class AnalyzePasswordSecurityUseCaseTest {
             lastDuplicateLookupExcludedId = excludePasswordId
             return isDuplicate
         }
+
+        override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }
 }

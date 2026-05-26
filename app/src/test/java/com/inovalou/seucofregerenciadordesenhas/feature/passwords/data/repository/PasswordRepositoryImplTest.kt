@@ -503,6 +503,8 @@ class PasswordRepositoryImplTest {
                     passwordFingerprint: String
                 ) = Unit
 
+                override suspend fun deletePasswordById(passwordId: Long): Boolean = false
+
             }
         )
 
@@ -585,6 +587,25 @@ class PasswordRepositoryImplTest {
         assertEquals("Conta rotacionada em janeiro", localDataSource.updatedPassword?.note)
         assertEquals(1_700_000_000_000L, localDataSource.updatedPassword?.createdAt)
         assertEquals(1_760_000_000_000L, localDataSource.updatedPassword?.updatedAt)
+    }
+
+    @Test
+    fun givenPasswordId_whenDeleting_thenDelegatesToLocalDataSourceWithoutDecryptingPassword() = runTest {
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            deleteResult = true
+        )
+        val passwordCipher = FakePasswordCipher()
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordCipher = passwordCipher
+        )
+
+        val deleted = repository.deletePasswordById(31L)
+
+        assertTrue(deleted)
+        assertEquals(31L, localDataSource.deletedPasswordId)
+        assertEquals(null, passwordCipher.lastDecryptedCipherText)
     }
 
     @Test
@@ -674,6 +695,7 @@ class PasswordRepositoryImplTest {
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
         private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList(),
+        private val deleteResult: Boolean = false,
         searchResults: List<PasswordSearchResultEntity> = emptyList()
     ) : PasswordsLocalDataSource {
 
@@ -741,6 +763,10 @@ class PasswordRepositoryImplTest {
             lastFingerprintUpdateValue = passwordFingerprint
         }
 
+        override suspend fun deletePasswordById(passwordId: Long): Boolean {
+            deletedPasswordId = passwordId
+            return deleteResult
+        }
 
         fun emit(passwords: List<PasswordEntity>) {
             passwordsFlow.value = passwords

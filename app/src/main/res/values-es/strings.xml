@@ -180,6 +180,10 @@
     <string name="edit_password_copy_password">Copiar clave</string>
     <string name="edit_password_save_button">Guardar cambios</string>
     <string name="edit_password_delete_button">Eliminar</string>
+    <string name="edit_password_delete_dialog_title">¿Eliminar clave?</string>
+    <string name="edit_password_delete_dialog_message">Esta acción elimina la clave del cofre. ¿Realmente deseas continuar?</string>
+    <string name="edit_password_confirm_delete">Sí</string>
+    <string name="edit_password_cancel">No</string>
     <string name="edit_password_created_at_label">Creado el</string>
     <string name="edit_password_updated_at_label">Modificado el</string>
     <string name="edit_password_notes_label">Notas</string>
@@ -222,6 +226,7 @@
     <string name="edit_password_load_error">No se pudo cargar la clave.</string>
     <string name="edit_password_not_found_error">Clave no encontrada.</string>
     <string name="edit_password_save_error">No se pudieron guardar los cambios de la clave.</string>
+    <string name="edit_password_delete_error">No se pudo eliminar la clave.</string>
     <string name="edit_password_category_error_missing">Selecciona una categoría para continuar.</string>
     <string name="edit_password_category_error_invalid">Selecciona una categoría válida para continuar.</string>
     <string name="edit_password_password_error_blank">Ingresa una clave para continuar.</string>

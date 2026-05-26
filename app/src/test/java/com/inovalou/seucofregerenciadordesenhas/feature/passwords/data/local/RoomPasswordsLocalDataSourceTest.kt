@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -261,6 +262,28 @@ class RoomPasswordsLocalDataSourceTest {
     }
 
     @Test
+    fun givenPasswordId_whenDeletingPassword_thenDelegatesDeleteToDaoAndReturnsSuccess() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()), deletePasswordRowsAffected = 1)
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val deleted = dataSource.deletePasswordById(12L)
+
+        assertTrue(deleted)
+        assertEquals(12L, dao.deletedPasswordId)
+    }
+
+    @Test
+    fun givenMissingPasswordId_whenDeletingPassword_thenReturnsFalse() = runTest {
+        val dao = FakePasswordDao(flowOf(emptyList()), deletePasswordRowsAffected = 0)
+        val dataSource = RoomPasswordsLocalDataSource(passwordDao = dao)
+
+        val deleted = dataSource.deletePasswordById(404L)
+
+        assertFalse(deleted)
+        assertEquals(404L, dao.deletedPasswordId)
+    }
+
+    @Test
     fun givenDaoFailure_whenObservingPasswords_thenPropagatesTheError() = runTest {
         val expected = IllegalStateException("database unavailable")
         val dataSource = RoomPasswordsLocalDataSource(
@@ -291,7 +314,8 @@ class RoomPasswordsLocalDataSourceTest {
         private val passwordCount: Int = 0,
         private val passwordById: PasswordEntity? = null,
         private val duplicateCount: Int = 0,
-        private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList()
+        private val passwordsMissingFingerprint: List<PasswordEntity> = emptyList(),
+        private val deletePasswordRowsAffected: Int = 0
     ) : PasswordDao {
 
         var insertedEntity: PasswordEntity? = null
@@ -360,6 +384,10 @@ class RoomPasswordsLocalDataSourceTest {
             lastUpdatedFingerprint = passwordFingerprint
         }
 
+        override suspend fun deletePasswordById(passwordId: Long): Int {
+            deletedPasswordId = passwordId
+            return deletePasswordRowsAffected
+        }
 
         override suspend fun deletePasswordsByCategoryId(categoryId: Long) {
             deletedPasswordsCategoryId = categoryId

@@ -27,13 +27,14 @@ fun VaultPrimaryPersistenceButton(
     text: String,
     isLoading: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val colors = MaterialTheme.vaultColors
 
     Button(
         onClick = onClick,
-        enabled = !isLoading,
+        enabled = enabled && !isLoading,
         modifier = modifier.height(68.dp),
         shape = RoundedCornerShape(999.dp),
         colors = ButtonDefaults.buttonColors(

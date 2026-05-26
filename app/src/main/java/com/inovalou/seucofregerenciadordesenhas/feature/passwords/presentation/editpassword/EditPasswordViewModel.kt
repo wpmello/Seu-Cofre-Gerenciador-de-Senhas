@@ -10,6 +10,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.AnalyzePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.CreatePasswordCategoryError
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.DeletePasswordByIdUseCase
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.DeletePasswordResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.GetPasswordDetailsUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordPasswordError
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.UpdatePasswordResult
@@ -44,7 +46,8 @@ class EditPasswordViewModel @Inject constructor(
     private val getPasswordDetailsUseCase: GetPasswordDetailsUseCase,
     observeCategoriesUseCase: ObserveCategoriesUseCase,
     private val analyzePasswordSecurityUseCase: AnalyzePasswordSecurityUseCase,
-    private val updatePasswordUseCase: UpdatePasswordUseCase
+    private val updatePasswordUseCase: UpdatePasswordUseCase,
+    private val deletePasswordByIdUseCase: DeletePasswordByIdUseCase
 ) : ViewModel() {
 
     private val passwordId = savedStateHandle.get<Long>(EditPasswordDestination.passwordIdArg)
@@ -83,7 +86,9 @@ class EditPasswordViewModel @Inject constructor(
             EditPasswordAction.OnCopyEmailClick -> copyEmail()
             EditPasswordAction.OnCopyPasswordClick -> copyPassword()
             EditPasswordAction.OnSaveClick -> saveChanges()
-            EditPasswordAction.OnDeleteClick -> Unit
+            EditPasswordAction.OnDeleteClick -> showDeleteConfirmation()
+            EditPasswordAction.OnDeleteDialogDismissed -> dismissDeleteConfirmation()
+            EditPasswordAction.OnDeleteConfirmed -> deletePassword()
         }
     }
 
@@ -253,7 +258,7 @@ class EditPasswordViewModel @Inject constructor(
     private fun saveChanges() {
         val resolvedPasswordId = passwordId ?: return
         val currentState = _uiState.value
-        if (currentState.isSaving) {
+        if (currentState.isSaving || currentState.isDeleting) {
             return
         }
         _uiState.update {
@@ -311,6 +316,81 @@ class EditPasswordViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    private fun deletePassword() {
+        val resolvedPasswordId = passwordId ?: return
+        val currentState = _uiState.value
+        if (
+            currentState.isDeleting ||
+            currentState.isSaving ||
+            currentState.deleteFlowState !is EditPasswordDeleteFlowState.Confirmation
+        ) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isDeleting = true,
+                deleteFlowState = EditPasswordDeleteFlowState.Idle,
+                categoryErrorResId = null,
+                passwordErrorResId = null,
+                submitErrorResId = null
+            )
+        }
+
+        viewModelScope.launch {
+            when (deletePasswordByIdUseCase(resolvedPasswordId)) {
+                DeletePasswordResult.Success -> {
+                    _uiState.update { it.copy(isDeleting = false) }
+                    _effects.send(EditPasswordEffect.NavigateBackToOrigin(openedFrom))
+                }
+                DeletePasswordResult.NotFound -> {
+                    _uiState.update {
+                        it.copy(
+                            isDeleting = false,
+                            deleteFlowState = EditPasswordDeleteFlowState.Idle,
+                            contentState = EditPasswordContentState.Error(
+                                R.string.edit_password_not_found_error
+                            )
+                        )
+                    }
+                }
+                DeletePasswordResult.Failure -> {
+                    _uiState.update {
+                        it.copy(
+                            isDeleting = false,
+                            deleteFlowState = EditPasswordDeleteFlowState.Idle,
+                            submitErrorResId = R.string.edit_password_delete_error
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showDeleteConfirmation() {
+        val currentState = _uiState.value
+        if (currentState.isDeleting || currentState.isSaving) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                deleteFlowState = EditPasswordDeleteFlowState.Confirmation,
+                submitErrorResId = null
+            )
+        }
+    }
+
+    private fun dismissDeleteConfirmation() {
+        if (_uiState.value.isDeleting) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(deleteFlowState = EditPasswordDeleteFlowState.Idle)
         }
     }
 
