@@ -7,6 +7,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.N
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -131,6 +132,39 @@ class UpdatePasswordUseCaseTest {
     }
 
     @Test
+    fun givenRepositoryCancellation_whenInvoked_thenRethrowsCancellation() = runTest {
+        val cancellation = CancellationException("update cancelled")
+        val useCase = UpdatePasswordUseCase(
+            passwordRepository = FakePasswordRepository(
+                passwordDetails = persistedPassword(),
+                updateFailure = cancellation
+            ),
+            categoryRepository = FakeCategoryRepository(validCategory = persistedCategory()),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(
+                FakePasswordRepository(passwordDetails = persistedPassword())
+            ),
+            timeProvider = FixedTimeProvider(1_750_000_000_000L)
+        )
+
+        val thrown = try {
+            useCase(
+                passwordId = 8L,
+                title = "Spotify",
+                login = "mail",
+                categoryId = 2L,
+                categoryName = "Music",
+                password = "new-secret",
+                note = null
+            )
+            null
+        } catch (error: CancellationException) {
+            error
+        }
+
+        assertEquals(cancellation, thrown)
+    }
+
+    @Test
     fun givenBlankTitle_whenInvoked_thenUsesGeneratedFallbackTitle() = runTest {
         val repository = FakePasswordRepository(passwordDetails = persistedPassword())
         val useCase = UpdatePasswordUseCase(
@@ -237,7 +271,8 @@ class UpdatePasswordUseCaseTest {
 
     private class FakePasswordRepository(
         private val passwordDetails: PasswordDetails?,
-        private val shouldFailOnUpdate: Boolean = false
+        private val shouldFailOnUpdate: Boolean = false,
+        private val updateFailure: Throwable? = null
     ) : PasswordRepository {
 
 
@@ -255,6 +290,7 @@ class UpdatePasswordUseCaseTest {
         override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = passwordDetails
 
         override suspend fun updatePassword(password: PasswordDetails) {
+            updateFailure?.let { throw it }
             if (shouldFailOnUpdate) {
                 error("update failure")
             }

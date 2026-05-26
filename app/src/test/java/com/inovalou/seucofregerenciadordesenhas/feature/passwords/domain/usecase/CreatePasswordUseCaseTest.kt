@@ -7,6 +7,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.N
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -226,9 +227,38 @@ class CreatePasswordUseCaseTest {
         assertEquals(CreatePasswordResult.Failure, result)
     }
 
+    @Test
+    fun givenRepositoryCancellation_whenInvoked_thenRethrowsCancellation() = runTest {
+        val cancellation = CancellationException("create cancelled")
+        val repository = FakePasswordRepository(createFailure = cancellation)
+        val useCase = CreatePasswordUseCase(
+            passwordRepository = repository,
+            categoryRepository = FakeCategoryRepository(listOf(Category(1L, "Pessoal", "ic_home", 0, 50L))),
+            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(repository),
+            timeProvider = FixedTimeProvider(1_700_000_000_000L)
+        )
+
+        val thrown = try {
+            useCase(
+                title = "",
+                login = "",
+                categoryId = 1L,
+                categoryName = "Pessoal",
+                password = "abc123",
+                note = null
+            )
+            null
+        } catch (error: CancellationException) {
+            error
+        }
+
+        assertEquals(cancellation, thrown)
+    }
+
     private class FakePasswordRepository(
         private val passwordCount: Int = 0,
-        private val shouldFailOnCreate: Boolean = false
+        private val shouldFailOnCreate: Boolean = false,
+        private val createFailure: Throwable? = null
     ) : PasswordRepository {
 
 
@@ -242,6 +272,7 @@ class CreatePasswordUseCaseTest {
         override suspend fun getPasswordCount(): Int = passwordCount
 
         override suspend fun createPassword(password: NewPassword): Long {
+            createFailure?.let { throw it }
             if (shouldFailOnCreate) {
                 error("repository failure")
             }

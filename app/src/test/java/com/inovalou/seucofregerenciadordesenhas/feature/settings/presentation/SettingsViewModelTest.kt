@@ -108,6 +108,24 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun givenUserNameSaveFails_whenSaveCompletes_thenKeepsEditorAndStopsLoading() = runTest {
+        val repository = FakeAppPreferencesRepository(failOnUserNameUpdate = true)
+        val initialUserName = repository.current.userName
+        val viewModel = buildViewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        viewModel.onAction(SettingsAction.OnUserCardClick)
+        viewModel.onAction(SettingsAction.OnUserNameDraftChange("Maria Silva"))
+        viewModel.onAction(SettingsAction.OnSaveUserNameClick)
+        advanceUntilIdle()
+
+        assertEquals("Maria Silva", viewModel.uiState.value.nameEditor?.draftName)
+        assertTrue(viewModel.uiState.value.nameEditor?.isSaving == false)
+        assertEquals(initialUserName, repository.current.userName)
+    }
+
+    @Test
     fun givenLanguageDialog_whenEnglishIsSaved_thenRepositoryAndStateUseEnglish() = runTest {
         val repository = FakeAppPreferencesRepository()
         val viewModel = buildViewModel(repository)
@@ -215,7 +233,10 @@ class SettingsViewModelTest {
         initialPreferences: AppPreferences = AppPreferences(),
         private val userNameGate: CompletableDeferred<Unit>? = null,
         private val languageGate: CompletableDeferred<Unit>? = null,
-        private val themeGate: CompletableDeferred<Unit>? = null
+        private val themeGate: CompletableDeferred<Unit>? = null,
+        private val failOnUserNameUpdate: Boolean = false,
+        private val failOnLanguageUpdate: Boolean = false,
+        private val failOnThemeUpdate: Boolean = false
     ) : AppPreferencesRepository {
         private val preferencesFlow = MutableStateFlow(initialPreferences)
         val current: AppPreferences get() = preferencesFlow.value
@@ -228,18 +249,27 @@ class SettingsViewModelTest {
         override suspend fun updateUserName(userName: String) {
             userNameUpdateCalls += 1
             userNameGate?.await()
+            if (failOnUserNameUpdate) {
+                error("user name update failure")
+            }
             preferencesFlow.value = preferencesFlow.value.copy(userName = userName.trim())
         }
 
         override suspend fun updateLanguage(language: AppLanguage) {
             languageUpdateCalls += 1
             languageGate?.await()
+            if (failOnLanguageUpdate) {
+                error("language update failure")
+            }
             preferencesFlow.value = preferencesFlow.value.copy(language = language)
         }
 
         override suspend fun updateThemePreference(themePreference: AppThemePreference) {
             themeUpdateCalls += 1
             themeGate?.await()
+            if (failOnThemeUpdate) {
+                error("theme update failure")
+            }
             preferencesFlow.value = preferencesFlow.value.copy(themePreference = themePreference)
         }
     }

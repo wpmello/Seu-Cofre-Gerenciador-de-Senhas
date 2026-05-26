@@ -111,7 +111,6 @@ class SettingsViewModel @Inject constructor(
                 transientState.update { state ->
                     state.copy(nameEditor = state.nameEditor?.copy(isSaving = false))
                 }
-                throw exception
             }
         }
     }
@@ -165,7 +164,6 @@ class SettingsViewModel @Inject constructor(
                 transientState.update { state ->
                     state.copy(languageDialog = state.languageDialog?.copy(isSaving = false))
                 }
-                throw exception
             }
         }
     }
@@ -211,7 +209,6 @@ class SettingsViewModel @Inject constructor(
                 transientState.update { state ->
                     state.copy(themeDialog = state.themeDialog?.copy(isSaving = false))
                 }
-                throw exception
             }
         }
     }

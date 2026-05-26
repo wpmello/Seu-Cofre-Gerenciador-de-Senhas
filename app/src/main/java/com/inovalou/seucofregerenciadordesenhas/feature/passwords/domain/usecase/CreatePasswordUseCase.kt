@@ -5,6 +5,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.reposi
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 
 class CreatePasswordUseCase @Inject constructor(
     private val passwordRepository: PasswordRepository,
@@ -58,6 +59,8 @@ class CreatePasswordUseCase @Inject constructor(
             )
             persistedCategory?.id?.let { categoryRepository.touchCategory(it) }
             CreatePasswordResult.Success
+        } catch (exception: CancellationException) {
+            throw exception
         } catch (_: Exception) {
             CreatePasswordResult.Failure
         }
