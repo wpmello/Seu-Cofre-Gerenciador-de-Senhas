@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.repository
 
+import com.inovalou.seucofregerenciadordesenhas.core.coroutines.AppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.EncryptedPasswordPayload
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
@@ -12,6 +13,8 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSearchResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -285,6 +288,107 @@ class PasswordRepositoryImplTest {
     }
 
     @Test
+    fun givenNewPassword_whenCreating_thenRunsCryptoWorkOnDefaultDispatcher() = runTest {
+        val defaultDispatcher = RecordingDispatcher()
+        val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
+        var encryptedOnDefaultDispatcher = false
+        var fingerprintedOnDefaultDispatcher = false
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordCipher = object : PasswordCipher {
+                override fun encrypt(plainText: String): EncryptedPasswordPayload {
+                    encryptedOnDefaultDispatcher = defaultDispatcher.isRunning
+                    return EncryptedPasswordPayload(
+                        cipherText = "enc::$plainText",
+                        iv = "iv::$plainText",
+                        version = 1
+                    )
+                }
+
+                override fun decrypt(cipherText: String, iv: String, version: Int): String {
+                    error("unused")
+                }
+            },
+            passwordFingerprintGenerator = object : PasswordFingerprintGenerator {
+                override fun generate(password: String): String {
+                    fingerprintedOnDefaultDispatcher = defaultDispatcher.isRunning
+                    return "fp::$password"
+                }
+            },
+            dispatchers = AppDispatchers(
+                default = defaultDispatcher,
+                io = RecordingDispatcher()
+            )
+        )
+
+        repository.createPassword(
+            NewPassword(
+                title = "GitHub",
+                login = "",
+                categoryId = null,
+                categoryName = null,
+                password = "plain-secret",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_700_000_000_000L,
+                note = null
+            )
+        )
+
+        assertTrue(encryptedOnDefaultDispatcher)
+        assertTrue(fingerprintedOnDefaultDispatcher)
+    }
+
+    @Test
+    fun givenPersistedPassword_whenRequestingDetails_thenRunsDecryptAndFingerprintOnDefaultDispatcher() = runTest {
+        val defaultDispatcher = RecordingDispatcher()
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = emptyList(),
+            passwordById = passwordEntity(
+                id = 31L,
+                title = "Spotify",
+                login = "premium@vault.com",
+                category = "Music",
+                categoryId = 7L,
+                encryptedPassword = "cipher",
+                passwordIv = "iv",
+                createdAt = 1_700_000_000_000L,
+                updatedAt = 1_710_000_000_000L,
+                passwordFingerprint = null
+            )
+        )
+        var decryptedOnDefaultDispatcher = false
+        var fingerprintedOnDefaultDispatcher = false
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordCipher = object : PasswordCipher {
+                override fun encrypt(plainText: String): EncryptedPasswordPayload {
+                    error("unused")
+                }
+
+                override fun decrypt(cipherText: String, iv: String, version: Int): String {
+                    decryptedOnDefaultDispatcher = defaultDispatcher.isRunning
+                    return "plain::$cipherText"
+                }
+            },
+            passwordFingerprintGenerator = object : PasswordFingerprintGenerator {
+                override fun generate(password: String): String {
+                    fingerprintedOnDefaultDispatcher = defaultDispatcher.isRunning
+                    return "fp::$password"
+                }
+            },
+            dispatchers = AppDispatchers(
+                default = defaultDispatcher,
+                io = RecordingDispatcher()
+            )
+        )
+
+        repository.getPasswordDetails(31L)
+
+        assertTrue(decryptedOnDefaultDispatcher)
+        assertTrue(fingerprintedOnDefaultDispatcher)
+    }
+
+    @Test
     fun givenCipherFailure_whenCreating_thenPropagatesErrorWithoutPersistingPlainText() = runTest {
         val localDataSource = FakePasswordsLocalDataSource(initialPasswords = emptyList())
         val repository = buildRepository(
@@ -521,12 +625,17 @@ class PasswordRepositoryImplTest {
         localDataSource: PasswordsLocalDataSource,
         passwordCipher: PasswordCipher = FakePasswordCipher(),
         passwordFingerprintGenerator: PasswordFingerprintGenerator = FakePasswordFingerprintGenerator(),
-        timeProvider: TimeProvider = FixedTimeProvider(1_700_000_000_000L)
+        timeProvider: TimeProvider = FixedTimeProvider(1_700_000_000_000L),
+        dispatchers: AppDispatchers = AppDispatchers(
+            default = RecordingDispatcher(),
+            io = RecordingDispatcher()
+        )
     ) = PasswordRepositoryImpl(
         localDataSource = localDataSource,
         passwordCipher = passwordCipher,
         passwordFingerprintGenerator = passwordFingerprintGenerator,
-        timeProvider = timeProvider
+        timeProvider = timeProvider,
+        dispatchers = dispatchers
     )
 
     private fun passwordEntity(
@@ -677,5 +786,19 @@ class PasswordRepositoryImplTest {
         private val currentTimeMillis: Long
     ) : TimeProvider {
         override fun currentTimeMillis(): Long = currentTimeMillis
+    }
+
+    private class RecordingDispatcher : CoroutineDispatcher() {
+        var isRunning: Boolean = false
+            private set
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            isRunning = true
+            try {
+                block.run()
+            } finally {
+                isRunning = false
+            }
+        }
     }
 }

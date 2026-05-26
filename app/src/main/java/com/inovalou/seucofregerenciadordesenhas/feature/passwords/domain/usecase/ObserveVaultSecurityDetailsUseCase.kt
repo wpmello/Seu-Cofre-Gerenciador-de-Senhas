@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.coroutines.AppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityDetailsItem
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
@@ -9,10 +10,12 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.reposit
 import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.withContext
 
 class ObserveVaultSecurityDetailsUseCase @Inject constructor(
     private val repository: PasswordRepository,
-    private val evaluatePasswordSecurityUseCase: EvaluatePasswordSecurityUseCase
+    private val evaluatePasswordSecurityUseCase: EvaluatePasswordSecurityUseCase,
+    private val dispatchers: AppDispatchers
 ) {
 
     operator fun invoke() = combine(
@@ -22,7 +25,7 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
         passwords.toVaultSecurityDetails(securitySnapshots)
     }
 
-    private fun List<PasswordSummary>.toVaultSecurityDetails(
+    private suspend fun List<PasswordSummary>.toVaultSecurityDetails(
         securitySnapshots: List<PasswordSecuritySnapshot>
     ): VaultSecurityDetails {
         if (isEmpty() || securitySnapshots.isEmpty()) {
@@ -30,9 +33,11 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
         }
 
         val passwordById = associateBy { password -> password.id }
-        val analysisByPasswordId = securitySnapshots.toSecurityAnalysisByPasswordId(
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
-        )
+        val analysisByPasswordId = withContext(dispatchers.default) {
+            securitySnapshots.toSecurityAnalysisByPasswordId(
+                evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            )
+        }
 
         val items = securitySnapshots.mapNotNull { snapshot ->
             val password = passwordById[snapshot.passwordId] ?: return@mapNotNull null

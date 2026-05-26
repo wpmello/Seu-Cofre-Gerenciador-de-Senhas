@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
@@ -23,7 +24,8 @@ class ObserveVaultSecuritySummaryUseCaseTest {
     fun givenNoPasswords_whenObservingVaultSecurity_thenReturnsExcellentEmptySummary() = runTest {
         val useCase = ObserveVaultSecuritySummaryUseCase(
             repository = FakePasswordRepository(emptyList()),
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase,
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()
@@ -40,7 +42,8 @@ class ObserveVaultSecuritySummaryUseCaseTest {
                     PasswordSecuritySnapshot(password = "password", fingerprint = "fp-2")
                 )
             ),
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase,
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()
@@ -59,7 +62,8 @@ class ObserveVaultSecuritySummaryUseCaseTest {
                     PasswordSecuritySnapshot(password = "Ab1!cd2@", fingerprint = "fp-2")
                 )
             ),
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase,
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()
@@ -78,7 +82,8 @@ class ObserveVaultSecuritySummaryUseCaseTest {
                     PasswordSecuritySnapshot(password = "Ab1!cd2@", fingerprint = "fp-2")
                 )
             ),
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase,
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()
@@ -97,7 +102,8 @@ class ObserveVaultSecuritySummaryUseCaseTest {
                     PasswordSecuritySnapshot(password = "S7!mQ2#vN9@tL4\$z", fingerprint = "fp-2")
                 )
             ),
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase,
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()
@@ -116,7 +122,8 @@ class ObserveVaultSecuritySummaryUseCaseTest {
                     PasswordSecuritySnapshot(password = "S7!mQ2#vN9@tL4\$z", fingerprint = "shared")
                 )
             ),
-            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase,
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()

@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.home.presentation
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
@@ -314,17 +315,20 @@ class VaultHomeViewModelTest {
                 passwordRepository = passwordRepository,
                 observeRecentPasswordsUseCase = ObserveRecentPasswordsUseCase(
                     repository = passwordRepository,
-                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                    dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
                 ),
                 observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
                     repository = passwordRepository,
-                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                    dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
                 )
             ),
             observeVaultHomeSecurityPasswordsUseCase = ObserveVaultHomeSecurityPasswordsUseCase(
                 observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
                     repository = resolvedSummaryPasswordRepository,
-                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                    evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                    dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
                 )
             ),
             categoryIconCatalog = FakeCategoryIconCatalog()

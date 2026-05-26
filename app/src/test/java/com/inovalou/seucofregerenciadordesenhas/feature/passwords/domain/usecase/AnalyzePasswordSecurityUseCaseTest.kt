@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
@@ -18,7 +19,8 @@ class AnalyzePasswordSecurityUseCaseTest {
         val repository = FakePasswordRepository(isDuplicate = true)
         val useCase = AnalyzePasswordSecurityUseCase(
             passwordRepository = repository,
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase(
