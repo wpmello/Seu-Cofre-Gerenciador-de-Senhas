@@ -101,92 +101,98 @@ fun CategoriesScreen(
                 .background(colors.background)
                 .testTag("categories_screen")
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .testTag("categories_grid"),
-                contentPadding = PaddingValues(
-                    start = 24.dp,
-                    top = CategoriesContentTopPadding,
-                    end = 24.dp,
-                    bottom = 140.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    SecuritySummaryCard(
-                        summary = uiState.securitySummary,
-                        encryptedIndicator = uiState.encryptedIndicator,
-                        onClick = onSecuritySummaryClick
-                    )
-                }
-
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    CategoriesSectionHeader(
-                        onViewAllClick = onViewAllClick
-                    )
-                }
-
-                uiState.currentCategory?.let { currentCategory ->
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        HighlightedCategoryCard(
-                            currentCategory = currentCategory,
-                            onClick = { onCategoryClick(currentCategory.id) }
+            when (val categoriesState = uiState.categoriesState) {
+                CategoriesContentUiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = CategoriesContentTopPadding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = colors.primary,
+                            modifier = Modifier.testTag("categories_loading")
                         )
                     }
                 }
 
-                when (val categoriesState = uiState.categoriesState) {
-                    CategoriesContentUiState.Loading -> {
+                CategoriesContentUiState.Empty,
+                is CategoriesContentUiState.Content,
+                is CategoriesContentUiState.Error -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .testTag("categories_grid"),
+                        contentPadding = PaddingValues(
+                            start = 24.dp,
+                            top = CategoriesContentTopPadding,
+                            end = 24.dp,
+                            bottom = 140.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 24.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    color = colors.primary,
-                                    modifier = Modifier.testTag("categories_loading")
-                                )
-                            }
-                        }
-                    }
-
-                    CategoriesContentUiState.Empty -> Unit
-
-                    is CategoriesContentUiState.Content -> {
-                        items(
-                            items = categoriesState.categories,
-                            key = { category -> category.id }
-                        ) { category ->
-                            CategoryGridCard(
-                                category = category,
-                                onClick = { onCategoryClick(category.id) }
+                            SecuritySummaryCard(
+                                summary = uiState.securitySummary,
+                                encryptedIndicator = uiState.encryptedIndicator,
+                                onClick = onSecuritySummaryClick
                             )
                         }
 
-                        if (uiState.shouldShowBottomViewAllButton) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            CategoriesSectionHeader(
+                                onViewAllClick = onViewAllClick
+                            )
+                        }
+
+                        uiState.currentCategory?.let { currentCategory ->
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                CategoriesBottomViewAllButton(
-                                    onClick = onViewAllClick
+                                HighlightedCategoryCard(
+                                    currentCategory = currentCategory,
+                                    onClick = { onCategoryClick(currentCategory.id) }
                                 )
                             }
                         }
-                    }
 
-                    is CategoriesContentUiState.Error -> {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Text(
-                                text = stringResource(categoriesState.messageResId),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp)
-                                    .testTag("categories_error"),
-                                color = colors.textSecondary
-                            )
+                        when (categoriesState) {
+                            CategoriesContentUiState.Empty -> Unit
+
+                            is CategoriesContentUiState.Content -> {
+                                items(
+                                    items = categoriesState.categories,
+                                    key = { category -> category.id }
+                                ) { category ->
+                                    CategoryGridCard(
+                                        category = category,
+                                        onClick = { onCategoryClick(category.id) }
+                                    )
+                                }
+
+                                if (uiState.shouldShowBottomViewAllButton) {
+                                    item(span = { GridItemSpan(maxLineSpan) }) {
+                                        CategoriesBottomViewAllButton(
+                                            onClick = onViewAllClick
+                                        )
+                                    }
+                                }
+                            }
+
+                            is CategoriesContentUiState.Error -> {
+                                item(span = { GridItemSpan(maxLineSpan) }) {
+                                    Text(
+                                        text = stringResource(categoriesState.messageResId),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 12.dp)
+                                            .testTag("categories_error"),
+                                        color = colors.textSecondary
+                                    )
+                                }
+                            }
+
+                            CategoriesContentUiState.Loading -> Unit
                         }
                     }
                 }

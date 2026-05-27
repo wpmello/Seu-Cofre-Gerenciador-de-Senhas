@@ -16,6 +16,7 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.reposit
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.EvaluatePasswordSecurityUseCase
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase.ObserveVaultSecuritySummaryUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -33,6 +34,33 @@ class CategoriesViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @Test
+    fun givenViewModelCreated_whenStateIsCollectedImmediately_thenStartsInLoading() = runTest {
+        val repository = object : CategoryRepository {
+            override suspend fun deleteCategoryWithAssociatedPasswords(categoryId: Long) = Unit
+
+            override suspend fun transferPasswordsToCategory(
+                sourceCategoryId: Long,
+                targetCategoryId: Long
+            ) = Unit
+
+            override suspend fun createCategory(name: String, iconKey: String): Long = 1L
+
+            override suspend fun getCategoryById(categoryId: Long): Category? = null
+
+            override suspend fun updateCategory(category: Category) = Unit
+
+            override suspend fun touchCategory(categoryId: Long) = Unit
+
+            override suspend fun deleteCategoryById(categoryId: Long) = Unit
+
+            override fun observeCategories(): Flow<List<Category>> = flow { awaitCancellation() }
+        }
+        val viewModel = buildViewModel(categoryRepository = repository)
+
+        assertTrue(viewModel.uiState.value.categoriesState is CategoriesContentUiState.Loading)
+    }
 
     @Test
     fun givenNoCategories_whenObservingState_thenEmitsEmptyState() = runTest {
