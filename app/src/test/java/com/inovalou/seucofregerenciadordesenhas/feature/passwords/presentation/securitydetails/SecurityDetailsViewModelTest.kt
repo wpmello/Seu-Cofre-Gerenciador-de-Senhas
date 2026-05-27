@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
@@ -161,7 +162,8 @@ class SecurityDetailsViewModelTest {
         val viewModel = SecurityDetailsViewModel(
             observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
                 repository = repository,
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -186,7 +188,8 @@ class SecurityDetailsViewModelTest {
                 passwords = passwords,
                 snapshots = snapshots
             ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
         )
     )
 

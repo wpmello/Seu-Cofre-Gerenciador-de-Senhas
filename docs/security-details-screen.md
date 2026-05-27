@@ -60,7 +60,7 @@ Foi rejeitado porque a tela deve expor somente os três status de segurança do 
 
 - A tela precisa descriptografar senhas na camada de dados para reaproveitar a análise individual, como o resumo já fazia.
 - A UI nunca recebe a senha em claro; recebe apenas metadados, score, tags e status.
-- `PasswordRepositoryImpl.observePasswordSecuritySnapshots()` ainda descriptografa todas as senhas a cada emissão; um ciclo futuro deve avaliar dispatcher explícito ou um desenho de snapshot que reduza trabalho pesado e retenção temporária de senha em claro.
+- `PasswordRepositoryImpl.observePasswordSecuritySnapshots()` ainda descriptografa todas as senhas a cada emissão, mas o trabalho criptográfico e de fingerprint roda em dispatcher explícito fora da Main Thread. Um ciclo futuro pode avaliar um desenho de snapshot que reduza retenção temporária de senha em claro.
 - Alterações futuras nos limiares de agregação devem ser feitas no domínio, não na UI.
 - A tela é uma rota interna e não deve renderizar BottomBar.
 

@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.coroutines.AppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityDetailsItem
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
@@ -9,27 +10,33 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.reposit
 import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.withContext
 
 class ObserveVaultSecurityDetailsUseCase @Inject constructor(
     private val repository: PasswordRepository,
-    private val evaluatePasswordSecurityUseCase: EvaluatePasswordSecurityUseCase
+    private val evaluatePasswordSecurityUseCase: EvaluatePasswordSecurityUseCase,
+    private val dispatchers: AppDispatchers
 ) {
 
     operator fun invoke() = combine(
         repository.observePasswords(),
         repository.observePasswordSecuritySnapshots()
     ) { passwords, securitySnapshots ->
-        passwords.toVaultSecurityDetails(securitySnapshots)
+        createVaultSecurityDetailsOnDefaultDispatcher(
+            passwords = passwords,
+            securitySnapshots = securitySnapshots
+        )
     }
 
-    private fun List<PasswordSummary>.toVaultSecurityDetails(
+    private suspend fun createVaultSecurityDetailsOnDefaultDispatcher(
+        passwords: List<PasswordSummary>,
         securitySnapshots: List<PasswordSecuritySnapshot>
-    ): VaultSecurityDetails {
-        if (isEmpty() || securitySnapshots.isEmpty()) {
-            return VaultSecurityDetails.empty()
+    ): VaultSecurityDetails = withContext(dispatchers.default) {
+        if (passwords.isEmpty() || securitySnapshots.isEmpty()) {
+            return@withContext VaultSecurityDetails.empty()
         }
 
-        val passwordById = associateBy { password -> password.id }
+        val passwordById = passwords.associateBy { password -> password.id }
         val analysisByPasswordId = securitySnapshots.toSecurityAnalysisByPasswordId(
             evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
         )
@@ -51,7 +58,7 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
         )
 
         if (items.isEmpty()) {
-            return VaultSecurityDetails.empty()
+            return@withContext VaultSecurityDetails.empty()
         }
 
         val averageScorePercent = items
@@ -63,7 +70,7 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
             items.filter { item -> item.bucket == bucket }
         }
 
-        return VaultSecurityDetails(
+        VaultSecurityDetails(
             totalPasswords = items.size,
             averageScorePercent = averageScorePercent,
             status = averageScorePercent.toVaultSecurityStatus(),

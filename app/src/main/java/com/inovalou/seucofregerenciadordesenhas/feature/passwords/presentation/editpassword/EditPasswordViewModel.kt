@@ -21,16 +21,25 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.s
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.withSelection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class EditPasswordViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -51,11 +60,15 @@ class EditPasswordViewModel @Inject constructor(
 
     private val _effects = Channel<EditPasswordEffect>(Channel.BUFFERED)
     val effects: Flow<EditPasswordEffect> = _effects.receiveAsFlow()
-    private var securityAnalysisJob: Job? = null
+    private val passwordAnalysisRequests = MutableSharedFlow<String>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
     init {
         observeCategoriesUseCase()
             .collectIntoUiState()
+        observePasswordSecurityAnalysisRequests()
         loadPassword()
     }
 
@@ -200,7 +213,7 @@ class EditPasswordViewModel @Inject constructor(
                 submitErrorResId = null
             )
         }
-        analyzePasswordSecurity(password)
+        passwordAnalysisRequests.tryEmit(password)
     }
 
     private fun updateNote(note: String) {
@@ -382,8 +395,7 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun analyzePasswordSecurity(password: String) {
-        securityAnalysisJob?.cancel()
-        securityAnalysisJob = viewModelScope.launch {
+        viewModelScope.launch {
             val analysis = analyzePasswordSecurityUseCase(
                 password = password,
                 currentPasswordId = passwordId
@@ -398,6 +410,30 @@ class EditPasswordViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun observePasswordSecurityAnalysisRequests() {
+        passwordAnalysisRequests
+            .debounce(PASSWORD_SECURITY_ANALYSIS_DEBOUNCE_MILLIS)
+            .distinctUntilChanged()
+            .mapLatest { password ->
+                password to analyzePasswordSecurityUseCase(
+                    password = password,
+                    currentPasswordId = passwordId
+                )
+            }
+            .onEach { (password, analysis) ->
+                _uiState.update { state ->
+                    if (state.password != password) {
+                        state
+                    } else {
+                        state.copy(
+                            securitySection = analysis.toEditPasswordSecuritySectionUiState()
+                        )
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun kotlinx.coroutines.flow.Flow<List<Category>>.collectIntoUiState() {
@@ -431,3 +467,5 @@ private fun UpdatePasswordPasswordError?.toPasswordErrorResId(): Int? = when (th
     UpdatePasswordPasswordError.Blank -> R.string.edit_password_password_error_blank
     null -> null
 }
+
+private const val PASSWORD_SECURITY_ANALYSIS_DEBOUNCE_MILLIS = 300L

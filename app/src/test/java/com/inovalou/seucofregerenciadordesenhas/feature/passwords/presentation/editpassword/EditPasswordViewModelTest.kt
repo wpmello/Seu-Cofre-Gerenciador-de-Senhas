@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.
 
 import androidx.lifecycle.SavedStateHandle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.coroutines.AppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
@@ -29,7 +30,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -311,6 +314,54 @@ class EditPasswordViewModelTest {
             R.string.edit_password_security_alert_medium,
             securitySection.alertResId
         )
+    }
+
+    @Test
+    fun givenRapidPasswordChanges_whenDebounceWindowIsActive_thenAnalyzesOnlyLatestPassword() = runTest {
+        val analysisRepository = FakePasswordRepository(
+            passwordDetails = persistedPassword(),
+            duplicatePasswords = setOf("S7!mQ2#vN9@tL4\$z")
+        )
+        val viewModel = buildViewModel(analysisPasswordRepository = analysisRepository)
+        advanceUntilIdle()
+        val callsAfterLoad = analysisRepository.duplicateLookupCalls
+
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("short-one"))
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("short-two"))
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("S7!mQ2#vN9@tL4\$z"))
+        advanceTimeBy(299)
+        runCurrent()
+
+        assertEquals(callsAfterLoad, analysisRepository.duplicateLookupCalls)
+
+        advanceTimeBy(1)
+        advanceUntilIdle()
+
+        assertEquals(callsAfterLoad + 1, analysisRepository.duplicateLookupCalls)
+        assertEquals("S7!mQ2#vN9@tL4\$z", analysisRepository.lastDuplicateLookupPassword)
+        assertEquals(
+            listOf(R.string.edit_password_security_tag_duplicate),
+            viewModel.uiState.value.securitySection.tagResIds
+        )
+    }
+
+    @Test
+    fun givenPasswordChangedAndSavedBeforeDebounce_whenSaveRuns_thenUsesLatestPasswordImmediately() = runTest {
+        val updateUseCase = FakeUpdatePasswordUseCase()
+        val analysisRepository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val viewModel = buildViewModel(
+            updatePasswordUseCase = updateUseCase,
+            analysisPasswordRepository = analysisRepository
+        )
+        advanceUntilIdle()
+        val callsAfterLoad = analysisRepository.duplicateLookupCalls
+
+        viewModel.onAction(EditPasswordAction.OnPasswordChanged("new-secret-without-analysis"))
+        viewModel.onAction(EditPasswordAction.OnSaveClick)
+        runCurrent()
+
+        assertEquals("new-secret-without-analysis", updateUseCase.lastPassword)
+        assertEquals(callsAfterLoad, analysisRepository.duplicateLookupCalls)
     }
 
     @Test
@@ -651,7 +702,11 @@ class EditPasswordViewModelTest {
         updatePasswordUseCase: FakeUpdatePasswordUseCase = FakeUpdatePasswordUseCase(),
         deletePasswordRepository: FakeDeletePasswordRepository = FakeDeletePasswordRepository(),
         categoryRepository: FakeCategoryRepository = FakeCategoryRepository(),
-        duplicatePasswords: Set<String> = emptySet()
+        duplicatePasswords: Set<String> = emptySet(),
+        analysisPasswordRepository: FakePasswordRepository = FakePasswordRepository(
+            passwordDetails = passwordDetails,
+            duplicatePasswords = duplicatePasswords
+        )
     ): EditPasswordViewModel = EditPasswordViewModel(
         savedStateHandle = SavedStateHandle(
             buildMap {
@@ -669,11 +724,9 @@ class EditPasswordViewModelTest {
         ),
         observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
         analyzePasswordSecurityUseCase = AnalyzePasswordSecurityUseCase(
-            passwordRepository = FakePasswordRepository(
-                passwordDetails = passwordDetails,
-                duplicatePasswords = duplicatePasswords
-            ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            passwordRepository = analysisPasswordRepository,
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testDispatchers()
         ),
         updatePasswordUseCase = UpdatePasswordUseCase(
             passwordRepository = updatePasswordUseCase,
@@ -682,6 +735,11 @@ class EditPasswordViewModelTest {
             timeProvider = FixedTimeProvider(1_750_000_000_000L)
         ),
         deletePasswordByIdUseCase = DeletePasswordByIdUseCase(deletePasswordRepository)
+    )
+
+    private fun testDispatchers() = AppDispatchers(
+        default = mainDispatcherRule.dispatcher,
+        io = mainDispatcherRule.dispatcher
     )
 
     private fun persistedPassword(
@@ -708,6 +766,9 @@ class EditPasswordViewModelTest {
     ) : PasswordRepository {
 
 
+        var duplicateLookupCalls: Int = 0
+        var lastDuplicateLookupPassword: String? = null
+
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
         override fun observePasswordsByCategoryId(categoryId: Long): Flow<List<PasswordSummary>> =
@@ -724,7 +785,11 @@ class EditPasswordViewModelTest {
         override suspend fun hasPasswordDuplicate(
             password: String,
             excludePasswordId: Long?
-        ): Boolean = duplicatePasswords.contains(password)
+        ): Boolean {
+            duplicateLookupCalls += 1
+            lastDuplicateLookupPassword = password
+            return duplicatePasswords.contains(password)
+        }
 
         override suspend fun deletePasswordById(passwordId: Long): Boolean = false
     }

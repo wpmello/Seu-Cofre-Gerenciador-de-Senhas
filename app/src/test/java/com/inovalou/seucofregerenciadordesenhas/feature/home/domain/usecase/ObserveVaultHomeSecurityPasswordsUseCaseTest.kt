@@ -1,5 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.home.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityBucket
@@ -71,7 +72,8 @@ class ObserveVaultHomeSecurityPasswordsUseCaseTest {
         return ObserveVaultHomeSecurityPasswordsUseCase(
             observeVaultSecurityDetailsUseCase = ObserveVaultSecurityDetailsUseCase(
                 repository = passwordRepository,
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers()
             )
         )
     }

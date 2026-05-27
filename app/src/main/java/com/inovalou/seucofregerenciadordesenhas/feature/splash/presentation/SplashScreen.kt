@@ -121,49 +121,36 @@ private fun StarFieldBackground(modifier: Modifier = Modifier) {
     val brightStar = Color.White
     val blueStar = colors.primary
     val purpleStar = colors.secondary
+    val starSpecs = remember { buildStarFieldSpecs() }
 
     Canvas(modifier = modifier) {
         drawRect(Color.Black)
 
-        val starCount = 720
         val baseStarSize = 1.dp.toPx()
 
-        repeat(starCount) { index ->
-            val xSeed = ((index * 73 + index * index * 17) % 997) / 997f
-            val ySeed = ((index * 151 + index * index * 29) % 1543) / 1543f
-            val starSizeSeed = (index * 37) % 100
-            val starSize = when {
-                starSizeSeed > 96 -> baseStarSize * 2.2f
-                starSizeSeed > 84 -> baseStarSize * 1.45f
-                else -> baseStarSize
-            }
-            val alphaSeed = (index * 53) % 100
-            val alpha = when {
-                alphaSeed > 92 -> 0.92f
-                alphaSeed > 70 -> 0.62f
-                else -> 0.36f
-            }
-            val starColor = when {
-                index % 41 == 0 -> purpleStar
-                index % 29 == 0 -> blueStar
-                index % 7 == 0 -> brightStar
-                else -> dimStar
+        starSpecs.forEach { star ->
+            val starSize = baseStarSize * star.sizeMultiplier
+            val starColor = when (star.color) {
+                StarColor.Purple -> purpleStar
+                StarColor.Blue -> blueStar
+                StarColor.Bright -> brightStar
+                StarColor.Dim -> dimStar
             }
 
             drawRect(
-                color = starColor.copy(alpha = alpha),
+                color = starColor.copy(alpha = star.alpha),
                 topLeft = Offset(
-                    x = xSeed * size.width,
-                    y = ySeed * size.height
+                    x = star.xSeed * size.width,
+                    y = star.ySeed * size.height
                 ),
                 size = Size(starSize, starSize)
             )
 
-            if (index % 67 == 0) {
+            if (star.hasCluster) {
                 val clusterSize = baseStarSize * 0.82f
                 val clusterOrigin = Offset(
-                    x = (xSeed * size.width + baseStarSize * 4f).coerceAtMost(size.width),
-                    y = (ySeed * size.height + baseStarSize * 3f).coerceAtMost(size.height)
+                    x = (star.xSeed * size.width + baseStarSize * 4f).coerceAtMost(size.width),
+                    y = (star.ySeed * size.height + baseStarSize * 3f).coerceAtMost(size.height)
                 )
 
                 drawRect(
@@ -175,6 +162,50 @@ private fun StarFieldBackground(modifier: Modifier = Modifier) {
         }
     }
 }
+
+private fun buildStarFieldSpecs(): List<StarSpec> = List(STAR_FIELD_COUNT) { index ->
+    val starSizeSeed = (index * 37) % 100
+    val alphaSeed = (index * 53) % 100
+    StarSpec(
+        xSeed = ((index * 73 + index * index * 17) % 997) / 997f,
+        ySeed = ((index * 151 + index * index * 29) % 1543) / 1543f,
+        sizeMultiplier = when {
+            starSizeSeed > 96 -> 2.2f
+            starSizeSeed > 84 -> 1.45f
+            else -> 1f
+        },
+        alpha = when {
+            alphaSeed > 92 -> 0.92f
+            alphaSeed > 70 -> 0.62f
+            else -> 0.36f
+        },
+        color = when {
+            index % 41 == 0 -> StarColor.Purple
+            index % 29 == 0 -> StarColor.Blue
+            index % 7 == 0 -> StarColor.Bright
+            else -> StarColor.Dim
+        },
+        hasCluster = index % 67 == 0
+    )
+}
+
+private data class StarSpec(
+    val xSeed: Float,
+    val ySeed: Float,
+    val sizeMultiplier: Float,
+    val alpha: Float,
+    val color: StarColor,
+    val hasCluster: Boolean
+)
+
+private enum class StarColor {
+    Dim,
+    Bright,
+    Blue,
+    Purple
+}
+
+private const val STAR_FIELD_COUNT = 720
 
 @Composable
 private fun BrandSection() {

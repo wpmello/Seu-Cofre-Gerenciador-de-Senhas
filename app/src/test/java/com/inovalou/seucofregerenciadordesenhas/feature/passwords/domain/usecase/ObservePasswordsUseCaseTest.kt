@@ -1,5 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.testing.RecordingDispatcher
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
@@ -17,6 +19,7 @@ class ObservePasswordsUseCaseTest {
 
     @Test
     fun givenRepositoryStream_whenInvoked_thenReturnsObservedPasswordsWithSecurityRisk() = runTest {
+        val defaultDispatcher = RecordingDispatcher()
         val passwords = listOf(
             PasswordSummary(
                 id = 3L,
@@ -37,13 +40,15 @@ class ObservePasswordsUseCaseTest {
                     )
                 )
             ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers(defaultDispatcher)
         )
 
         val result = useCase().first()
 
         assertEquals(passwords.single().title, result.single().title)
         assertEquals(PasswordSecurityRiskLevel.Low, result.single().securityRiskLevel)
+        assertEquals(1, defaultDispatcher.dispatchCount)
     }
 
     @Test
@@ -91,7 +96,8 @@ class ObservePasswordsUseCaseTest {
                     )
                 )
             ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()
@@ -121,7 +127,8 @@ class ObservePasswordsUseCaseTest {
                 ),
                 snapshots = emptyList()
             ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers()
         )
 
         val result = useCase().first()

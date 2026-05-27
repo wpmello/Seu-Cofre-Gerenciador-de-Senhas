@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.ObserveCategoriesUseCase
@@ -244,7 +245,8 @@ class CategoriesViewModelTest {
         observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
         observeVaultSecuritySummaryUseCase = ObserveVaultSecuritySummaryUseCase(
             repository = passwordRepository,
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
         ),
         categoryIconCatalog = FakeCategoryIconCatalog()
     )

@@ -4,6 +4,7 @@ import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 
 class UpdatePasswordUseCase @Inject constructor(
     private val passwordRepository: PasswordRepository,
@@ -60,6 +61,8 @@ class UpdatePasswordUseCase @Inject constructor(
             )
             persistedCategory?.id?.let { categoryRepository.touchCategory(it) }
             UpdatePasswordResult.Success
+        } catch (exception: CancellationException) {
+            throw exception
         } catch (_: Exception) {
             UpdatePasswordResult.Failure
         }
