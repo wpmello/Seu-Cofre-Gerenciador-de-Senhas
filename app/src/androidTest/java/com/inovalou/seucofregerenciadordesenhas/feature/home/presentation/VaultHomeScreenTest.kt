@@ -21,6 +21,7 @@ import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -422,25 +423,88 @@ class VaultHomeScreenTest {
     }
 
     @Test
-    fun givenFab_whenClicked_thenEmitsAddPasswordAction() {
-        var wasClicked = false
+    fun givenFab_whenClicked_thenShowsCreateOptionsWithoutNavigation() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        var didNavigateToPassword = false
+        var didNavigateToCategory = false
 
         composeRule.setContent {
             SeuCofreGerenciadorDeSenhasTheme {
                 VaultHomeScreen(
                     uiState = contentState(),
-                    onAction = { action ->
-                        if (action == VaultHomeAction.OnAddPasswordClick) {
-                            wasClicked = true
-                        }
-                    }
+                    onAction = {},
+                    onAddPassword = { didNavigateToPassword = true },
+                    onAddCategory = { didNavigateToCategory = true }
                 )
             }
         }
 
         composeRule.onNodeWithTag("vault_home_create_password_fab").performClick()
 
-        assertTrue(wasClicked)
+        composeRule.onNodeWithTag("vault_home_create_options").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.vault_home_create_password_option)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.vault_home_create_category_option)).assertIsDisplayed()
+        assertFalse(didNavigateToPassword)
+        assertFalse(didNavigateToCategory)
+    }
+
+    @Test
+    fun givenCreateOptionsVisible_whenFabClickedAgain_thenHidesCreateOptions() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(),
+                    onAction = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("vault_home_create_password_fab").performClick()
+        composeRule.onNodeWithTag("vault_home_create_options").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("vault_home_create_password_fab").performClick()
+
+        composeRule.onAllNodesWithTag("vault_home_create_options").assertCountEquals(0)
+    }
+
+    @Test
+    fun givenCreateOptionsVisible_whenNewPasswordClicked_thenNavigatesToNewPassword() {
+        var didNavigateToPassword = false
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(),
+                    onAction = {},
+                    onAddPassword = { didNavigateToPassword = true }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("vault_home_create_password_fab").performClick()
+        composeRule.onNodeWithTag("vault_home_create_password_option").performClick()
+
+        assertTrue(didNavigateToPassword)
+    }
+
+    @Test
+    fun givenCreateOptionsVisible_whenNewCategoryClicked_thenNavigatesToNewCategory() {
+        var didNavigateToCategory = false
+
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                VaultHomeScreen(
+                    uiState = contentState(),
+                    onAction = {},
+                    onAddCategory = { didNavigateToCategory = true }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("vault_home_create_password_fab").performClick()
+        composeRule.onNodeWithTag("vault_home_create_category_option").performClick()
+
+        assertTrue(didNavigateToCategory)
     }
 
     private fun contentState(

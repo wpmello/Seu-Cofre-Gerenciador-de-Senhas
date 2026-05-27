@@ -88,5 +88,4 @@ sealed interface VaultHomeEffect {
     data object NavigateToAllCategories : VaultHomeEffect
     data object NavigateToPasswords : VaultHomeEffect
     data class NavigateToPasswordDetails(val passwordId: Long) : VaultHomeEffect
-    data object NavigateToNewPassword : VaultHomeEffect
 }

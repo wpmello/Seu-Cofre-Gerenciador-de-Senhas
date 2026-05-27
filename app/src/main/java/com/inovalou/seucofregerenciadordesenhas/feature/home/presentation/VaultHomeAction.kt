@@ -9,5 +9,4 @@ sealed interface VaultHomeAction {
     data object OnOtherCategoriesClick : VaultHomeAction
     data object OnViewAllPasswordsClick : VaultHomeAction
     data class OnRecentPasswordClick(val passwordId: Long) : VaultHomeAction
-    data object OnAddPasswordClick : VaultHomeAction
 }

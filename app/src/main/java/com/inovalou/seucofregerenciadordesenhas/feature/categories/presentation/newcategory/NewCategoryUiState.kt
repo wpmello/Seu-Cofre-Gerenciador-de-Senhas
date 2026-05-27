@@ -14,6 +14,8 @@ data class NewCategoryUiState(
 )
 
 sealed interface NewCategoryEffect {
+    data object NavigateBack : NewCategoryEffect
+
     data class NavigateBackToOrigin(
         val openedFrom: NewCategoryOpenedFrom
     ) : NewCategoryEffect

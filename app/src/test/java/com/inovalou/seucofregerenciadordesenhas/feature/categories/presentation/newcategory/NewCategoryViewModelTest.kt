@@ -155,7 +155,7 @@ class NewCategoryViewModelTest {
     }
 
     @Test
-    fun givenScreenOpenedFromAllCategories_whenBackIsClicked_thenEmitsNavigateBackToAllCategoriesOrigin() = runTest {
+    fun givenScreenOpenedFromAllCategories_whenBackIsClicked_thenEmitsNavigateBack() = runTest {
         val viewModel = NewCategoryViewModel(
             savedStateHandle = SavedStateHandle(
                 mapOf(NewCategoryDestination.openedFromArg to NewCategoryOpenedFrom.AllCategories.routeValue)
@@ -167,8 +167,28 @@ class NewCategoryViewModelTest {
 
         viewModel.onAction(NewCategoryAction.OnBackClick)
 
+        assertEquals(NewCategoryEffect.NavigateBack, emittedEffect.await())
+    }
+
+    @Test
+    fun givenScreenOpenedFromVault_whenSubmitting_thenEmitsNavigateBackToVaultOrigin() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = NewCategoryViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(NewCategoryDestination.openedFromArg to NewCategoryOpenedFrom.Vault.routeValue)
+            ),
+            createCategoryUseCase = CreateCategoryUseCase(repository),
+            categoryIconCatalog = FakeCategoryIconCatalog()
+        )
+        val emittedEffect = async { viewModel.effects.first() }
+
+        viewModel.onAction(NewCategoryAction.OnNameChanged("Casa"))
+        viewModel.onAction(NewCategoryAction.OnCreateCategoryClick)
+
+        advanceUntilIdle()
+
         assertEquals(
-            NewCategoryEffect.NavigateBackToOrigin(NewCategoryOpenedFrom.AllCategories),
+            NewCategoryEffect.NavigateBackToOrigin(NewCategoryOpenedFrom.Vault),
             emittedEffect.await()
         )
     }
