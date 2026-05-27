@@ -288,16 +288,6 @@ class VaultHomeViewModelTest {
         assertEquals(VaultHomeEffect.NavigateToPasswords, effect.await())
     }
 
-    @Test
-    fun givenFabClicked_whenActionHandled_thenEmitsNewPasswordNavigationEffect() = runTest {
-        val viewModel = buildViewModel()
-        val effect = async { viewModel.effects.first() }
-
-        viewModel.onAction(VaultHomeAction.OnAddPasswordClick)
-
-        assertEquals(VaultHomeEffect.NavigateToNewPassword, effect.await())
-    }
-
     private fun buildViewModel(
         categories: List<Category> = emptyList(),
         passwords: List<PasswordSummary> = emptyList(),

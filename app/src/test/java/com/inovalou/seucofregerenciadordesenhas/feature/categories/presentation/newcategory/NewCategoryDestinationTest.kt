@@ -14,10 +14,26 @@ class NewCategoryDestinationTest {
     }
 
     @Test
+    fun givenVaultOrigin_whenCreatingRoute_thenEmbedsOpenedFromArgument() {
+        assertEquals(
+            "categories/new?openedFrom=vault",
+            NewCategoryDestination.createRoute(openedFrom = NewCategoryOpenedFrom.Vault)
+        )
+    }
+
+    @Test
     fun givenNoOriginOverride_whenCreatingRoute_thenDefaultsToCategoriesOrigin() {
         assertEquals(
             "categories/new?openedFrom=categories",
             NewCategoryDestination.createRoute()
+        )
+    }
+
+    @Test
+    fun givenVaultRouteValue_whenResolvingOpenedFrom_thenReturnsVaultOrigin() {
+        assertEquals(
+            NewCategoryOpenedFrom.Vault,
+            NewCategoryOpenedFrom.fromRouteValue("vault")
         )
     }
 }

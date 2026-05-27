@@ -55,16 +55,16 @@ class NewCategoryViewModel @Inject constructor(
 
     fun onAction(action: NewCategoryAction) {
         when (action) {
-            NewCategoryAction.OnBackClick -> navigateBackToOrigin()
+            NewCategoryAction.OnBackClick -> navigateBack()
             is NewCategoryAction.OnNameChanged -> onNameChanged(action.name)
             is NewCategoryAction.OnIconSelected -> onIconSelected(action.iconKey)
             NewCategoryAction.OnCreateCategoryClick -> createCategory()
         }
     }
 
-    private fun navigateBackToOrigin() {
+    private fun navigateBack() {
         viewModelScope.launch {
-            _effects.send(NewCategoryEffect.NavigateBackToOrigin(openedFrom))
+            _effects.send(NewCategoryEffect.NavigateBack)
         }
     }
 

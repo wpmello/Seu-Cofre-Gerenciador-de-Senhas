@@ -43,6 +43,7 @@ import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
 
 @Composable
 fun NewCategoryRoute(
+    onNavigateBack: () -> Unit,
     onNavigateBackToOrigin: (NewCategoryOpenedFrom) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewCategoryViewModel = hiltViewModel()
@@ -51,6 +52,7 @@ fun NewCategoryRoute(
 
     CollectEffectWithLifecycle(viewModel.effects) { effect ->
         when (effect) {
+            NewCategoryEffect.NavigateBack -> onNavigateBack()
             is NewCategoryEffect.NavigateBackToOrigin -> {
                 onNavigateBackToOrigin(effect.openedFrom)
             }

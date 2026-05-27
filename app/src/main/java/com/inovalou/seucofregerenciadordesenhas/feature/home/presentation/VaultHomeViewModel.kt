@@ -126,7 +126,6 @@ class VaultHomeViewModel @Inject constructor(
             is VaultHomeAction.OnRecentPasswordClick -> emitEffect(
                 VaultHomeEffect.NavigateToPasswordDetails(action.passwordId)
             )
-            VaultHomeAction.OnAddPasswordClick -> emitEffect(VaultHomeEffect.NavigateToNewPassword)
         }
     }
 

@@ -26,6 +26,8 @@
     <string name="vault_home_load_error">Não foi possível carregar o cofre.</string>
     <string name="vault_home_summary_passwords_empty">Nenhuma senha encontrada nesta classificação.</string>
     <string name="vault_home_summary_passwords_error">Não foi possível carregar esta lista.</string>
+    <string name="vault_home_create_password_option">nova senha</string>
+    <string name="vault_home_create_category_option">nova categoria</string>
     <string name="onboarding_brand">Seu cofre</string>
     <string name="onboarding_next">Próximo</string>
     <string name="onboarding_existing_account">Já tem uma conta? </string>

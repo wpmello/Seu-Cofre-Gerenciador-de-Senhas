@@ -2,7 +2,8 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation
 
 enum class NewCategoryOpenedFrom(val routeValue: String) {
     Categories("categories"),
-    AllCategories("all_categories");
+    AllCategories("all_categories"),
+    Vault("vault");
 
     companion object {
         fun fromRouteValue(routeValue: String?): NewCategoryOpenedFrom =

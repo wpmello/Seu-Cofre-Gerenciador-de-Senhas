@@ -1,6 +1,14 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.home.presentation
 
 import androidx.annotation.PluralsRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,6 +82,7 @@ fun VaultHomeRoute(
     onOpenPasswords: () -> Unit,
     onOpenPassword: (Long) -> Unit,
     onAddPassword: () -> Unit,
+    onAddCategory: () -> Unit,
     onOpenGlobalSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: VaultHomeViewModel = hiltViewModel()
@@ -84,13 +95,14 @@ fun VaultHomeRoute(
             VaultHomeEffect.NavigateToAllCategories -> onOpenAllCategories()
             VaultHomeEffect.NavigateToPasswords -> onOpenPasswords()
             is VaultHomeEffect.NavigateToPasswordDetails -> onOpenPassword(effect.passwordId)
-            VaultHomeEffect.NavigateToNewPassword -> onAddPassword()
         }
     }
 
     VaultHomeScreen(
         uiState = uiState.value,
         onAction = viewModel::onAction,
+        onAddPassword = onAddPassword,
+        onAddCategory = onAddCategory,
         onOpenGlobalSearch = onOpenGlobalSearch,
         modifier = modifier
     )
@@ -100,16 +112,23 @@ fun VaultHomeRoute(
 fun VaultHomeScreen(
     uiState: VaultHomeUiState,
     onAction: (VaultHomeAction) -> Unit,
+    onAddPassword: () -> Unit = {},
+    onAddCategory: () -> Unit = {},
     onOpenGlobalSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
     val density = LocalDensity.current
     var summaryCardTopPx by remember { mutableFloatStateOf(Float.NaN) }
-    var fabTopPx by remember { mutableFloatStateOf(Float.NaN) }
+    var createControlsTopPx by remember { mutableFloatStateOf(Float.NaN) }
+    var areCreateOptionsVisible by remember { mutableStateOf(false) }
     val summaryExpandedMaxHeight = with(density) {
-        if (summaryCardTopPx.isFinite() && fabTopPx.isFinite() && fabTopPx > summaryCardTopPx) {
-            (fabTopPx - summaryCardTopPx - VaultHomeSummaryListFabClearance.toPx())
+        if (
+            summaryCardTopPx.isFinite() &&
+            createControlsTopPx.isFinite() &&
+            createControlsTopPx > summaryCardTopPx
+        ) {
+            (createControlsTopPx - summaryCardTopPx - VaultHomeSummaryListCreateControlsClearance.toPx())
                 .coerceAtLeast(VaultHomeSummaryExpandedMinimumHeight.toPx())
                 .toDp()
         } else {
@@ -194,17 +213,81 @@ fun VaultHomeScreen(
                 modifier = Modifier.align(Alignment.TopCenter)
             )
 
-            VaultGradientFab(
-                contentDescription = stringResource(R.string.passwords_create_fab),
-                onClick = { onAction(VaultHomeAction.OnAddPasswordClick) },
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 24.dp, bottom = 24.dp)
                     .onGloballyPositioned { coordinates ->
-                        fabTopPx = coordinates.positionInRoot().y
-                    }
-                    .testTag("vault_home_create_password_fab")
-            )
+                        createControlsTopPx = coordinates.positionInRoot().y
+                    },
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                AnimatedVisibility(
+                    visible = areCreateOptionsVisible,
+                    enter = fadeIn(
+                        animationSpec = tween(durationMillis = 180)
+                    ) + slideInVertically(
+                        animationSpec = tween(durationMillis = 220),
+                        initialOffsetY = { fullHeight -> fullHeight / 3 }
+                    ) + scaleIn(
+                        animationSpec = tween(durationMillis = 220),
+                        initialScale = 0.92f
+                    ),
+                    exit = fadeOut(
+                        animationSpec = tween(durationMillis = 120)
+                    ) + slideOutVertically(
+                        animationSpec = tween(durationMillis = 160),
+                        targetOffsetY = { fullHeight -> fullHeight / 5 }
+                    ) + scaleOut(
+                        animationSpec = tween(durationMillis = 160),
+                        targetScale = 0.96f
+                    )
+                ) {
+                    VaultHomeCreateOptions(
+                        onAddPassword = {
+                            areCreateOptionsVisible = false
+                            onAddPassword()
+                        },
+                        onAddCategory = {
+                            areCreateOptionsVisible = false
+                            onAddCategory()
+                        }
+                    )
+                }
+
+                VaultGradientFab(
+                    contentDescription = stringResource(R.string.passwords_create_fab),
+                    onClick = { areCreateOptionsVisible = !areCreateOptionsVisible },
+                    modifier = Modifier.testTag("vault_home_create_password_fab")
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VaultHomeCreateOptions(
+    onAddPassword: () -> Unit,
+    onAddCategory: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.testTag("vault_home_create_options"),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Button(
+            onClick = onAddPassword,
+            modifier = Modifier.testTag("vault_home_create_password_option")
+        ) {
+            Text(text = stringResource(R.string.vault_home_create_password_option))
+        }
+        Button(
+            onClick = onAddCategory,
+            modifier = Modifier.testTag("vault_home_create_category_option")
+        ) {
+            Text(text = stringResource(R.string.vault_home_create_category_option))
         }
     }
 }
@@ -657,7 +740,7 @@ private data class VaultHomeSecuritySummaryTagUiModel(
 private val VaultHomeSummaryListPadding = 24.dp
 private val VaultHomeContentTopPadding = 88.dp
 private val VaultHomeSummaryListChromeHeight = 100.dp
-private val VaultHomeSummaryListFabClearance = 16.dp
+private val VaultHomeSummaryListCreateControlsClearance = 16.dp
 private val VaultHomeSummaryLoadingHeight = 160.dp
 private val VaultHomeSummaryPasswordItemHeight = 80.dp
 private val VaultHomeSummaryPasswordItemSpacing = 12.dp

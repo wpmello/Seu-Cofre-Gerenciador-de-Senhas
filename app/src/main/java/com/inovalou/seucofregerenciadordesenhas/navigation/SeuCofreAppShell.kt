@@ -122,6 +122,13 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                             )
                         )
                     },
+                    onAddCategory = {
+                        navController.navigate(
+                            NewCategoryDestination.createRoute(
+                                openedFrom = NewCategoryOpenedFrom.Vault
+                            )
+                        )
+                    },
                     onOpenGlobalSearch = {
                         navController.navigate(GlobalSearchDestination.route) {
                             launchSingleTop = true
@@ -335,6 +342,9 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                 )
             ) {
                 NewCategoryRoute(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
                     onNavigateBackToOrigin = { openedFrom ->
                         when (openedFrom) {
                             NewCategoryOpenedFrom.Categories -> {
@@ -349,6 +359,10 @@ fun SeuCofreAppShell(modifier: Modifier = Modifier) {
                                     AllCategoriesRoute.route,
                                     inclusive = false
                                 )
+                            }
+
+                            NewCategoryOpenedFrom.Vault -> {
+                                navigateAfterInternalFlowToTopLevel(AppBottomDestination.Categories)
                             }
                         }
                     }
