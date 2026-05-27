@@ -9,7 +9,7 @@ A tela Home da aba `Cofre` é o dashboard principal após a splash. Ela consolid
 - até 3 categorias reais recentes;
 - card fixo `Outros` quando houver pelo menos 3 categorias reais;
 - até 4 senhas recentes;
-- ação principal para criar uma nova senha.
+- ação principal para abrir as opções de criar uma nova senha ou uma nova categoria.
 
 ## Decisões
 
@@ -43,7 +43,7 @@ No modo lista, o card:
 - mantém a classificação aberta ao retornar da edição porque o estado fica no `VaultHomeViewModel`;
 - possui estados explícitos de loading, vazio e erro para a lista selecionada.
 
-A altura da lista é limitada para evitar avançar sobre o topo do FAB quando a posição do card e do FAB já foi medida pela composição. Quando essa medição ainda não está disponível, o fallback é a altura de até 5 itens. Listas com menos itens usam altura natural e não reservam espaço vazio para cinco linhas.
+A altura da lista é limitada para evitar avançar sobre o topo dos controles de criação quando a posição do card e desses controles já foi medida pela composição. Quando essa medição ainda não está disponível, o fallback é a altura de até 5 itens. Listas com menos itens usam altura natural e não reservam espaço vazio para cinco linhas.
 
 ### Categorias resumidas
 
@@ -75,9 +75,11 @@ A Home navega para:
 - `Outros`: `AllCategoriesScreen`;
 - `Ver todos`: aba `Passwords`;
 - senha recente: `EditPasswordDestination` com origem `vault`;
-- FAB: `NewPasswordScreen`.
+- FAB: abre localmente as opções `nova senha` e `nova categoria`;
+- `nova senha`: `NewPasswordScreen` com origem `vault`, salvando e retornando para a aba `Passwords`;
+- `nova categoria`: `NewCategoryScreen` com origem `vault`, salvando e retornando para a aba `Categories`.
 
-As origens `vault` foram adicionadas aos fluxos de edição de categoria e senha para retorno correto à aba `Cofre`.
+As origens `vault` são usadas para fluxos iniciados pela Home, mantendo o voltar natural para `Cofre` e o retorno pós-salvamento para as abas de destino definidas pelo fluxo.
 
 ## Segurança
 
@@ -97,5 +99,7 @@ Foram adicionados testes para:
 - seleção das tags de segurança e transformação do summary card em lista;
 - estado vazio e erro da lista por classificação;
 - navegação de item da lista de classificação para detalhes de senha;
+- abertura e fechamento das opções de criação pelo FAB da Home;
+- callbacks de criação de senha e categoria pelas opções do FAB;
 - queries/delegação de contagem e recentes em DAO/data source/repository;
 - rotas com origem `vault`.
