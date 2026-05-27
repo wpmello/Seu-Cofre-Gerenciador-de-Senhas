@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation
 
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
@@ -274,7 +275,8 @@ class PasswordsViewModelTest {
         val viewModel = PasswordsViewModel(
             observePasswordsUseCase = ObservePasswordsUseCase(
                 repository = repository,
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -290,7 +292,8 @@ class PasswordsViewModelTest {
         val viewModel = PasswordsViewModel(
             observePasswordsUseCase = ObservePasswordsUseCase(
                 repository = repository,
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
             )
         )
         backgroundScope.launch { viewModel.uiState.collect { } }
@@ -325,7 +328,8 @@ class PasswordsViewModelTest {
                 passwords = passwords,
                 securitySnapshots = securitySnapshots
             ),
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+            dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
         )
     )
 

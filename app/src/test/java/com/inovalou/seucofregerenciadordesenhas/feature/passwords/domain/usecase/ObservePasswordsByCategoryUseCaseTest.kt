@@ -1,5 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
+import com.inovalou.seucofregerenciadordesenhas.core.testing.RecordingDispatcher
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.NewPassword
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordDetails
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecurityRiskLevel
@@ -18,6 +20,7 @@ class ObservePasswordsByCategoryUseCaseTest {
     @Test
     fun givenCategoryPasswordsWithSecuritySnapshots_whenInvoked_thenReturnsPasswordsWithSecurityRisk() =
         runTest {
+            val defaultDispatcher = RecordingDispatcher()
             val useCase = ObservePasswordsByCategoryUseCase(
                 repository = FakePasswordRepository(
                     passwords = listOf(
@@ -37,13 +40,15 @@ class ObservePasswordsByCategoryUseCaseTest {
                         )
                     )
                 ),
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers(defaultDispatcher)
             )
 
             val result = useCase(categoryId = 4L).first()
 
             assertEquals(4L, result.single().categoryId)
             assertEquals(PasswordSecurityRiskLevel.Low, result.single().securityRiskLevel)
+            assertEquals(1, defaultDispatcher.dispatchCount)
         }
 
     @Test
@@ -62,7 +67,8 @@ class ObservePasswordsByCategoryUseCaseTest {
                     ),
                     snapshots = emptyList()
                 ),
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers()
             )
 
             val result = useCase(categoryId = 7L).first()

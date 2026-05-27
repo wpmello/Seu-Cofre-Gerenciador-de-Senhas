@@ -16,25 +16,24 @@ class ObserveVaultSecuritySummaryUseCase @Inject constructor(
 ) {
 
     operator fun invoke() = repository.observePasswordSecuritySnapshots().map { snapshots ->
-        if (snapshots.isEmpty()) {
-            return@map VaultSecuritySummary.empty()
-        }
-
-        val averageScore = snapshots
-            .toSecurityAnalysesOnDefaultDispatcher()
-            .map { analysis -> analysis.scorePercent }
-            .average()
-            .roundToInt()
-
-        VaultSecuritySummary(
-            totalPasswords = snapshots.size,
-            averageScorePercent = averageScore,
-            status = averageScore.toVaultSecurityStatus()
-        )
+        snapshots.toVaultSecuritySummaryOnDefaultDispatcher()
     }
 
-    private suspend fun List<PasswordSecuritySnapshot>.toSecurityAnalysesOnDefaultDispatcher() =
+    private suspend fun List<PasswordSecuritySnapshot>.toVaultSecuritySummaryOnDefaultDispatcher() =
         withContext(dispatchers.default) {
-            toSecurityAnalyses(evaluatePasswordSecurityUseCase)
+            if (isEmpty()) {
+                return@withContext VaultSecuritySummary.empty()
+            }
+
+            val averageScore = toSecurityAnalyses(evaluatePasswordSecurityUseCase)
+                .map { analysis -> analysis.scorePercent }
+                .average()
+                .roundToInt()
+
+            VaultSecuritySummary(
+                totalPasswords = size,
+                averageScorePercent = averageScore,
+                status = averageScore.toVaultSecurityStatus()
+            )
         }
 }

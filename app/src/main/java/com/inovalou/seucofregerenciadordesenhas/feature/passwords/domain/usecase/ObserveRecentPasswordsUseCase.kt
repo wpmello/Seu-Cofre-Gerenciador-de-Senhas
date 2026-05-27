@@ -1,6 +1,8 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.usecase
 
 import com.inovalou.seucofregerenciadordesenhas.core.coroutines.AppDispatchers
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
+import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.repository.PasswordRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
@@ -16,9 +18,14 @@ class ObserveRecentPasswordsUseCase @Inject constructor(
         repository.observeRecentPasswords(limit),
         repository.observePasswordSecuritySnapshots()
     ) { passwords, securitySnapshots ->
-        val riskLevelByPasswordId = withContext(dispatchers.default) {
+        passwords.withSecurityRiskLevelsOnDefaultDispatcher(securitySnapshots)
+    }
+
+    private suspend fun List<PasswordSummary>.withSecurityRiskLevelsOnDefaultDispatcher(
+        securitySnapshots: List<PasswordSecuritySnapshot>
+    ): List<PasswordSummary> = withContext(dispatchers.default) {
+        withSecurityRiskLevels(
             securitySnapshots.toRiskLevelByPasswordId(evaluatePasswordSecurityUseCase)
-        }
-        passwords.withSecurityRiskLevels(riskLevelByPasswordId)
+        )
     }
 }

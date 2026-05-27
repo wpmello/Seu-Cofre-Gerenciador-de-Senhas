@@ -52,23 +52,13 @@ class PasswordRepositoryImpl @Inject constructor(
 
     override fun observePasswordSecuritySnapshots(): Flow<List<PasswordSecuritySnapshot>> =
         localDataSource.observePasswords().map { entities ->
-            entities.map { entity ->
-                val plainPassword = decryptPassword(entity)
-                PasswordSecuritySnapshot(
-                    passwordId = entity.id,
-                    password = plainPassword,
-                    fingerprint = entity.passwordFingerprint
-                        ?.takeIf { it.isNotBlank() }
-                        ?: generatePasswordFingerprint(plainPassword)
-                )
-            }
+            createSecuritySnapshots(entities)
         }
 
     override suspend fun getPasswordCount(): Int = localDataSource.getPasswordCount()
 
     override suspend fun createPassword(password: NewPassword): Long {
-        val encryptedPassword = encryptPassword(password.password)
-        val passwordFingerprint = generatePasswordFingerprint(password.password)
+        val passwordMaterial = createPersistablePasswordMaterial(password.password)
         val persistedAt = password.createdAt.takeIf { it > 0L } ?: timeProvider.currentTimeMillis()
         val updatedAt = password.updatedAt.takeIf { it > 0L } ?: persistedAt
 
@@ -78,12 +68,12 @@ class PasswordRepositoryImpl @Inject constructor(
                 login = password.login,
                 category = password.categoryName.orEmpty(),
                 categoryId = password.categoryId,
-                encryptedPassword = encryptedPassword.cipherText,
-                passwordIv = encryptedPassword.iv,
-                passwordCipherVersion = encryptedPassword.version,
+                encryptedPassword = passwordMaterial.encryptedPassword.cipherText,
+                passwordIv = passwordMaterial.encryptedPassword.iv,
+                passwordCipherVersion = passwordMaterial.encryptedPassword.version,
                 iconKey = "",
                 note = password.note,
-                passwordFingerprint = passwordFingerprint,
+                passwordFingerprint = passwordMaterial.fingerprint,
                 createdAt = persistedAt,
                 updatedAt = updatedAt
             )
@@ -92,19 +82,18 @@ class PasswordRepositoryImpl @Inject constructor(
 
     override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? {
         val entity = localDataSource.getPasswordById(passwordId) ?: return null
-        val plainPassword = decryptPassword(entity)
-        if (entity.passwordFingerprint.isNullOrBlank()) {
+        val passwordMaterial = createDetailsPasswordMaterial(entity)
+        passwordMaterial.missingFingerprint?.let { fingerprint ->
             localDataSource.updatePasswordFingerprint(
                 passwordId = entity.id,
-                passwordFingerprint = generatePasswordFingerprint(plainPassword)
+                passwordFingerprint = fingerprint
             )
         }
-        return entity.toDetailsDomain(password = plainPassword)
+        return entity.toDetailsDomain(password = passwordMaterial.plainPassword)
     }
 
     override suspend fun updatePassword(password: PasswordDetails) {
-        val encryptedPassword = encryptPassword(password.password)
-        val passwordFingerprint = generatePasswordFingerprint(password.password)
+        val passwordMaterial = createPersistablePasswordMaterial(password.password)
         localDataSource.updatePassword(
             PasswordEntity(
                 id = password.id,
@@ -112,12 +101,12 @@ class PasswordRepositoryImpl @Inject constructor(
                 login = password.login,
                 category = password.categoryName.orEmpty(),
                 categoryId = password.categoryId,
-                encryptedPassword = encryptedPassword.cipherText,
-                passwordIv = encryptedPassword.iv,
-                passwordCipherVersion = encryptedPassword.version,
+                encryptedPassword = passwordMaterial.encryptedPassword.cipherText,
+                passwordIv = passwordMaterial.encryptedPassword.iv,
+                passwordCipherVersion = passwordMaterial.encryptedPassword.version,
                 iconKey = password.iconKey,
                 note = password.note,
-                passwordFingerprint = passwordFingerprint,
+                passwordFingerprint = passwordMaterial.fingerprint,
                 createdAt = password.createdAt,
                 updatedAt = password.updatedAt
             )
@@ -138,30 +127,75 @@ class PasswordRepositoryImpl @Inject constructor(
 
     private suspend fun backfillMissingFingerprints() {
         localDataSource.getPasswordsMissingFingerprint().forEach { entity ->
-            val plainPassword = decryptPassword(entity)
+            val fingerprint = createMissingFingerprint(entity)
             localDataSource.updatePasswordFingerprint(
                 passwordId = entity.id,
-                passwordFingerprint = generatePasswordFingerprint(plainPassword)
+                passwordFingerprint = fingerprint
             )
         }
     }
 
-    private suspend fun encryptPassword(password: String): EncryptedPasswordPayload =
+    private suspend fun createSecuritySnapshots(
+        entities: List<PasswordEntity>
+    ): List<PasswordSecuritySnapshot> =
         withContext(dispatchers.default) {
-            passwordCipher.encrypt(password)
+            entities.map { entity ->
+                val plainPassword = entity.decryptPlainPassword()
+                PasswordSecuritySnapshot(
+                    passwordId = entity.id,
+                    password = plainPassword,
+                    fingerprint = entity.passwordFingerprint
+                        ?.takeIf { it.isNotBlank() }
+                        ?: passwordFingerprintGenerator.generate(plainPassword)
+                )
+            }
         }
 
-    private suspend fun decryptPassword(entity: PasswordEntity): String =
+    private suspend fun createPersistablePasswordMaterial(password: String): PersistablePasswordMaterial =
         withContext(dispatchers.default) {
-            passwordCipher.decrypt(
-                cipherText = entity.encryptedPassword,
-                iv = entity.passwordIv,
-                version = entity.passwordCipherVersion
+            PersistablePasswordMaterial(
+                encryptedPassword = passwordCipher.encrypt(password),
+                fingerprint = passwordFingerprintGenerator.generate(password)
             )
+        }
+
+    private suspend fun createDetailsPasswordMaterial(entity: PasswordEntity): DetailsPasswordMaterial =
+        withContext(dispatchers.default) {
+            val plainPassword = entity.decryptPlainPassword()
+            DetailsPasswordMaterial(
+                plainPassword = plainPassword,
+                missingFingerprint = if (entity.passwordFingerprint.isNullOrBlank()) {
+                    passwordFingerprintGenerator.generate(plainPassword)
+                } else {
+                    null
+                }
+            )
+        }
+
+    private suspend fun createMissingFingerprint(entity: PasswordEntity): String =
+        withContext(dispatchers.default) {
+            passwordFingerprintGenerator.generate(entity.decryptPlainPassword())
         }
 
     private suspend fun generatePasswordFingerprint(password: String): String =
         withContext(dispatchers.default) {
             passwordFingerprintGenerator.generate(password)
         }
+
+    private fun PasswordEntity.decryptPlainPassword(): String =
+        passwordCipher.decrypt(
+            cipherText = encryptedPassword,
+            iv = passwordIv,
+            version = passwordCipherVersion
+        )
+
+    private data class PersistablePasswordMaterial(
+        val encryptedPassword: EncryptedPasswordPayload,
+        val fingerprint: String
+    )
+
+    private data class DetailsPasswordMaterial(
+        val plainPassword: String,
+        val missingFingerprint: String?
+    )
 }

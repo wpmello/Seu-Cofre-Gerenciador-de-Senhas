@@ -22,22 +22,24 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
         repository.observePasswords(),
         repository.observePasswordSecuritySnapshots()
     ) { passwords, securitySnapshots ->
-        passwords.toVaultSecurityDetails(securitySnapshots)
+        createVaultSecurityDetailsOnDefaultDispatcher(
+            passwords = passwords,
+            securitySnapshots = securitySnapshots
+        )
     }
 
-    private suspend fun List<PasswordSummary>.toVaultSecurityDetails(
+    private suspend fun createVaultSecurityDetailsOnDefaultDispatcher(
+        passwords: List<PasswordSummary>,
         securitySnapshots: List<PasswordSecuritySnapshot>
-    ): VaultSecurityDetails {
-        if (isEmpty() || securitySnapshots.isEmpty()) {
-            return VaultSecurityDetails.empty()
+    ): VaultSecurityDetails = withContext(dispatchers.default) {
+        if (passwords.isEmpty() || securitySnapshots.isEmpty()) {
+            return@withContext VaultSecurityDetails.empty()
         }
 
-        val passwordById = associateBy { password -> password.id }
-        val analysisByPasswordId = withContext(dispatchers.default) {
-            securitySnapshots.toSecurityAnalysisByPasswordId(
-                evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
-            )
-        }
+        val passwordById = passwords.associateBy { password -> password.id }
+        val analysisByPasswordId = securitySnapshots.toSecurityAnalysisByPasswordId(
+            evaluatePasswordSecurityUseCase = evaluatePasswordSecurityUseCase
+        )
 
         val items = securitySnapshots.mapNotNull { snapshot ->
             val password = passwordById[snapshot.passwordId] ?: return@mapNotNull null
@@ -56,7 +58,7 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
         )
 
         if (items.isEmpty()) {
-            return VaultSecurityDetails.empty()
+            return@withContext VaultSecurityDetails.empty()
         }
 
         val averageScorePercent = items
@@ -68,7 +70,7 @@ class ObserveVaultSecurityDetailsUseCase @Inject constructor(
             items.filter { item -> item.bucket == bucket }
         }
 
-        return VaultSecurityDetails(
+        VaultSecurityDetails(
             totalPasswords = items.size,
             averageScorePercent = averageScorePercent,
             status = averageScorePercent.toVaultSecurityStatus(),

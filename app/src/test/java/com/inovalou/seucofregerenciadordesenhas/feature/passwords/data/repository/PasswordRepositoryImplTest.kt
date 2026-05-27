@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.repository
 
 import com.inovalou.seucofregerenciadordesenhas.core.coroutines.AppDispatchers
+import com.inovalou.seucofregerenciadordesenhas.core.testing.RecordingDispatcher
 import com.inovalou.seucofregerenciadordesenhas.core.time.TimeProvider
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.EncryptedPasswordPayload
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.data.crypto.PasswordCipher
@@ -13,8 +14,6 @@ import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.P
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSearchResult
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSecuritySnapshot
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.domain.model.PasswordSummary
-import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -336,6 +335,7 @@ class PasswordRepositoryImplTest {
 
         assertTrue(encryptedOnDefaultDispatcher)
         assertTrue(fingerprintedOnDefaultDispatcher)
+        assertEquals(1, defaultDispatcher.dispatchCount)
     }
 
     @Test
@@ -386,6 +386,71 @@ class PasswordRepositoryImplTest {
 
         assertTrue(decryptedOnDefaultDispatcher)
         assertTrue(fingerprintedOnDefaultDispatcher)
+        assertEquals(1, defaultDispatcher.dispatchCount)
+    }
+
+    @Test
+    fun givenSecuritySnapshotFlow_whenObserving_thenRunsBulkCryptoWorkOnDefaultDispatcher() = runTest {
+        val defaultDispatcher = RecordingDispatcher()
+        val localDataSource = FakePasswordsLocalDataSource(
+            initialPasswords = listOf(
+                passwordEntity(
+                    id = 1L,
+                    title = "Netflix",
+                    login = "joao@email.com",
+                    category = "Streaming",
+                    categoryId = 3L,
+                    encryptedPassword = "cipher-1",
+                    passwordIv = "iv-1",
+                    createdAt = 100L,
+                    updatedAt = 200L,
+                    passwordFingerprint = "fp::stored-1"
+                ),
+                passwordEntity(
+                    id = 2L,
+                    title = "GitHub",
+                    login = "jsilva_dev",
+                    category = "Work",
+                    categoryId = null,
+                    encryptedPassword = "cipher-2",
+                    passwordIv = "iv-2",
+                    createdAt = 300L,
+                    updatedAt = 400L,
+                    passwordFingerprint = null
+                )
+            )
+        )
+        var decryptedOnDefaultDispatcher = false
+        var fingerprintedOnDefaultDispatcher = false
+        val repository = buildRepository(
+            localDataSource = localDataSource,
+            passwordCipher = object : PasswordCipher {
+                override fun encrypt(plainText: String): EncryptedPasswordPayload {
+                    error("unused")
+                }
+
+                override fun decrypt(cipherText: String, iv: String, version: Int): String {
+                    decryptedOnDefaultDispatcher = defaultDispatcher.isRunning
+                    return "plain::$cipherText"
+                }
+            },
+            passwordFingerprintGenerator = object : PasswordFingerprintGenerator {
+                override fun generate(password: String): String {
+                    fingerprintedOnDefaultDispatcher = defaultDispatcher.isRunning
+                    return "fp::$password"
+                }
+            },
+            dispatchers = AppDispatchers(
+                default = defaultDispatcher,
+                io = RecordingDispatcher()
+            )
+        )
+
+        repository.observePasswordSecuritySnapshots().first()
+
+        assertTrue(decryptedOnDefaultDispatcher)
+        assertTrue(fingerprintedOnDefaultDispatcher)
+        assertEquals(1, defaultDispatcher.dispatchCount)
     }
 
     @Test
@@ -812,19 +877,5 @@ class PasswordRepositoryImplTest {
         private val currentTimeMillis: Long
     ) : TimeProvider {
         override fun currentTimeMillis(): Long = currentTimeMillis
-    }
-
-    private class RecordingDispatcher : CoroutineDispatcher() {
-        var isRunning: Boolean = false
-            private set
-
-        override fun dispatch(context: CoroutineContext, block: Runnable) {
-            isRunning = true
-            try {
-                block.run()
-            } finally {
-                isRunning = false
-            }
-        }
     }
 }

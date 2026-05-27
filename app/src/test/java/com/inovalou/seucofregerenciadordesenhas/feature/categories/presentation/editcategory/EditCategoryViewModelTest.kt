@@ -3,6 +3,7 @@ package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation
 import androidx.lifecycle.SavedStateHandle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.testing.MainDispatcherRule
+import com.inovalou.seucofregerenciadordesenhas.core.testing.testAppDispatchers
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.model.Category
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.repository.CategoryRepository
 import com.inovalou.seucofregerenciadordesenhas.feature.categories.domain.usecase.DeleteCategoryUseCase
@@ -632,7 +633,8 @@ class EditCategoryViewModelTest {
             getCategoryByIdUseCase = GetCategoryByIdUseCase(categoryRepository),
             observePasswordsByCategoryUseCase = ObservePasswordsByCategoryUseCase(
                 repository = passwordRepository,
-                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase()
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testAppDispatchers(mainDispatcherRule.dispatcher)
             ),
             updateCategoryUseCase = UpdateCategoryUseCase(categoryRepository),
             deleteCategoryUseCase = DeleteCategoryUseCase(categoryRepository),
