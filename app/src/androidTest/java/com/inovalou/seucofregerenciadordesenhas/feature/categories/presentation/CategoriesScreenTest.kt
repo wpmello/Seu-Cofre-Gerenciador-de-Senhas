@@ -47,6 +47,29 @@ class CategoriesScreenTest {
     }
 
     @Test
+    fun givenLoadingState_whenRendered_thenDisplaysOnlyMainLoadingContent() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                CategoriesScreen(
+                    uiState = CategoriesUiState(
+                        categoriesState = CategoriesContentUiState.Loading
+                    ),
+                    onAction = {},
+                    onCategoryClick = {},
+                    onViewAllClick = {},
+                    onAddCategoryClick = {},
+                    onSecuritySummaryClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("categories_loading").assertIsDisplayed()
+        composeRule.onNodeWithTag("categories_top_bar").assertIsDisplayed()
+        composeRule.onNodeWithTag("categories_create_fab").assertIsDisplayed()
+        composeRule.onNodeWithTag("categories_security_summary_card").assertDoesNotExist()
+    }
+
+    @Test
     fun givenContentState_whenRendered_thenDisplaysCreateFab() {
         composeRule.setContent {
             SeuCofreGerenciadorDeSenhasTheme {
