@@ -224,7 +224,7 @@ private fun BrandSection() {
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-2.4).sp
             ),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
