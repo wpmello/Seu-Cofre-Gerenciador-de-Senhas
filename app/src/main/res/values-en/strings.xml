@@ -30,6 +30,7 @@
     <string name="vault_home_create_category_option">new category</string>
     <string name="onboarding_brand">Your vault</string>
     <string name="onboarding_next">Next</string>
+    <string name="onboarding_finish">Get started</string>
     <string name="onboarding_existing_account">Already have an account? </string>
     <string name="onboarding_sign_in">Sign in</string>
     <string name="onboarding_step_one_title">Protect all your passwords in one place</string>

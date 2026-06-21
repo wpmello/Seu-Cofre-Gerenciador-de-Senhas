@@ -14,4 +14,6 @@ interface AppPreferencesRepository {
     suspend fun updateLanguage(language: AppLanguage)
 
     suspend fun updateThemePreference(themePreference: AppThemePreference)
+
+    suspend fun completeOnboarding()
 }

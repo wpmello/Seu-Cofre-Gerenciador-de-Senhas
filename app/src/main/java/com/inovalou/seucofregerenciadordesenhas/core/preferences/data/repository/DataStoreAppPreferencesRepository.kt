@@ -2,6 +2,7 @@ package com.inovalou.seucofregerenciadordesenhas.core.preferences.data.repositor
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -32,7 +33,8 @@ class DataStoreAppPreferencesRepository @Inject constructor(
                 AppPreferences(
                     userName = preferences[UserNameKey].orEmpty(),
                     language = AppLanguage.fromStorageValue(preferences[LanguageKey]),
-                    themePreference = AppThemePreference.fromStorageValue(preferences[ThemePreferenceKey])
+                    themePreference = AppThemePreference.fromStorageValue(preferences[ThemePreferenceKey]),
+                    hasCompletedOnboarding = preferences[HasCompletedOnboardingKey] ?: false
                 )
             }
 
@@ -54,9 +56,16 @@ class DataStoreAppPreferencesRepository @Inject constructor(
         }
     }
 
+    override suspend fun completeOnboarding() {
+        dataStore.edit { preferences ->
+            preferences[HasCompletedOnboardingKey] = true
+        }
+    }
+
     private companion object {
         val UserNameKey = stringPreferencesKey("user_name")
         val LanguageKey = stringPreferencesKey("language")
         val ThemePreferenceKey = stringPreferencesKey("theme_preference")
+        val HasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
     }
 }
