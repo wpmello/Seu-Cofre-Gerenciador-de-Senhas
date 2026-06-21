@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 class EditPasswordViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getPasswordDetailsUseCase: GetPasswordDetailsUseCase,
-    observeCategoriesUseCase: ObserveCategoriesUseCase,
+    private val observeCategoriesUseCase: ObserveCategoriesUseCase,
     private val analyzePasswordSecurityUseCase: AnalyzePasswordSecurityUseCase,
     private val updatePasswordUseCase: UpdatePasswordUseCase,
     private val deletePasswordByIdUseCase: DeletePasswordByIdUseCase
@@ -60,21 +60,28 @@ class EditPasswordViewModel @Inject constructor(
 
     private val _effects = Channel<EditPasswordEffect>(Channel.BUFFERED)
     val effects: Flow<EditPasswordEffect> = _effects.receiveAsFlow()
+    private val _localAuthenticationEffects =
+        Channel<EditPasswordLocalAuthenticationEffect>(Channel.BUFFERED)
+    val localAuthenticationEffects: Flow<EditPasswordLocalAuthenticationEffect> =
+        _localAuthenticationEffects.receiveAsFlow()
     private val passwordAnalysisRequests = MutableSharedFlow<String>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
+    private var hasStartedUnlockedContent = false
 
     init {
-        observeCategoriesUseCase()
-            .collectIntoUiState()
-        observePasswordSecurityAnalysisRequests()
-        loadPassword()
+        requestLocalAuthentication()
     }
 
     fun onAction(action: EditPasswordAction) {
         when (action) {
             EditPasswordAction.OnBackClick -> navigateBack()
+            EditPasswordAction.OnLocalAuthenticationSucceeded -> unlockAndLoadContent()
+            EditPasswordAction.OnLocalAuthenticationCancelled,
+            EditPasswordAction.OnLocalAuthenticationFailed -> markAuthenticationFailed()
+            EditPasswordAction.OnLocalAuthenticationUnavailable -> markAuthenticationUnavailable()
+            EditPasswordAction.OnLocalAuthenticationRetryClick -> requestLocalAuthentication()
             is EditPasswordAction.OnTitleChanged -> updateTitle(action.title)
             is EditPasswordAction.OnEmailChanged -> updateEmail(action.email)
             EditPasswordAction.OnCategoryFieldClick -> openCategoryDialog()
@@ -92,7 +99,60 @@ class EditPasswordViewModel @Inject constructor(
         }
     }
 
+    private fun requestLocalAuthentication() {
+        if (_uiState.value.localAuthenticationState == EditPasswordLocalAuthenticationState.Authenticated) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(localAuthenticationState = EditPasswordLocalAuthenticationState.Authenticating)
+        }
+        viewModelScope.launch {
+            _localAuthenticationEffects.send(
+                EditPasswordLocalAuthenticationEffect.RequestLocalAuthentication
+            )
+        }
+    }
+
+    private fun unlockAndLoadContent() {
+        if (hasStartedUnlockedContent) {
+            return
+        }
+        hasStartedUnlockedContent = true
+        _uiState.update {
+            it.copy(localAuthenticationState = EditPasswordLocalAuthenticationState.Authenticated)
+        }
+        observeCategoriesUseCase()
+            .collectIntoUiState()
+        observePasswordSecurityAnalysisRequests()
+        loadPassword()
+    }
+
+    private fun markAuthenticationFailed() {
+        if (_uiState.value.localAuthenticationState == EditPasswordLocalAuthenticationState.Authenticated) {
+            return
+        }
+        _uiState.update {
+            it.copy(localAuthenticationState = EditPasswordLocalAuthenticationState.Failed)
+        }
+    }
+
+    private fun markAuthenticationUnavailable() {
+        if (_uiState.value.localAuthenticationState == EditPasswordLocalAuthenticationState.Authenticated) {
+            return
+        }
+        _uiState.update {
+            it.copy(localAuthenticationState = EditPasswordLocalAuthenticationState.Unavailable)
+        }
+    }
+
+    private fun isUnlocked(): Boolean =
+        _uiState.value.localAuthenticationState == EditPasswordLocalAuthenticationState.Authenticated
+
     private fun loadPassword() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedPasswordId = passwordId
         if (resolvedPasswordId == null) {
             _uiState.update {
@@ -157,6 +217,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updateEmail(email: String) {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update {
             it.copy(
                 email = email.limitToMaxCharacters(TextInputLimits.EMAIL_MAX_LENGTH),
@@ -166,18 +229,27 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun openCategoryDialog() {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update { state ->
             state.copy(isCategoryDialogVisible = true)
         }
     }
 
     private fun closeCategoryDialog() {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update { state ->
             state.copy(isCategoryDialogVisible = false)
         }
     }
 
     private fun selectCategory(categoryId: Long) {
+        if (!isUnlocked()) {
+            return
+        }
         val selectionState = _uiState.value.categorySelectionState
         if (selectionState !is PasswordCategorySelectionUiState.Content) {
             return
@@ -197,6 +269,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updateTitle(title: String) {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update {
             it.copy(
                 title = title.limitToMaxCharacters(TextInputLimits.NAME_MAX_LENGTH),
@@ -206,6 +281,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updatePassword(password: String) {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update {
             it.copy(
                 password = password,
@@ -217,6 +295,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun updateNote(note: String) {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update {
             it.copy(
                 note = note.limitToMaxCharacters(TextInputLimits.NOTE_MAX_LENGTH),
@@ -226,12 +307,18 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun togglePasswordVisibility() {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update { state ->
             state.copy(isPasswordVisible = !state.isPasswordVisible)
         }
     }
 
     private fun copyEmail() {
+        if (!isUnlocked()) {
+            return
+        }
         val email = _uiState.value.email
         if (email.isBlank()) {
             return
@@ -244,6 +331,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun copyPassword() {
+        if (!isUnlocked()) {
+            return
+        }
         val password = _uiState.value.password
         if (password.isBlank()) {
             return
@@ -256,6 +346,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun saveChanges() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedPasswordId = passwordId ?: return
         val currentState = _uiState.value
         if (currentState.isSaving || currentState.isDeleting) {
@@ -320,6 +413,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun deletePassword() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedPasswordId = passwordId ?: return
         val currentState = _uiState.value
         if (
@@ -371,6 +467,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun showDeleteConfirmation() {
+        if (!isUnlocked()) {
+            return
+        }
         val currentState = _uiState.value
         if (currentState.isDeleting || currentState.isSaving) {
             return
@@ -385,6 +484,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun dismissDeleteConfirmation() {
+        if (!isUnlocked()) {
+            return
+        }
         if (_uiState.value.isDeleting) {
             return
         }
@@ -395,6 +497,9 @@ class EditPasswordViewModel @Inject constructor(
     }
 
     private fun analyzePasswordSecurity(password: String) {
+        if (!isUnlocked()) {
+            return
+        }
         viewModelScope.launch {
             val analysis = analyzePasswordSecurityUseCase(
                 password = password,

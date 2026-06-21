@@ -1,5 +1,12 @@
 <resources>
     <string name="app_name">Seu Cofre</string>
+    <string name="local_auth_prompt_title">Desbloquear edição</string>
+    <string name="local_auth_prompt_subtitle">Confirme sua identidade para acessar dados sensíveis.</string>
+    <string name="local_auth_locked_title">Edição protegida</string>
+    <string name="local_auth_authenticating_message">Confirme sua identidade para carregar os dados desta tela.</string>
+    <string name="local_auth_failed_message">Não foi possível confirmar sua identidade. Os dados permanecem bloqueados.</string>
+    <string name="local_auth_unavailable_message">Configure bloqueio de tela seguro no dispositivo para acessar esta edição.</string>
+    <string name="local_auth_retry_button">Tentar novamente</string>
     <string name="splash_title">Seu cofre</string>
     <string name="splash_subtitle">SEU COFRE DIGITAL SEGURO</string>
     <string name="splash_loading">Carregando…</string>

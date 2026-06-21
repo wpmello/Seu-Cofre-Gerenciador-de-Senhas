@@ -71,19 +71,35 @@ class EditCategoryViewModel @Inject constructor(
 
     private val _effects = Channel<EditCategoryEffect>(Channel.BUFFERED)
     val effects: Flow<EditCategoryEffect> = _effects.receiveAsFlow()
+    private val _localAuthenticationEffects =
+        Channel<EditCategoryLocalAuthenticationEffect>(Channel.BUFFERED)
+    val localAuthenticationEffects: Flow<EditCategoryLocalAuthenticationEffect> =
+        _localAuthenticationEffects.receiveAsFlow()
+    private var hasStartedUnlockedContent = false
 
     init {
-        loadCategory()
+        requestLocalAuthentication()
     }
 
     fun onAction(action: EditCategoryAction) {
         when (action) {
             EditCategoryAction.OnBackClick -> navigateBackToOrigin()
+            EditCategoryAction.OnLocalAuthenticationSucceeded -> unlockAndLoadContent()
+            EditCategoryAction.OnLocalAuthenticationCancelled,
+            EditCategoryAction.OnLocalAuthenticationFailed -> markAuthenticationFailed()
+            EditCategoryAction.OnLocalAuthenticationUnavailable -> markAuthenticationUnavailable()
+            EditCategoryAction.OnLocalAuthenticationRetryClick -> requestLocalAuthentication()
             is EditCategoryAction.OnNameChanged -> onNameChanged(action.name)
             EditCategoryAction.OnEditIconClick -> {
+                if (!isUnlocked()) {
+                    return
+                }
                 _uiState.update { it.copy(isIconPickerVisible = true) }
             }
             EditCategoryAction.OnIconPickerDismissed -> {
+                if (!isUnlocked()) {
+                    return
+                }
                 _uiState.update { it.copy(isIconPickerVisible = false) }
             }
             is EditCategoryAction.OnIconSelected -> onIconSelected(action.iconKey)
@@ -104,7 +120,57 @@ class EditCategoryViewModel @Inject constructor(
         }
     }
 
+    private fun requestLocalAuthentication() {
+        if (_uiState.value.localAuthenticationState == EditCategoryLocalAuthenticationState.Authenticated) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(localAuthenticationState = EditCategoryLocalAuthenticationState.Authenticating)
+        }
+        viewModelScope.launch {
+            _localAuthenticationEffects.send(
+                EditCategoryLocalAuthenticationEffect.RequestLocalAuthentication
+            )
+        }
+    }
+
+    private fun unlockAndLoadContent() {
+        if (hasStartedUnlockedContent) {
+            return
+        }
+        hasStartedUnlockedContent = true
+        _uiState.update {
+            it.copy(localAuthenticationState = EditCategoryLocalAuthenticationState.Authenticated)
+        }
+        loadCategory()
+    }
+
+    private fun markAuthenticationFailed() {
+        if (_uiState.value.localAuthenticationState == EditCategoryLocalAuthenticationState.Authenticated) {
+            return
+        }
+        _uiState.update {
+            it.copy(localAuthenticationState = EditCategoryLocalAuthenticationState.Failed)
+        }
+    }
+
+    private fun markAuthenticationUnavailable() {
+        if (_uiState.value.localAuthenticationState == EditCategoryLocalAuthenticationState.Authenticated) {
+            return
+        }
+        _uiState.update {
+            it.copy(localAuthenticationState = EditCategoryLocalAuthenticationState.Unavailable)
+        }
+    }
+
+    private fun isUnlocked(): Boolean =
+        _uiState.value.localAuthenticationState == EditCategoryLocalAuthenticationState.Authenticated
+
     private fun loadCategory() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedCategoryId = categoryId
         if (resolvedCategoryId == null) {
             _uiState.update {
@@ -154,6 +220,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun onNameChanged(name: String) {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update { state ->
             state.copy(
                 name = name.limitToMaxCharacters(TextInputLimits.NAME_MAX_LENGTH),
@@ -164,6 +233,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun onIconSelected(iconKey: String) {
+        if (!isUnlocked()) {
+            return
+        }
         _uiState.update { state ->
             state.copy(
                 selectedIconKey = iconKey,
@@ -178,12 +250,18 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun openPassword(passwordId: Long) {
+        if (!isUnlocked()) {
+            return
+        }
         viewModelScope.launch {
             _effects.send(EditCategoryEffect.OpenPassword(passwordId))
         }
     }
 
     private fun saveCategory() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedCategoryId = categoryId ?: return
         val currentState = _uiState.value
         if (
@@ -244,6 +322,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun deleteCategory() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedCategoryId = categoryId ?: return
         val currentDeleteFlowState = _uiState.value.deleteFlowState
         if (currentDeleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
@@ -306,6 +387,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun deleteCategoryWithAssociatedPasswords() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedCategoryId = categoryId ?: return
         if (_uiState.value.deleteFlowState !is EditCategoryDeleteFlowState.DeleteAllConfirmation) {
             return
@@ -357,6 +441,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun transferPasswords() {
+        if (!isUnlocked()) {
+            return
+        }
         val resolvedCategoryId = categoryId ?: return
         val selectedCategoryId = _uiState.value.selectedTransferCategoryId ?: return
         if (_uiState.value.deleteFlowState !is EditCategoryDeleteFlowState.TransferSelection) {
@@ -429,6 +516,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun onDeleteButtonClick() {
+        if (!isUnlocked()) {
+            return
+        }
         if (_uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
             return
         }
@@ -445,6 +535,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun dismissDeleteFlow() {
+        if (!isUnlocked()) {
+            return
+        }
         if (_uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
             return
         }
@@ -458,6 +551,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun showAssociatedPasswordsChoice() {
+        if (!isUnlocked()) {
+            return
+        }
         if (_uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
             return
         }
@@ -472,6 +568,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun showDeleteAllConfirmation() {
+        if (!isUnlocked()) {
+            return
+        }
         if (_uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
             return
         }
@@ -486,6 +585,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun showTransferSelection() {
+        if (!isUnlocked()) {
+            return
+        }
         if (_uiState.value.deleteFlowState is EditCategoryDeleteFlowState.CriticalOperation) {
             return
         }
@@ -507,6 +609,9 @@ class EditCategoryViewModel @Inject constructor(
     }
 
     private fun selectTransferCategory(categoryId: Long) {
+        if (!isUnlocked()) {
+            return
+        }
         val currentFlowState = _uiState.value.deleteFlowState
         if (currentFlowState !is EditCategoryDeleteFlowState.TransferSelection) {
             return

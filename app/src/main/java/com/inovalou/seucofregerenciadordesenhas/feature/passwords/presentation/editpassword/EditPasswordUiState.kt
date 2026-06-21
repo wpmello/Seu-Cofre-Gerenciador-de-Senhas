@@ -24,6 +24,8 @@ data class EditPasswordUiState(
     @StringRes val submitErrorResId: Int? = null,
     val lastCopiedField: EditPasswordCopiedField? = null,
     val contentState: EditPasswordContentState = EditPasswordContentState.Loading,
+    val localAuthenticationState: EditPasswordLocalAuthenticationState =
+        EditPasswordLocalAuthenticationState.Locked,
     val deleteFlowState: EditPasswordDeleteFlowState = EditPasswordDeleteFlowState.Idle,
     val securitySection: EditPasswordSecuritySectionUiState = EditPasswordSecuritySectionUiState()
 )
@@ -37,6 +39,14 @@ sealed interface EditPasswordContentState {
     data object Loading : EditPasswordContentState
     data object Content : EditPasswordContentState
     data class Error(@StringRes val messageResId: Int) : EditPasswordContentState
+}
+
+enum class EditPasswordLocalAuthenticationState {
+    Locked,
+    Authenticating,
+    Authenticated,
+    Failed,
+    Unavailable
 }
 
 sealed interface EditPasswordDeleteFlowState {
@@ -65,4 +75,8 @@ sealed interface EditPasswordEffect {
         val value: String,
         val isSensitive: Boolean
     ) : EditPasswordEffect
+}
+
+sealed interface EditPasswordLocalAuthenticationEffect {
+    data object RequestLocalAuthentication : EditPasswordLocalAuthenticationEffect
 }

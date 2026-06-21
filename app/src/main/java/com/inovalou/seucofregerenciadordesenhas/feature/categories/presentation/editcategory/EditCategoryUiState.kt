@@ -8,6 +8,8 @@ data class EditCategoryUiState(
     val availableIcons: List<CategorySelectableIconUiModel> = emptyList(),
     val selectedIconKey: String? = null,
     val contentState: EditCategoryContentState = EditCategoryContentState.Loading,
+    val localAuthenticationState: EditCategoryLocalAuthenticationState =
+        EditCategoryLocalAuthenticationState.Locked,
     val isIconPickerVisible: Boolean = false,
     val deleteFlowState: EditCategoryDeleteFlowState = EditCategoryDeleteFlowState.Idle,
     val associatedPasswordsCount: Int = 0,
@@ -51,6 +53,14 @@ sealed interface EditCategoryContentState {
     data class Error(@StringRes val messageResId: Int) : EditCategoryContentState
 }
 
+enum class EditCategoryLocalAuthenticationState {
+    Locked,
+    Authenticating,
+    Authenticated,
+    Failed,
+    Unavailable
+}
+
 sealed interface CategoryPasswordsSectionUiState {
     data object Empty : CategoryPasswordsSectionUiState
     data class Content(
@@ -83,4 +93,8 @@ sealed interface EditCategoryEffect {
     data class NavigateBackToOrigin(val openedFrom: EditCategoryOpenedFrom) : EditCategoryEffect
     data class OpenPassword(val passwordId: Long) : EditCategoryEffect
     data object NavigateToCategories : EditCategoryEffect
+}
+
+sealed interface EditCategoryLocalAuthenticationEffect {
+    data object RequestLocalAuthentication : EditCategoryLocalAuthenticationEffect
 }

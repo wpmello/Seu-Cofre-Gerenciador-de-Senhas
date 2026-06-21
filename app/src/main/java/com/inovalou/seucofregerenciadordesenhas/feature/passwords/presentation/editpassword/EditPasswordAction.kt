@@ -16,4 +16,9 @@ sealed interface EditPasswordAction {
     data object OnDeleteClick : EditPasswordAction
     data object OnDeleteDialogDismissed : EditPasswordAction
     data object OnDeleteConfirmed : EditPasswordAction
+    data object OnLocalAuthenticationSucceeded : EditPasswordAction
+    data object OnLocalAuthenticationCancelled : EditPasswordAction
+    data object OnLocalAuthenticationFailed : EditPasswordAction
+    data object OnLocalAuthenticationUnavailable : EditPasswordAction
+    data object OnLocalAuthenticationRetryClick : EditPasswordAction
 }
