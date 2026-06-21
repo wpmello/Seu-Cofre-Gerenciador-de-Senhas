@@ -47,6 +47,18 @@ class DataStoreAppPreferencesRepositoryTest {
         )
     }
 
+    @Test
+    fun givenOnboardingIsCompleted_whenObserved_thenPersistsCompletedFlag() = runTest {
+        val repository = DataStoreAppPreferencesRepository(createDataStore())
+
+        repository.completeOnboarding()
+
+        assertEquals(
+            AppPreferences(hasCompletedOnboarding = true),
+            repository.observePreferences().first()
+        )
+    }
+
     private fun TestScope.createDataStore(): DataStore<Preferences> {
         val file = File(temporaryFolder.newFolder(), "settings.preferences_pb")
         return PreferenceDataStoreFactory.create(scope = backgroundScope) { file }

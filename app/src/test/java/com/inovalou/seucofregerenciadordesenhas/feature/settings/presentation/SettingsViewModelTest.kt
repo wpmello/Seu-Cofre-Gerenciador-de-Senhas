@@ -272,5 +272,9 @@ class SettingsViewModelTest {
             }
             preferencesFlow.value = preferencesFlow.value.copy(themePreference = themePreference)
         }
+
+        override suspend fun completeOnboarding() {
+            preferencesFlow.value = preferencesFlow.value.copy(hasCompletedOnboarding = true)
+        }
     }
 }

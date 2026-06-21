@@ -7,31 +7,19 @@ import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.reposito
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class UpdateUserNameUseCaseTest {
+class CompleteOnboardingUseCaseTest {
 
     @Test
-    fun givenNameWithOuterSpaces_whenUpdating_thenStoresTrimmedName() = runTest {
+    fun givenOnboardingNotCompleted_whenUseCaseRuns_thenRepositoryPersistsCompletedFlag() = runTest {
         val repository = FakeAppPreferencesRepository()
-        val useCase = UpdateUserNameUseCase(repository)
+        val useCase = CompleteOnboardingUseCase(repository)
 
-        useCase("  Maria Silva  ")
+        useCase()
 
-        assertEquals("Maria Silva", repository.current.userName)
-    }
-
-    @Test
-    fun givenBlankName_whenUpdating_thenStoresBlankPreferenceForFallback() = runTest {
-        val repository = FakeAppPreferencesRepository(
-            initialPreferences = AppPreferences(userName = "Maria Silva")
-        )
-        val useCase = UpdateUserNameUseCase(repository)
-
-        useCase("   ")
-
-        assertEquals("", repository.current.userName)
+        assertTrue(repository.current.hasCompletedOnboarding)
     }
 
     private class FakeAppPreferencesRepository(
