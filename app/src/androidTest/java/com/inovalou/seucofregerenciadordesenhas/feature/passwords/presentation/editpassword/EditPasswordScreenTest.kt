@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -42,9 +41,9 @@ class EditPasswordScreenTest {
         }
 
         composeRule.onNodeWithTag("edit_password_local_auth_gate").assertIsDisplayed()
-        composeRule.onNodeWithTag("edit_password_title_input").assertDoesNotExist()
-        composeRule.onNodeWithTag("edit_password_email_input").assertDoesNotExist()
-        composeRule.onNodeWithTag("edit_password_password_input").assertDoesNotExist()
+        composeRule.onAllNodesWithTag("edit_password_title_input").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("edit_password_email_input").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("edit_password_password_input").assertCountEquals(0)
         composeRule.onNodeWithTag("edit_password_local_auth_gate_retry_button").performClick()
 
         assertEquals(EditPasswordAction.OnLocalAuthenticationRetryClick, lastAction)

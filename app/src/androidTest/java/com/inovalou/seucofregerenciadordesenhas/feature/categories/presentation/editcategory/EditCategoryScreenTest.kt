@@ -1,7 +1,6 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory
 
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -37,8 +36,8 @@ class EditCategoryScreenTest {
         }
 
         composeRule.onNodeWithTag("edit_category_local_auth_gate").assertIsDisplayed()
-        composeRule.onNodeWithTag("edit_category_name_input").assertDoesNotExist()
-        composeRule.onNodeWithTag("edit_category_save_button").assertDoesNotExist()
+        composeRule.onAllNodesWithTag("edit_category_name_input").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("edit_category_save_button").assertCountEquals(0)
         composeRule.onNodeWithTag("edit_category_local_auth_gate_retry_button").performClick()
 
         org.junit.Assert.assertEquals(EditCategoryAction.OnLocalAuthenticationRetryClick, lastAction)
