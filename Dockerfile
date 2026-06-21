@@ -22,13 +22,16 @@ RUN apt-get update \
         "platform-tools" \
         "platforms;android-36" \
         "build-tools;36.0.0" \
-    && npm install -g @openai/codex \
+    && npm install -g @openai/codex@latest \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/android-commandlinetools.zip /tmp/android-cmdline-tools
 
 ENV CODEX_HOME=/codex-home
 WORKDIR /workspace
 
-RUN mkdir -p /codex-home /workspace
+RUN mkdir -p /codex-home /workspace \
+    && chown -R node:node /codex-home /workspace
+
+USER node
 
 ENTRYPOINT ["codex"]
