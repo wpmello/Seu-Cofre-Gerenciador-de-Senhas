@@ -45,6 +45,105 @@ class EditCategoryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
+    fun givenEditRouteOpened_whenAuthenticationHasNotSucceeded_thenDoesNotLoadSensitiveCategoryData() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            categoryRepository = repository
+        )
+
+        advanceUntilIdle()
+
+        assertEquals(0, repository.getCategoryCalls)
+        assertEquals("", viewModel.uiState.value.name)
+        assertEquals(EditCategoryContentState.Loading, viewModel.uiState.value.contentState)
+        assertEquals(
+            EditCategoryLocalAuthenticationState.Authenticating,
+            viewModel.uiState.value.localAuthenticationState
+        )
+        assertEquals(
+            EditCategoryLocalAuthenticationEffect.RequestLocalAuthentication,
+            viewModel.localAuthenticationEffects.first()
+        )
+    }
+
+    @Test
+    fun givenAuthenticationSucceeded_whenHandled_thenLoadsCategoryData() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            categoryRepository = repository
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditCategoryAction.OnLocalAuthenticationSucceeded)
+        advanceUntilIdle()
+
+        assertEquals(1, repository.getCategoryCalls)
+        assertTrue(viewModel.uiState.value.contentState is EditCategoryContentState.Content)
+        assertEquals("Trabalho", viewModel.uiState.value.name)
+        assertEquals(
+            EditCategoryLocalAuthenticationState.Authenticated,
+            viewModel.uiState.value.localAuthenticationState
+        )
+    }
+
+    @Test
+    fun givenAuthenticationFails_whenHandled_thenKeepsCategoryBlocked() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            categoryRepository = repository
+        )
+
+        viewModel.onAction(EditCategoryAction.OnLocalAuthenticationFailed)
+        advanceUntilIdle()
+
+        assertEquals(0, repository.getCategoryCalls)
+        assertEquals("", viewModel.uiState.value.name)
+        assertEquals(
+            EditCategoryLocalAuthenticationState.Failed,
+            viewModel.uiState.value.localAuthenticationState
+        )
+    }
+
+    @Test
+    fun givenAuthenticationUnavailable_whenHandled_thenKeepsCategoryBlocked() = runTest {
+        val repository = FakeCategoryRepository()
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            categoryRepository = repository
+        )
+
+        viewModel.onAction(EditCategoryAction.OnLocalAuthenticationUnavailable)
+        advanceUntilIdle()
+
+        assertEquals(0, repository.getCategoryCalls)
+        assertEquals("", viewModel.uiState.value.name)
+        assertEquals(
+            EditCategoryLocalAuthenticationState.Unavailable,
+            viewModel.uiState.value.localAuthenticationState
+        )
+    }
+
+    @Test
+    fun givenAuthenticationFailed_whenRetryIsClicked_thenRequestsLocalAuthenticationAgain() = runTest {
+        val viewModel = buildViewModel(autoAuthenticate = false)
+        assertEquals(
+            EditCategoryLocalAuthenticationEffect.RequestLocalAuthentication,
+            viewModel.localAuthenticationEffects.first()
+        )
+
+        viewModel.onAction(EditCategoryAction.OnLocalAuthenticationFailed)
+        viewModel.onAction(EditCategoryAction.OnLocalAuthenticationRetryClick)
+
+        assertEquals(
+            EditCategoryLocalAuthenticationEffect.RequestLocalAuthentication,
+            viewModel.localAuthenticationEffects.first()
+        )
+    }
+
+    @Test
     fun givenExistingCategoryId_whenViewModelLoads_thenFillsInitialStateWithPersistedValues() = runTest {
         val viewModel = buildViewModel(
             currentCategory = category(id = 9L, name = "Trabalho", iconKey = "ic_work_bag_add_category")
@@ -621,9 +720,10 @@ class EditCategoryViewModelTest {
         passwordRepository: FakePasswordRepository = FakePasswordRepository(
             passwords = passwords,
             snapshots = passwordSecuritySnapshots
-        )
+        ),
+        autoAuthenticate: Boolean = true
     ): EditCategoryViewModel {
-        return EditCategoryViewModel(
+        val viewModel = EditCategoryViewModel(
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     EditCategoryRoute.categoryIdArg to 9L,
@@ -645,6 +745,10 @@ class EditCategoryViewModelTest {
             categoryIconCatalog = FakeCategoryIconCatalog(),
             observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository)
         )
+        if (autoAuthenticate) {
+            viewModel.onAction(EditCategoryAction.OnLocalAuthenticationSucceeded)
+        }
+        return viewModel
     }
 
     private class FakeCategoryRepository(
@@ -667,10 +771,14 @@ class EditCategoryViewModelTest {
         val transfers = mutableListOf<Pair<Long, Long>>()
         var transferCalls: Int = 0
         var updateCalls: Int = 0
+        var getCategoryCalls: Int = 0
 
         override suspend fun createCategory(name: String, iconKey: String): Long = 1L
 
-        override suspend fun getCategoryById(categoryId: Long): Category? = categoryById[categoryId]
+        override suspend fun getCategoryById(categoryId: Long): Category? {
+            getCategoryCalls += 1
+            return categoryById[categoryId]
+        }
 
         override suspend fun updateCategory(category: Category) {
             updateCalls += 1

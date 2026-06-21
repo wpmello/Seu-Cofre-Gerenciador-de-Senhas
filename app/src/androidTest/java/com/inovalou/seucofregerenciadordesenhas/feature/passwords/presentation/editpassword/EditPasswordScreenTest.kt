@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -25,6 +26,29 @@ class EditPasswordScreenTest {
 
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun givenLockedState_whenRendered_thenDoesNotDisplaySensitiveFieldsAndRetryDispatchesAction() {
+        var lastAction: EditPasswordAction? = null
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditPasswordScreen(
+                    uiState = EditPasswordUiState(
+                        localAuthenticationState = EditPasswordLocalAuthenticationState.Failed
+                    ),
+                    onAction = { action -> lastAction = action }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_local_auth_gate").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_password_title_input").assertDoesNotExist()
+        composeRule.onNodeWithTag("edit_password_email_input").assertDoesNotExist()
+        composeRule.onNodeWithTag("edit_password_password_input").assertDoesNotExist()
+        composeRule.onNodeWithTag("edit_password_local_auth_gate_retry_button").performClick()
+
+        assertEquals(EditPasswordAction.OnLocalAuthenticationRetryClick, lastAction)
+    }
 
     @Test
     fun givenContentState_whenRendered_thenDisplaysExpectedSections() {

@@ -1,6 +1,7 @@
 package com.inovalou.seucofregerenciadordesenhas.feature.categories.presentation.editcategory
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -20,6 +21,28 @@ class EditCategoryScreenTest {
 
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun givenLockedState_whenRendered_thenDoesNotDisplaySensitiveFieldsAndRetryDispatchesAction() {
+        var lastAction: EditCategoryAction? = null
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditCategoryScreen(
+                    uiState = EditCategoryUiState(
+                        localAuthenticationState = EditCategoryLocalAuthenticationState.Failed
+                    ),
+                    onAction = { action -> lastAction = action }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_category_local_auth_gate").assertIsDisplayed()
+        composeRule.onNodeWithTag("edit_category_name_input").assertDoesNotExist()
+        composeRule.onNodeWithTag("edit_category_save_button").assertDoesNotExist()
+        composeRule.onNodeWithTag("edit_category_local_auth_gate_retry_button").performClick()
+
+        org.junit.Assert.assertEquals(EditCategoryAction.OnLocalAuthenticationRetryClick, lastAction)
+    }
 
     @Test
     fun givenContentState_whenRendered_thenDisplaysMainEditingElements() {
