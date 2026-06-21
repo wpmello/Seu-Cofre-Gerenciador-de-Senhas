@@ -73,8 +73,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.security.LocalAuthenticationPromptText
+import com.inovalou.seucofregerenciadordesenhas.core.security.LocalAuthenticationResult
+import com.inovalou.seucofregerenciadordesenhas.core.security.findFragmentActivity
+import com.inovalou.seucofregerenciadordesenhas.core.security.requestLocalAuthentication
 import com.inovalou.seucofregerenciadordesenhas.core.ui.CollectEffectWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultLocalAuthenticationGate
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.rememberEndCursorTextFieldState
 import com.inovalou.seucofregerenciadordesenhas.feature.passwords.presentation.shared.PasswordCategorySelectionDialog
@@ -92,6 +97,25 @@ fun EditPasswordRoute(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val localAuthPromptText = LocalAuthenticationPromptText(
+        title = stringResource(R.string.local_auth_prompt_title),
+        subtitle = stringResource(R.string.local_auth_prompt_subtitle)
+    )
+
+    CollectEffectWithLifecycle(viewModel.localAuthenticationEffects) { effect ->
+        when (effect) {
+            EditPasswordLocalAuthenticationEffect.RequestLocalAuthentication -> {
+                val activity = context.findFragmentActivity()
+                if (activity == null) {
+                    viewModel.onAction(EditPasswordAction.OnLocalAuthenticationUnavailable)
+                } else {
+                    activity.requestLocalAuthentication(localAuthPromptText) { result ->
+                        viewModel.onAction(result.toEditPasswordAction())
+                    }
+                }
+            }
+        }
+    }
 
     CollectEffectWithLifecycle(viewModel.effects) { effect ->
         when (effect) {
@@ -145,7 +169,15 @@ fun EditPasswordScreen(
                 modifier = Modifier.testTag("edit_password_header")
             )
 
-            when (val contentState = uiState.contentState) {
+            if (uiState.localAuthenticationState != EditPasswordLocalAuthenticationState.Authenticated) {
+                VaultLocalAuthenticationGate(
+                    isAuthenticating = uiState.localAuthenticationState ==
+                        EditPasswordLocalAuthenticationState.Authenticating,
+                    messageResId = uiState.localAuthenticationState.toMessageResId(),
+                    onRetryClick = { onAction(EditPasswordAction.OnLocalAuthenticationRetryClick) },
+                    testTag = "edit_password_local_auth_gate"
+                )
+            } else when (val contentState = uiState.contentState) {
                 EditPasswordContentState.Loading -> {
                     Box(
                         modifier = Modifier
@@ -310,6 +342,21 @@ fun EditPasswordScreen(
         state = uiState.deleteFlowState,
         onAction = onAction
     )
+}
+
+private fun LocalAuthenticationResult.toEditPasswordAction(): EditPasswordAction = when (this) {
+    LocalAuthenticationResult.Succeeded -> EditPasswordAction.OnLocalAuthenticationSucceeded
+    LocalAuthenticationResult.Cancelled -> EditPasswordAction.OnLocalAuthenticationCancelled
+    LocalAuthenticationResult.Failed -> EditPasswordAction.OnLocalAuthenticationFailed
+    LocalAuthenticationResult.Unavailable -> EditPasswordAction.OnLocalAuthenticationUnavailable
+}
+
+private fun EditPasswordLocalAuthenticationState.toMessageResId(): Int = when (this) {
+    EditPasswordLocalAuthenticationState.Locked,
+    EditPasswordLocalAuthenticationState.Authenticating -> R.string.local_auth_authenticating_message
+    EditPasswordLocalAuthenticationState.Failed -> R.string.local_auth_failed_message
+    EditPasswordLocalAuthenticationState.Unavailable -> R.string.local_auth_unavailable_message
+    EditPasswordLocalAuthenticationState.Authenticated -> R.string.local_auth_authenticating_message
 }
 
 @Composable

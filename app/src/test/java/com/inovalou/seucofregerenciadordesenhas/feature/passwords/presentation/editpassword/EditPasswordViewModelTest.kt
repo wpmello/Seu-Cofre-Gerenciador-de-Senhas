@@ -49,6 +49,105 @@ class EditPasswordViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
+    fun givenEditRouteOpened_whenAuthenticationHasNotSucceeded_thenDoesNotLoadSensitivePassword() = runTest {
+        val detailsRepository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            detailsRepository = detailsRepository
+        )
+
+        advanceUntilIdle()
+
+        assertEquals(0, detailsRepository.detailsLookupCalls)
+        assertEquals("", viewModel.uiState.value.password)
+        assertEquals(EditPasswordContentState.Loading, viewModel.uiState.value.contentState)
+        assertEquals(
+            EditPasswordLocalAuthenticationState.Authenticating,
+            viewModel.uiState.value.localAuthenticationState
+        )
+        assertEquals(
+            EditPasswordLocalAuthenticationEffect.RequestLocalAuthentication,
+            viewModel.localAuthenticationEffects.first()
+        )
+    }
+
+    @Test
+    fun givenAuthenticationSucceeded_whenHandled_thenLoadsPasswordDetails() = runTest {
+        val detailsRepository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            detailsRepository = detailsRepository
+        )
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnLocalAuthenticationSucceeded)
+        advanceUntilIdle()
+
+        assertEquals(1, detailsRepository.detailsLookupCalls)
+        assertTrue(viewModel.uiState.value.contentState is EditPasswordContentState.Content)
+        assertEquals("plain-secret", viewModel.uiState.value.password)
+        assertEquals(
+            EditPasswordLocalAuthenticationState.Authenticated,
+            viewModel.uiState.value.localAuthenticationState
+        )
+    }
+
+    @Test
+    fun givenAuthenticationFails_whenHandled_thenKeepsPasswordBlocked() = runTest {
+        val detailsRepository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            detailsRepository = detailsRepository
+        )
+
+        viewModel.onAction(EditPasswordAction.OnLocalAuthenticationFailed)
+        advanceUntilIdle()
+
+        assertEquals(0, detailsRepository.detailsLookupCalls)
+        assertEquals("", viewModel.uiState.value.password)
+        assertEquals(
+            EditPasswordLocalAuthenticationState.Failed,
+            viewModel.uiState.value.localAuthenticationState
+        )
+    }
+
+    @Test
+    fun givenAuthenticationUnavailable_whenHandled_thenKeepsPasswordBlocked() = runTest {
+        val detailsRepository = FakePasswordRepository(passwordDetails = persistedPassword())
+        val viewModel = buildViewModel(
+            autoAuthenticate = false,
+            detailsRepository = detailsRepository
+        )
+
+        viewModel.onAction(EditPasswordAction.OnLocalAuthenticationUnavailable)
+        advanceUntilIdle()
+
+        assertEquals(0, detailsRepository.detailsLookupCalls)
+        assertEquals("", viewModel.uiState.value.password)
+        assertEquals(
+            EditPasswordLocalAuthenticationState.Unavailable,
+            viewModel.uiState.value.localAuthenticationState
+        )
+    }
+
+    @Test
+    fun givenAuthenticationFailed_whenRetryIsClicked_thenRequestsLocalAuthenticationAgain() = runTest {
+        val viewModel = buildViewModel(autoAuthenticate = false)
+        assertEquals(
+            EditPasswordLocalAuthenticationEffect.RequestLocalAuthentication,
+            viewModel.localAuthenticationEffects.first()
+        )
+
+        viewModel.onAction(EditPasswordAction.OnLocalAuthenticationFailed)
+        viewModel.onAction(EditPasswordAction.OnLocalAuthenticationRetryClick)
+
+        assertEquals(
+            EditPasswordLocalAuthenticationEffect.RequestLocalAuthentication,
+            viewModel.localAuthenticationEffects.first()
+        )
+    }
+
+    @Test
     fun givenPersistedPassword_whenViewModelLoads_thenExposesEditableFieldsAndDates() = runTest {
         val viewModel = buildViewModel(passwordDetails = persistedPassword(login = "mail@vault.com"))
 
@@ -703,39 +802,45 @@ class EditPasswordViewModelTest {
         deletePasswordRepository: FakeDeletePasswordRepository = FakeDeletePasswordRepository(),
         categoryRepository: FakeCategoryRepository = FakeCategoryRepository(),
         duplicatePasswords: Set<String> = emptySet(),
+        autoAuthenticate: Boolean = true,
+        detailsRepository: FakePasswordRepository = FakePasswordRepository(
+            passwordDetails = passwordDetails,
+            duplicatePasswords = duplicatePasswords
+        ),
         analysisPasswordRepository: FakePasswordRepository = FakePasswordRepository(
             passwordDetails = passwordDetails,
             duplicatePasswords = duplicatePasswords
         )
-    ): EditPasswordViewModel = EditPasswordViewModel(
-        savedStateHandle = SavedStateHandle(
-            buildMap {
-                if (passwordId != null) {
-                    put(EditPasswordDestination.passwordIdArg, passwordId)
+    ): EditPasswordViewModel {
+        val viewModel = EditPasswordViewModel(
+            savedStateHandle = SavedStateHandle(
+                buildMap {
+                    if (passwordId != null) {
+                        put(EditPasswordDestination.passwordIdArg, passwordId)
+                    }
+                    put(EditPasswordDestination.openedFromArg, openedFrom.routeValue)
                 }
-                put(EditPasswordDestination.openedFromArg, openedFrom.routeValue)
-            }
-        ),
-        getPasswordDetailsUseCase = GetPasswordDetailsUseCase(
-            FakePasswordRepository(
-                passwordDetails = passwordDetails,
-                duplicatePasswords = duplicatePasswords
-            )
-        ),
-        observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
-        analyzePasswordSecurityUseCase = AnalyzePasswordSecurityUseCase(
-            passwordRepository = analysisPasswordRepository,
-            evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
-            dispatchers = testDispatchers()
-        ),
-        updatePasswordUseCase = UpdatePasswordUseCase(
-            passwordRepository = updatePasswordUseCase,
-            categoryRepository = categoryRepository,
-            generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(updatePasswordUseCase),
-            timeProvider = FixedTimeProvider(1_750_000_000_000L)
-        ),
-        deletePasswordByIdUseCase = DeletePasswordByIdUseCase(deletePasswordRepository)
-    )
+            ),
+            getPasswordDetailsUseCase = GetPasswordDetailsUseCase(detailsRepository),
+            observeCategoriesUseCase = ObserveCategoriesUseCase(categoryRepository),
+            analyzePasswordSecurityUseCase = AnalyzePasswordSecurityUseCase(
+                passwordRepository = analysisPasswordRepository,
+                evaluatePasswordSecurityUseCase = EvaluatePasswordSecurityUseCase(),
+                dispatchers = testDispatchers()
+            ),
+            updatePasswordUseCase = UpdatePasswordUseCase(
+                passwordRepository = updatePasswordUseCase,
+                categoryRepository = categoryRepository,
+                generatePasswordTitleUseCase = GeneratePasswordTitleUseCase(updatePasswordUseCase),
+                timeProvider = FixedTimeProvider(1_750_000_000_000L)
+            ),
+            deletePasswordByIdUseCase = DeletePasswordByIdUseCase(deletePasswordRepository)
+        )
+        if (autoAuthenticate) {
+            viewModel.onAction(EditPasswordAction.OnLocalAuthenticationSucceeded)
+        }
+        return viewModel
+    }
 
     private fun testDispatchers() = AppDispatchers(
         default = mainDispatcherRule.dispatcher,
@@ -768,6 +873,7 @@ class EditPasswordViewModelTest {
 
         var duplicateLookupCalls: Int = 0
         var lastDuplicateLookupPassword: String? = null
+        var detailsLookupCalls: Int = 0
 
         override fun observePasswords(): Flow<List<PasswordSummary>> = emptyFlow()
 
@@ -778,7 +884,10 @@ class EditPasswordViewModelTest {
 
         override suspend fun createPassword(password: NewPassword): Long = 0L
 
-        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? = passwordDetails
+        override suspend fun getPasswordDetails(passwordId: Long): PasswordDetails? {
+            detailsLookupCalls += 1
+            return passwordDetails
+        }
 
         override suspend fun updatePassword(password: PasswordDetails) = Unit
 

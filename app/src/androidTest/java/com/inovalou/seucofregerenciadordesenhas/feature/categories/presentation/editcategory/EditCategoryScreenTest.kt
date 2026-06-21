@@ -22,6 +22,28 @@ class EditCategoryScreenTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun givenLockedState_whenRendered_thenDoesNotDisplaySensitiveFieldsAndRetryDispatchesAction() {
+        var lastAction: EditCategoryAction? = null
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditCategoryScreen(
+                    uiState = EditCategoryUiState(
+                        localAuthenticationState = EditCategoryLocalAuthenticationState.Failed
+                    ),
+                    onAction = { action -> lastAction = action }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_category_local_auth_gate").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("edit_category_name_input").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("edit_category_save_button").assertCountEquals(0)
+        composeRule.onNodeWithTag("edit_category_local_auth_gate_retry_button").performClick()
+
+        org.junit.Assert.assertEquals(EditCategoryAction.OnLocalAuthenticationRetryClick, lastAction)
+    }
+
+    @Test
     fun givenContentState_whenRendered_thenDisplaysMainEditingElements() {
         composeRule.setContent {
             SeuCofreGerenciadorDeSenhasTheme {

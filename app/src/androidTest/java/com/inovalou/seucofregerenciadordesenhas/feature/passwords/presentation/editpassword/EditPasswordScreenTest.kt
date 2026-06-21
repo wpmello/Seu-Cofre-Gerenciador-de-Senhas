@@ -27,6 +27,29 @@ class EditPasswordScreenTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun givenLockedState_whenRendered_thenDoesNotDisplaySensitiveFieldsAndRetryDispatchesAction() {
+        var lastAction: EditPasswordAction? = null
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                EditPasswordScreen(
+                    uiState = EditPasswordUiState(
+                        localAuthenticationState = EditPasswordLocalAuthenticationState.Failed
+                    ),
+                    onAction = { action -> lastAction = action }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_local_auth_gate").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("edit_password_title_input").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("edit_password_email_input").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("edit_password_password_input").assertCountEquals(0)
+        composeRule.onNodeWithTag("edit_password_local_auth_gate_retry_button").performClick()
+
+        assertEquals(EditPasswordAction.OnLocalAuthenticationRetryClick, lastAction)
+    }
+
+    @Test
     fun givenContentState_whenRendered_thenDisplaysExpectedSections() {
         composeRule.setContent {
             SeuCofreGerenciadorDeSenhasTheme {

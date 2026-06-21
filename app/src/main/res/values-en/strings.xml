@@ -1,5 +1,12 @@
 <resources>
     <string name="app_name">Your Vault</string>
+    <string name="local_auth_prompt_title">Unlock editing</string>
+    <string name="local_auth_prompt_subtitle">Confirm your identity to access sensitive data.</string>
+    <string name="local_auth_locked_title">Protected editing</string>
+    <string name="local_auth_authenticating_message">Confirm your identity to load this screen\'s data.</string>
+    <string name="local_auth_failed_message">Your identity could not be confirmed. The data remains locked.</string>
+    <string name="local_auth_unavailable_message">Configure a secure device screen lock to access this edit screen.</string>
+    <string name="local_auth_retry_button">Try again</string>
     <string name="splash_title">Your vault</string>
     <string name="splash_subtitle">YOUR SECURE DIGITAL VAULT</string>
     <string name="splash_loading">Loading…</string>

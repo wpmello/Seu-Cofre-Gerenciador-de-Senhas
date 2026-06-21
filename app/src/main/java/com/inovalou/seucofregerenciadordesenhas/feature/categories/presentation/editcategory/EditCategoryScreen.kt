@@ -66,8 +66,13 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
+import com.inovalou.seucofregerenciadordesenhas.core.security.LocalAuthenticationPromptText
+import com.inovalou.seucofregerenciadordesenhas.core.security.LocalAuthenticationResult
+import com.inovalou.seucofregerenciadordesenhas.core.security.findFragmentActivity
+import com.inovalou.seucofregerenciadordesenhas.core.security.requestLocalAuthentication
 import com.inovalou.seucofregerenciadordesenhas.core.ui.CollectEffectWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultBackHeader
+import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultLocalAuthenticationGate
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListItemModel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPasswordListSecurityLevel
 import com.inovalou.seucofregerenciadordesenhas.core.ui.component.VaultPrimaryPersistenceButton
@@ -87,6 +92,26 @@ fun EditCategoryEntry(
     viewModel: EditCategoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val localAuthPromptText = LocalAuthenticationPromptText(
+        title = stringResource(R.string.local_auth_prompt_title),
+        subtitle = stringResource(R.string.local_auth_prompt_subtitle)
+    )
+
+    CollectEffectWithLifecycle(viewModel.localAuthenticationEffects) { effect ->
+        when (effect) {
+            EditCategoryLocalAuthenticationEffect.RequestLocalAuthentication -> {
+                val activity = context.findFragmentActivity()
+                if (activity == null) {
+                    viewModel.onAction(EditCategoryAction.OnLocalAuthenticationUnavailable)
+                } else {
+                    activity.requestLocalAuthentication(localAuthPromptText) { result ->
+                        viewModel.onAction(result.toEditCategoryAction())
+                    }
+                }
+            }
+        }
+    }
 
     CollectEffectWithLifecycle(viewModel.effects) { effect ->
         when (effect) {
@@ -135,7 +160,15 @@ fun EditCategoryScreen(
                 testTag = "edit_category_header"
             )
 
-            when (val contentState = uiState.contentState) {
+            if (uiState.localAuthenticationState != EditCategoryLocalAuthenticationState.Authenticated) {
+                VaultLocalAuthenticationGate(
+                    isAuthenticating = uiState.localAuthenticationState ==
+                        EditCategoryLocalAuthenticationState.Authenticating,
+                    messageResId = uiState.localAuthenticationState.toMessageResId(),
+                    onRetryClick = { onAction(EditCategoryAction.OnLocalAuthenticationRetryClick) },
+                    testTag = "edit_category_local_auth_gate"
+                )
+            } else when (val contentState = uiState.contentState) {
                 EditCategoryContentState.Loading -> {
                     Box(
                         modifier = Modifier
@@ -295,6 +328,21 @@ private fun EditCategoryDeleteFlow(
             )
         }
     }
+}
+
+private fun LocalAuthenticationResult.toEditCategoryAction(): EditCategoryAction = when (this) {
+    LocalAuthenticationResult.Succeeded -> EditCategoryAction.OnLocalAuthenticationSucceeded
+    LocalAuthenticationResult.Cancelled -> EditCategoryAction.OnLocalAuthenticationCancelled
+    LocalAuthenticationResult.Failed -> EditCategoryAction.OnLocalAuthenticationFailed
+    LocalAuthenticationResult.Unavailable -> EditCategoryAction.OnLocalAuthenticationUnavailable
+}
+
+private fun EditCategoryLocalAuthenticationState.toMessageResId(): Int = when (this) {
+    EditCategoryLocalAuthenticationState.Locked,
+    EditCategoryLocalAuthenticationState.Authenticating -> R.string.local_auth_authenticating_message
+    EditCategoryLocalAuthenticationState.Failed -> R.string.local_auth_failed_message
+    EditCategoryLocalAuthenticationState.Unavailable -> R.string.local_auth_unavailable_message
+    EditCategoryLocalAuthenticationState.Authenticated -> R.string.local_auth_authenticating_message
 }
 
 @Composable

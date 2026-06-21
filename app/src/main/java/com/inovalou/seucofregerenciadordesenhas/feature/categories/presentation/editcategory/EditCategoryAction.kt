@@ -20,4 +20,9 @@ sealed interface EditCategoryAction {
     data object OnTransferConfirmed : EditCategoryAction
     data object OnPostTransferDeleteCancelled : EditCategoryAction
     data object OnPostTransferDeleteConfirmed : EditCategoryAction
+    data object OnLocalAuthenticationSucceeded : EditCategoryAction
+    data object OnLocalAuthenticationCancelled : EditCategoryAction
+    data object OnLocalAuthenticationFailed : EditCategoryAction
+    data object OnLocalAuthenticationUnavailable : EditCategoryAction
+    data object OnLocalAuthenticationRetryClick : EditCategoryAction
 }
