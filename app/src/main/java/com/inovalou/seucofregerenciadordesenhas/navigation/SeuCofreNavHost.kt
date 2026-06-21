@@ -6,10 +6,13 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.inovalou.seucofregerenciadordesenhas.feature.onboarding.presentation.OnboardingRoute
+import com.inovalou.seucofregerenciadordesenhas.feature.splash.presentation.SplashLaunchDestination
 import com.inovalou.seucofregerenciadordesenhas.feature.splash.presentation.SplashRoute
 
-private object SeuCofreRoutes {
+internal object SeuCofreRoutes {
     const val SPLASH = "splash"
+    const val ONBOARDING = "onboarding"
     const val APP = "app"
 }
 
@@ -24,13 +27,20 @@ fun SeuCofreNavHost(modifier: Modifier = Modifier) {
     ) {
         composable(SeuCofreRoutes.SPLASH) {
             SplashRoute(
-                onSplashFinished = {
-                    navController.navigate(SeuCofreRoutes.APP) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
+                onLaunchResolved = { destination ->
+                    val route = when (destination) {
+                        SplashLaunchDestination.Onboarding -> SeuCofreRoutes.ONBOARDING
+                        SplashLaunchDestination.App -> SeuCofreRoutes.APP
                     }
+                    navController.navigateToRoot(route)
+                }
+            )
+        }
+
+        composable(SeuCofreRoutes.ONBOARDING) {
+            OnboardingRoute(
+                onOnboardingCompleted = {
+                    navController.navigateToRoot(SeuCofreRoutes.APP)
                 }
             )
         }
@@ -38,5 +48,14 @@ fun SeuCofreNavHost(modifier: Modifier = Modifier) {
         composable(SeuCofreRoutes.APP) {
             SeuCofreAppShell()
         }
+    }
+}
+
+private fun androidx.navigation.NavHostController.navigateToRoot(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            inclusive = true
+        }
+        launchSingleTop = true
     }
 }

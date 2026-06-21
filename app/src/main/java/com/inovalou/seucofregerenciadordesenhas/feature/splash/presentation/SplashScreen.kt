@@ -42,6 +42,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.vaultColors
@@ -52,9 +54,11 @@ internal object SplashScreenSpec {
 
 @Composable
 fun SplashRoute(
-    onSplashFinished: () -> Unit,
-    modifier: Modifier = Modifier
+    onLaunchResolved: (SplashLaunchDestination) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
+    val launchUiState = viewModel.uiState.collectAsStateWithLifecycle()
     val progress = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
@@ -66,7 +70,10 @@ fun SplashRoute(
                 easing = LinearEasing
             )
         )
-        onSplashFinished()
+    }
+
+    LaunchedEffect(launchUiState.value.destination) {
+        launchUiState.value.destination?.let(onLaunchResolved)
     }
 
     SplashScreen(

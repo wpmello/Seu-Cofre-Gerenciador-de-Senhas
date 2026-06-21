@@ -30,6 +30,7 @@
     <string name="vault_home_create_category_option">nova categoria</string>
     <string name="onboarding_brand">Seu cofre</string>
     <string name="onboarding_next">Próximo</string>
+    <string name="onboarding_finish">Começar</string>
     <string name="onboarding_existing_account">Já tem uma conta? </string>
     <string name="onboarding_sign_in">Entrar</string>
     <string name="onboarding_step_one_title">Proteja todas as suas senhas em um só lugar</string>
