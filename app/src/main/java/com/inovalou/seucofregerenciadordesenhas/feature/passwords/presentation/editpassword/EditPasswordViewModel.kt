@@ -92,6 +92,13 @@ class EditPasswordViewModel @Inject constructor(
             EditPasswordAction.OnTogglePasswordVisibility -> togglePasswordVisibility()
             EditPasswordAction.OnCopyEmailClick -> copyEmail()
             EditPasswordAction.OnCopyPasswordClick -> copyPassword()
+            EditPasswordAction.OnSuggestStrongPasswordClick -> showComingSoonDialog(
+                EditPasswordComingSoonDialog.SuggestPassword
+            )
+            EditPasswordAction.OnPasswordHistoryClick -> showComingSoonDialog(
+                EditPasswordComingSoonDialog.History
+            )
+            EditPasswordAction.OnComingSoonDialogDismissed -> dismissComingSoonDialog()
             EditPasswordAction.OnSaveClick -> saveChanges()
             EditPasswordAction.OnDeleteClick -> showDeleteConfirmation()
             EditPasswordAction.OnDeleteDialogDismissed -> dismissDeleteConfirmation()
@@ -493,6 +500,26 @@ class EditPasswordViewModel @Inject constructor(
 
         _uiState.update {
             it.copy(deleteFlowState = EditPasswordDeleteFlowState.Idle)
+        }
+    }
+
+    private fun showComingSoonDialog(dialog: EditPasswordComingSoonDialog) {
+        if (!isUnlocked()) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(comingSoonDialog = dialog)
+        }
+    }
+
+    private fun dismissComingSoonDialog() {
+        if (!isUnlocked()) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(comingSoonDialog = null)
         }
     }
 

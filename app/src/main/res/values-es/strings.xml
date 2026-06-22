@@ -200,6 +200,7 @@
     <string name="edit_password_notes_empty_hint">Esta credencial todavía no tiene notas. Puedes escribir una nota aquí.</string>
     <string name="edit_password_suggest_action">Sugerir clave fuerte</string>
     <string name="edit_password_history_action">Ver historial</string>
+    <string name="edit_password_coming_soon_message">Próximamente</string>
     <string name="edit_password_security_title">Riesgo de seguridad</string>
     <string name="edit_password_security_moderate_title">Riesgo moderado</string>
     <string name="edit_password_security_strong_title">Clave fuerte</string>

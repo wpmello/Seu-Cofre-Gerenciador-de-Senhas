@@ -200,6 +200,7 @@
     <string name="edit_password_notes_empty_hint">This credential does not have notes yet. You can write a note here.</string>
     <string name="edit_password_suggest_action">Suggest Strong Password</string>
     <string name="edit_password_history_action">View History</string>
+    <string name="edit_password_coming_soon_message">Coming soon</string>
     <string name="edit_password_security_title">Security Risk</string>
     <string name="edit_password_security_moderate_title">Moderate Risk</string>
     <string name="edit_password_security_strong_title">Strong Password</string>

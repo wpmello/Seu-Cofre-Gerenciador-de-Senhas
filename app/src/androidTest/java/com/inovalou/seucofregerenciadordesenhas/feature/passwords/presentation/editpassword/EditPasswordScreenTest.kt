@@ -251,6 +251,72 @@ class EditPasswordScreenTest {
         composeRule.onNodeWithTag("password_category_dialog").assertIsDisplayed()
     }
 
+    @Test
+    fun givenSuggestStrongPasswordCardClick_whenStateIsControlled_thenDisplaysComingSoonDialog() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                var uiState by remember { mutableStateOf(editPasswordUiState()) }
+                EditPasswordScreen(
+                    uiState = uiState,
+                    onAction = { action ->
+                        when (action) {
+                            EditPasswordAction.OnSuggestStrongPasswordClick -> {
+                                uiState = uiState.copy(
+                                    comingSoonDialog = EditPasswordComingSoonDialog.SuggestPassword
+                                )
+                            }
+                            EditPasswordAction.OnComingSoonDialogDismissed -> {
+                                uiState = uiState.copy(comingSoonDialog = null)
+                            }
+                            else -> Unit
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_suggest_action_card").performClick()
+
+        composeRule.onNodeWithTag("edit_password_coming_soon_dialog").assertIsDisplayed()
+        composeRule.onNodeWithText("Sugerir Senha Forte").assertIsDisplayed()
+        composeRule.onNodeWithText("Em breve").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("edit_password_coming_soon_ok_button").performClick()
+
+        composeRule.onAllNodesWithTag("edit_password_coming_soon_dialog").assertCountEquals(0)
+    }
+
+    @Test
+    fun givenHistoryCardClick_whenStateIsControlled_thenDisplaysComingSoonDialog() {
+        composeRule.setContent {
+            SeuCofreGerenciadorDeSenhasTheme {
+                var uiState by remember { mutableStateOf(editPasswordUiState()) }
+                EditPasswordScreen(
+                    uiState = uiState,
+                    onAction = { action ->
+                        when (action) {
+                            EditPasswordAction.OnPasswordHistoryClick -> {
+                                uiState = uiState.copy(
+                                    comingSoonDialog = EditPasswordComingSoonDialog.History
+                                )
+                            }
+                            EditPasswordAction.OnComingSoonDialogDismissed -> {
+                                uiState = uiState.copy(comingSoonDialog = null)
+                            }
+                            else -> Unit
+                        }
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("edit_password_history_action_card").performClick()
+
+        composeRule.onNodeWithTag("edit_password_coming_soon_dialog").assertIsDisplayed()
+        composeRule.onNodeWithText("Ver Histórico").assertIsDisplayed()
+        composeRule.onNodeWithText("Em breve").assertIsDisplayed()
+    }
+
     private fun editPasswordUiState() = EditPasswordUiState(
         title = "Spotify",
         email = "premium@vault.com",

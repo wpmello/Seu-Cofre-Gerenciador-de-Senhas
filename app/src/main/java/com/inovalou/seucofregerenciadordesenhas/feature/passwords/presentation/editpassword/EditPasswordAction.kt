@@ -12,6 +12,9 @@ sealed interface EditPasswordAction {
     data object OnTogglePasswordVisibility : EditPasswordAction
     data object OnCopyEmailClick : EditPasswordAction
     data object OnCopyPasswordClick : EditPasswordAction
+    data object OnSuggestStrongPasswordClick : EditPasswordAction
+    data object OnPasswordHistoryClick : EditPasswordAction
+    data object OnComingSoonDialogDismissed : EditPasswordAction
     data object OnSaveClick : EditPasswordAction
     data object OnDeleteClick : EditPasswordAction
     data object OnDeleteDialogDismissed : EditPasswordAction

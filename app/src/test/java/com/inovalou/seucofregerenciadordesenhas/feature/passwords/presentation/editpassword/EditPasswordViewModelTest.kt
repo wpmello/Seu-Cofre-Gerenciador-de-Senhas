@@ -249,6 +249,46 @@ class EditPasswordViewModelTest {
     }
 
     @Test
+    fun givenUnlockedContent_whenSuggestStrongPasswordClicked_thenShowsSuggestComingSoonDialog() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnSuggestStrongPasswordClick)
+
+        assertEquals(
+            EditPasswordComingSoonDialog.SuggestPassword,
+            viewModel.uiState.value.comingSoonDialog
+        )
+
+        viewModel.onAction(EditPasswordAction.OnComingSoonDialogDismissed)
+
+        assertEquals(null, viewModel.uiState.value.comingSoonDialog)
+    }
+
+    @Test
+    fun givenUnlockedContent_whenPasswordHistoryClicked_thenShowsHistoryComingSoonDialog() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnPasswordHistoryClick)
+
+        assertEquals(
+            EditPasswordComingSoonDialog.History,
+            viewModel.uiState.value.comingSoonDialog
+        )
+    }
+
+    @Test
+    fun givenLockedContent_whenComingSoonActionClicked_thenDoesNotShowDialog() = runTest {
+        val viewModel = buildViewModel(autoAuthenticate = false)
+        advanceUntilIdle()
+
+        viewModel.onAction(EditPasswordAction.OnSuggestStrongPasswordClick)
+
+        assertEquals(null, viewModel.uiState.value.comingSoonDialog)
+    }
+
+    @Test
     fun givenTitleChange_whenHandled_thenUpdatesEditableTitleState() = runTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()

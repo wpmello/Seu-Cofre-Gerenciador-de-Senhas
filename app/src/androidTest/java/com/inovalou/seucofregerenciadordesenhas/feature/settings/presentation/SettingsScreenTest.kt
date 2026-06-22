@@ -13,6 +13,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.inovalou.seucofregerenciadordesenhas.R
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppLanguage
 import com.inovalou.seucofregerenciadordesenhas.core.preferences.domain.model.AppThemePreference
+import com.inovalou.seucofregerenciadordesenhas.core.ui.AppLocaleProvider
 import com.inovalou.seucofregerenciadordesenhas.ui.theme.SeuCofreGerenciadorDeSenhasTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -146,6 +147,29 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun givenEnglishLocaleAndLanguageDialogVisible_whenRendered_thenDisplaysLocalizedDialogText() {
+        composeRule.setContent {
+            AppLocaleProvider(language = AppLanguage.English) {
+                SeuCofreGerenciadorDeSenhasTheme {
+                    SettingsScreen(
+                        uiState = SettingsUiState.content().copy(
+                            languageDialog = SettingsLanguageDialogUiState(
+                                selectedLanguage = AppLanguage.PortugueseBrazil,
+                                draftLanguage = AppLanguage.English
+                            )
+                        ),
+                        onAction = {}
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("App language").assertIsDisplayed()
+        composeRule.onNodeWithText("Save").assertIsDisplayed()
+        composeRule.onNodeWithText("Cancel").assertIsDisplayed()
+    }
+
+    @Test
     fun givenThemeDialogVisible_whenRendered_thenDisplaysThemeOptions() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -168,6 +192,29 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun givenEnglishLocaleAndThemeDialogVisible_whenRendered_thenDisplaysLocalizedDialogText() {
+        composeRule.setContent {
+            AppLocaleProvider(language = AppLanguage.English) {
+                SeuCofreGerenciadorDeSenhasTheme {
+                    SettingsScreen(
+                        uiState = SettingsUiState.content().copy(
+                            themeDialog = SettingsThemeDialogUiState(
+                                selectedTheme = AppThemePreference.Dark,
+                                draftTheme = AppThemePreference.System
+                            )
+                        ),
+                        onAction = {}
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("App theme").assertIsDisplayed()
+        composeRule.onNodeWithText("SYSTEM").assertIsDisplayed()
+        composeRule.onNodeWithText("Save").assertIsDisplayed()
+    }
+
+    @Test
     fun givenAboutDialogVisible_whenRendered_thenDisplaysDeveloperMessage() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -182,6 +229,24 @@ class SettingsScreenTest {
 
         composeRule.onNodeWithTag("settings_about_dialog").assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.settings_about_dialog_message)).assertIsDisplayed()
+    }
+
+    @Test
+    fun givenEnglishLocaleAndAboutDialogVisible_whenRendered_thenDisplaysLocalizedDialogText() {
+        composeRule.setContent {
+            AppLocaleProvider(language = AppLanguage.English) {
+                SeuCofreGerenciadorDeSenhasTheme {
+                    SettingsScreen(
+                        uiState = SettingsUiState.content().copy(aboutDialogVisible = true),
+                        onAction = {}
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("About the App").assertIsDisplayed()
+        composeRule.onNodeWithText("Developed by Inovalou").assertIsDisplayed()
+        composeRule.onNodeWithText("OK").assertIsDisplayed()
     }
 
     @Test
