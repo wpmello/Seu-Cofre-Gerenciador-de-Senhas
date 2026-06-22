@@ -21,7 +21,7 @@ class SplashScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Seu cofre").assertIsDisplayed()
+        composeRule.onNodeWithText("CS: Cofre de Senhas").assertIsDisplayed()
         composeRule.onNodeWithText("SEU COFRE DIGITAL SEGURO").assertIsDisplayed()
         composeRule.onNodeWithText("Carregando...").assertIsDisplayed()
         composeRule.onNodeWithText("ENCRYPTED END-TO-END").assertIsDisplayed()

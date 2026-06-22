@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Tu Cofre</string>
+    <string name="app_name">CS: Cofre de Senhas</string>
     <string name="local_auth_prompt_title">Desbloquear edición</string>
     <string name="local_auth_prompt_subtitle">Confirma tu identidad para acceder a datos sensibles.</string>
     <string name="local_auth_locked_title">Edición protegida</string>
@@ -7,7 +7,7 @@
     <string name="local_auth_failed_message">No se pudo confirmar tu identidad. Los datos permanecen bloqueados.</string>
     <string name="local_auth_unavailable_message">Configura un bloqueo de pantalla seguro en el dispositivo para acceder a esta edición.</string>
     <string name="local_auth_retry_button">Intentar de nuevo</string>
-    <string name="splash_title">Tu cofre</string>
+    <string name="splash_title">CS: Cofre de Senhas</string>
     <string name="splash_subtitle">TU COFRE DIGITAL SEGURO</string>
     <string name="splash_loading">Cargando…</string>
     <string name="splash_encryption_hint">CIFRADO DE EXTREMO A EXTREMO</string>
@@ -35,7 +35,7 @@
     <string name="vault_home_summary_passwords_error">No se pudo cargar esta lista.</string>
     <string name="vault_home_create_password_option">nueva clave</string>
     <string name="vault_home_create_category_option">nueva categoría</string>
-    <string name="onboarding_brand">Tu cofre</string>
+    <string name="onboarding_brand">CS: Cofre de Senhas</string>
     <string name="onboarding_next">Siguiente</string>
     <string name="onboarding_finish">Comenzar</string>
     <string name="onboarding_existing_account">¿Ya tienes una cuenta? </string>
@@ -47,7 +47,7 @@
     <string name="onboarding_step_three_title">Acceso rápido y seguro</string>
     <string name="onboarding_step_three_body">Tus contraseñas siempre a mano.</string>
     <string name="onboarding_vault_encrypted">VAULT ENCRYPTED</string>
-    <string name="app_brand_name">Tu cofre</string>
+    <string name="app_brand_name">CS: Cofre de Senhas</string>
     <string name="categories_search">Buscar</string>
     <string name="categories_security_status">ESTADO DE SEGURIDAD</string>
     <string name="categories_security_poor">Deficiente</string>
