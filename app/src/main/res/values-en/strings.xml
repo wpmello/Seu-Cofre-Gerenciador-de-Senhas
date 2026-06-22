@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Your Vault</string>
+    <string name="app_name">CS: Cofre de Senhas</string>
     <string name="local_auth_prompt_title">Unlock editing</string>
     <string name="local_auth_prompt_subtitle">Confirm your identity to access sensitive data.</string>
     <string name="local_auth_locked_title">Protected editing</string>
@@ -7,7 +7,7 @@
     <string name="local_auth_failed_message">Your identity could not be confirmed. The data remains locked.</string>
     <string name="local_auth_unavailable_message">Configure a secure device screen lock to access this edit screen.</string>
     <string name="local_auth_retry_button">Try again</string>
-    <string name="splash_title">Your vault</string>
+    <string name="splash_title">CS: Cofre de Senhas</string>
     <string name="splash_subtitle">YOUR SECURE DIGITAL VAULT</string>
     <string name="splash_loading">Loading…</string>
     <string name="splash_encryption_hint">END-TO-END ENCRYPTED</string>
@@ -35,7 +35,7 @@
     <string name="vault_home_summary_passwords_error">Could not load this list.</string>
     <string name="vault_home_create_password_option">new password</string>
     <string name="vault_home_create_category_option">new category</string>
-    <string name="onboarding_brand">Your vault</string>
+    <string name="onboarding_brand">CS: Cofre de Senhas</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_finish">Get started</string>
     <string name="onboarding_existing_account">Already have an account? </string>
@@ -47,7 +47,7 @@
     <string name="onboarding_step_three_title">Fast and secure access</string>
     <string name="onboarding_step_three_body">Your passwords always at hand.</string>
     <string name="onboarding_vault_encrypted">VAULT ENCRYPTED</string>
-    <string name="app_brand_name">Your vault</string>
+    <string name="app_brand_name">CS: Cofre de Senhas</string>
     <string name="categories_search">Search</string>
     <string name="categories_security_status">SECURITY STATUS</string>
     <string name="categories_security_poor">Poor</string>

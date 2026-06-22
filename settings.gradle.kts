@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Seu Cofre Gerenciador De Senhas"
+rootProject.name = "CS Cofre de Senhas"
 include(":app")

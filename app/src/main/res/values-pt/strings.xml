@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Seu Cofre</string>
+    <string name="app_name">CS: Cofre de Senhas</string>
     <string name="local_auth_prompt_title">Desbloquear edição</string>
     <string name="local_auth_prompt_subtitle">Confirme sua identidade para acessar dados sensíveis.</string>
     <string name="local_auth_locked_title">Edição protegida</string>
@@ -7,7 +7,7 @@
     <string name="local_auth_failed_message">Não foi possível confirmar sua identidade. Os dados permanecem bloqueados.</string>
     <string name="local_auth_unavailable_message">Configure bloqueio de tela seguro no dispositivo para acessar esta edição.</string>
     <string name="local_auth_retry_button">Tentar novamente</string>
-    <string name="splash_title">Seu cofre</string>
+    <string name="splash_title">CS: Cofre de Senhas</string>
     <string name="splash_subtitle">SEU COFRE DIGITAL SEGURO</string>
     <string name="splash_loading">Carregando…</string>
     <string name="splash_encryption_hint">ENCRYPTED END-TO-END</string>
@@ -35,7 +35,7 @@
     <string name="vault_home_summary_passwords_error">Não foi possível carregar esta lista.</string>
     <string name="vault_home_create_password_option">nova senha</string>
     <string name="vault_home_create_category_option">nova categoria</string>
-    <string name="onboarding_brand">Seu cofre</string>
+    <string name="onboarding_brand">CS: Cofre de Senhas</string>
     <string name="onboarding_next">Próximo</string>
     <string name="onboarding_finish">Começar</string>
     <string name="onboarding_existing_account">Já tem uma conta? </string>
@@ -47,7 +47,7 @@
     <string name="onboarding_step_three_title">Acesso rápido e seguro</string>
     <string name="onboarding_step_three_body">Suas senhas sempre à mão.</string>
     <string name="onboarding_vault_encrypted">VAULT ENCRYPTED</string>
-    <string name="app_brand_name">Seu cofre</string>
+    <string name="app_brand_name">CS: Cofre de Senhas</string>
     <string name="categories_search">Buscar</string>
     <string name="categories_security_status">STATUS DE SEGURANÇA</string>
     <string name="categories_security_poor">Ruim</string>
