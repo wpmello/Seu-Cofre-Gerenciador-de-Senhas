@@ -178,6 +178,16 @@ fun SettingsScreen(
             uiState.languageDialog?.let { languageDialog ->
                 LanguageSelectionDialog(
                     state = languageDialog,
+                    title = stringResource(R.string.settings_language_dialog_title),
+                    saveText = stringResource(R.string.settings_save),
+                    cancelText = stringResource(R.string.settings_cancel),
+                    languageOptions = listOf(
+                        AppLanguage.PortugueseBrazil to stringResource(
+                            R.string.settings_language_portuguese
+                        ),
+                        AppLanguage.English to stringResource(R.string.settings_language_english),
+                        AppLanguage.Spanish to stringResource(R.string.settings_language_spanish)
+                    ),
                     onLanguageSelected = { onAction(SettingsAction.OnLanguageDraftSelected(it)) },
                     onSaveClick = { onAction(SettingsAction.OnSaveLanguageClick) },
                     onDismiss = { onAction(SettingsAction.OnDismissLanguageDialog) }
@@ -187,6 +197,20 @@ fun SettingsScreen(
             uiState.themeDialog?.let { themeDialog ->
                 ThemeSelectionDialog(
                     state = themeDialog,
+                    title = stringResource(R.string.settings_theme_dialog_title),
+                    saveText = stringResource(R.string.settings_save),
+                    cancelText = stringResource(R.string.settings_cancel),
+                    themeOptions = listOf(
+                        AppThemePreference.Light to stringResource(
+                            R.string.settings_theme_current_light
+                        ),
+                        AppThemePreference.Dark to stringResource(
+                            R.string.settings_theme_current_dark
+                        ),
+                        AppThemePreference.System to stringResource(
+                            R.string.settings_theme_current_system
+                        )
+                    ),
                     onThemeSelected = { onAction(SettingsAction.OnThemeDraftSelected(it)) },
                     onSaveClick = { onAction(SettingsAction.OnSaveThemeClick) },
                     onDismiss = { onAction(SettingsAction.OnDismissThemeDialog) }
@@ -195,6 +219,9 @@ fun SettingsScreen(
 
             if (uiState.aboutDialogVisible) {
                 AboutAppDialog(
+                    title = stringResource(R.string.settings_about_dialog_title),
+                    message = stringResource(R.string.settings_about_dialog_message),
+                    confirmText = stringResource(R.string.settings_ok),
                     onDismiss = { onAction(SettingsAction.OnDismissAboutDialog) }
                 )
             }
@@ -510,6 +537,10 @@ private fun SettingsItemIconBox(
 @Composable
 private fun LanguageSelectionDialog(
     state: SettingsLanguageDialogUiState,
+    title: String,
+    saveText: String,
+    cancelText: String,
+    languageOptions: List<Pair<AppLanguage, String>>,
     onLanguageSelected: (AppLanguage) -> Unit,
     onSaveClick: () -> Unit,
     onDismiss: () -> Unit
@@ -521,15 +552,15 @@ private fun LanguageSelectionDialog(
         containerColor = colors.surface,
         titleContentColor = colors.textPrimary,
         textContentColor = colors.textSecondary,
-        title = { Text(text = stringResource(R.string.settings_language_dialog_title)) },
+        title = { Text(text = title) },
         text = {
             Column(
                 modifier = Modifier.testTag("settings_language_dialog"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                AppLanguage.entries.forEach { language ->
+                languageOptions.forEach { (language, label) ->
                     SettingsRadioOption(
-                        label = stringResource(language.labelResId()),
+                        label = label,
                         selected = state.draftLanguage == language,
                         enabled = !state.isSaving,
                         onClick = { onLanguageSelected(language) }
@@ -543,7 +574,7 @@ private fun LanguageSelectionDialog(
                 enabled = !state.isSaving,
                 modifier = Modifier.testTag("settings_language_save")
             ) {
-                Text(text = stringResource(R.string.settings_save))
+                Text(text = saveText)
             }
         },
         dismissButton = {
@@ -551,7 +582,7 @@ private fun LanguageSelectionDialog(
                 onClick = onDismiss,
                 enabled = !state.isSaving
             ) {
-                Text(text = stringResource(R.string.settings_cancel))
+                Text(text = cancelText)
             }
         }
     )
@@ -560,6 +591,10 @@ private fun LanguageSelectionDialog(
 @Composable
 private fun ThemeSelectionDialog(
     state: SettingsThemeDialogUiState,
+    title: String,
+    saveText: String,
+    cancelText: String,
+    themeOptions: List<Pair<AppThemePreference, String>>,
     onThemeSelected: (AppThemePreference) -> Unit,
     onSaveClick: () -> Unit,
     onDismiss: () -> Unit
@@ -571,15 +606,15 @@ private fun ThemeSelectionDialog(
         containerColor = colors.surface,
         titleContentColor = colors.textPrimary,
         textContentColor = colors.textSecondary,
-        title = { Text(text = stringResource(R.string.settings_theme_dialog_title)) },
+        title = { Text(text = title) },
         text = {
             Column(
                 modifier = Modifier.testTag("settings_theme_dialog"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                AppThemePreference.entries.forEach { themePreference ->
+                themeOptions.forEach { (themePreference, label) ->
                     SettingsRadioOption(
-                        label = stringResource(themePreference.labelResId()),
+                        label = label,
                         selected = state.draftTheme == themePreference,
                         enabled = !state.isSaving,
                         onClick = { onThemeSelected(themePreference) }
@@ -593,7 +628,7 @@ private fun ThemeSelectionDialog(
                 enabled = !state.isSaving,
                 modifier = Modifier.testTag("settings_theme_save")
             ) {
-                Text(text = stringResource(R.string.settings_save))
+                Text(text = saveText)
             }
         },
         dismissButton = {
@@ -601,7 +636,7 @@ private fun ThemeSelectionDialog(
                 onClick = onDismiss,
                 enabled = !state.isSaving
             ) {
-                Text(text = stringResource(R.string.settings_cancel))
+                Text(text = cancelText)
             }
         }
     )
@@ -647,6 +682,9 @@ private fun SettingsRadioOption(
 
 @Composable
 private fun AboutAppDialog(
+    title: String,
+    message: String,
+    confirmText: String,
     onDismiss: () -> Unit
 ) {
     val colors = MaterialTheme.vaultColors
@@ -656,10 +694,10 @@ private fun AboutAppDialog(
         containerColor = colors.surface,
         titleContentColor = colors.textPrimary,
         textContentColor = colors.textSecondary,
-        title = { Text(text = stringResource(R.string.settings_about_dialog_title)) },
+        title = { Text(text = title) },
         text = {
             Text(
-                text = stringResource(R.string.settings_about_dialog_message),
+                text = message,
                 modifier = Modifier.testTag("settings_about_dialog"),
                 fontSize = 16.sp,
                 lineHeight = 22.sp
@@ -667,7 +705,7 @@ private fun AboutAppDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.settings_ok))
+                Text(text = confirmText)
             }
         }
     )
