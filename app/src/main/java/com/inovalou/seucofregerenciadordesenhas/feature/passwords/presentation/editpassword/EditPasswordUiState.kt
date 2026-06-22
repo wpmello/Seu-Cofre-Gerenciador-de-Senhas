@@ -27,6 +27,7 @@ data class EditPasswordUiState(
     val localAuthenticationState: EditPasswordLocalAuthenticationState =
         EditPasswordLocalAuthenticationState.Locked,
     val deleteFlowState: EditPasswordDeleteFlowState = EditPasswordDeleteFlowState.Idle,
+    val comingSoonDialog: EditPasswordComingSoonDialog? = null,
     val securitySection: EditPasswordSecuritySectionUiState = EditPasswordSecuritySectionUiState()
 )
 
@@ -52,6 +53,11 @@ enum class EditPasswordLocalAuthenticationState {
 sealed interface EditPasswordDeleteFlowState {
     data object Idle : EditPasswordDeleteFlowState
     data object Confirmation : EditPasswordDeleteFlowState
+}
+
+enum class EditPasswordComingSoonDialog {
+    SuggestPassword,
+    History
 }
 
 data class EditPasswordSecuritySectionUiState(

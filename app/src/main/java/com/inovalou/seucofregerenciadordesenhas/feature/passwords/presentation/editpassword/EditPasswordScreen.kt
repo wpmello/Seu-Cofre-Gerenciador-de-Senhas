@@ -249,6 +249,7 @@ fun EditPasswordScreen(
                     ) {
                         ActionCard(
                             title = stringResource(R.string.edit_password_suggest_action),
+                            onClick = { onAction(EditPasswordAction.OnSuggestStrongPasswordClick) },
                             icon = {
                                 Icon(
                                     imageVector = Icons.Outlined.Lightbulb,
@@ -257,10 +258,12 @@ fun EditPasswordScreen(
                                 )
                             },
                             accent = colors.success.copy(alpha = 0.2f),
+                            testTag = "edit_password_suggest_action_card",
                             modifier = Modifier.weight(1f)
                         )
                         ActionCard(
                             title = stringResource(R.string.edit_password_history_action),
+                            onClick = { onAction(EditPasswordAction.OnPasswordHistoryClick) },
                             icon = {
                                 Icon(
                                     imageVector = Icons.Outlined.History,
@@ -269,6 +272,7 @@ fun EditPasswordScreen(
                                 )
                             },
                             accent = colors.primary.copy(alpha = 0.18f),
+                            testTag = "edit_password_history_action_card",
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -342,6 +346,15 @@ fun EditPasswordScreen(
         state = uiState.deleteFlowState,
         onAction = onAction
     )
+
+    uiState.comingSoonDialog?.let { dialog ->
+        ComingSoonDialog(
+            title = stringResource(dialog.titleResId()),
+            message = stringResource(R.string.edit_password_coming_soon_message),
+            confirmText = stringResource(R.string.settings_ok),
+            onDismiss = { onAction(EditPasswordAction.OnComingSoonDialogDismissed) }
+        )
+    }
 }
 
 private fun LocalAuthenticationResult.toEditPasswordAction(): EditPasswordAction = when (this) {
@@ -410,6 +423,42 @@ private fun DeletePasswordConfirmationDialog(
                 modifier = Modifier.testTag("edit_password_cancel_delete_button")
             ) {
                 Text(text = stringResource(R.string.edit_password_cancel))
+            }
+        },
+        containerColor = colors.surface
+    )
+}
+
+@Composable
+private fun ComingSoonDialog(
+    title: String,
+    message: String,
+    confirmText: String,
+    onDismiss: () -> Unit
+) {
+    val colors = MaterialTheme.vaultColors
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("edit_password_coming_soon_dialog"),
+        title = {
+            Text(
+                text = title,
+                color = colors.textPrimary
+            )
+        },
+        text = {
+            Text(
+                text = message,
+                color = colors.textSecondary
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.testTag("edit_password_coming_soon_ok_button")
+            ) {
+                Text(text = confirmText)
             }
         },
         containerColor = colors.surface
@@ -1099,14 +1148,22 @@ private fun PlainTextNoteNotice(text: String) {
 @Composable
 private fun ActionCard(
     title: String,
+    onClick: () -> Unit,
     icon: @Composable () -> Unit,
     accent: Color,
+    testTag: String,
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.vaultColors
 
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .clip(RoundedCornerShape(28.dp))
+            .clickable(
+                onClick = onClick,
+                role = Role.Button
+            )
+            .testTag(testTag),
         shape = RoundedCornerShape(28.dp),
         color = colors.surface
     ) {
@@ -1165,6 +1222,11 @@ private fun Long.toDateLabel(): String {
 }
 
 private const val DATE_LABEL_PATTERN = "dd/MM/yyyy"
+
+private fun EditPasswordComingSoonDialog.titleResId(): Int = when (this) {
+    EditPasswordComingSoonDialog.SuggestPassword -> R.string.edit_password_suggest_action
+    EditPasswordComingSoonDialog.History -> R.string.edit_password_history_action
+}
 
 private fun Context.copyToClipboard(
     value: String,
