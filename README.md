@@ -41,23 +41,127 @@ As credenciais são mantidas localmente no dispositivo. A senha é criptografada
 
 ## Demonstração
 
-As imagens abaixo utilizam dados demonstrativos e podem apresentar pequenas diferenças em relação à versão mais recente da interface.
+As telas abaixo apresentam os principais fluxos do aplicativo com dados exclusivamente demonstrativos. A interface pode sofrer pequenas alterações conforme o projeto evolui.
 
 <p align="center">
-  <img src="docs/images/home.jpeg" alt="Tela inicial do cofre" width="210" />
-  <img src="docs/images/categories.jpeg" alt="Tela de categorias" width="210" />
-  <img src="docs/images/security-details.jpeg" alt="Detalhes de segurança" width="210" />
+  <sub>Clique em qualquer imagem para visualizá-la em tamanho completo.</sub>
+</p>
+
+### Visão geral do cofre
+
+<p align="center">
+  <a href="docs/images/home.jpeg">
+    <img
+      src="docs/images/home.jpeg"
+      alt="Tela inicial do Seu Cofre com resumo das senhas, categorias e ações rápidas"
+      width="300"
+    />
+  </a>
 </p>
 
 <p align="center">
-  <img src="docs/images/new-password.jpeg" alt="Cadastro de nova senha" width="210" />
-  <img src="docs/images/category-detail.jpeg" alt="Edição de categoria" width="210" />
-  <img src="docs/images/transfer-passwords.jpeg" alt="Transferência de senhas entre categorias" width="210" />
+  <strong>Tela inicial</strong><br />
+  <sub>Resumo das credenciais, categorias cadastradas, classificação de segurança e ações rápidas.</sub>
 </p>
 
-<p align="center">
-  <img src="docs/images/settings-with-white-theme.jpeg" alt="Ajustes no tema claro" width="210" />
-</p>
+### Organização e segurança
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="docs/images/categories.jpeg">
+        <img
+          src="docs/images/categories.jpeg"
+          alt="Tela de categorias do Seu Cofre"
+          width="280"
+        />
+      </a>
+      <br /><br />
+      <strong>Categorias</strong>
+      <br />
+      <sub>Organização das credenciais e acesso ao resumo de segurança do cofre.</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="docs/images/security-details.jpeg">
+        <img
+          src="docs/images/security-details.jpeg"
+          alt="Tela de detalhes da análise de segurança"
+          width="280"
+        />
+      </a>
+      <br /><br />
+      <strong>Detalhes de segurança</strong>
+      <br />
+      <sub>Índice geral, faixas de classificação e explicação dos critérios utilizados pelo aplicativo.</sub>
+    </td>
+  </tr>
+</table>
+
+### Cadastro e gerenciamento
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="docs/images/new-password.jpeg">
+        <img
+          src="docs/images/new-password.jpeg"
+          alt="Tela para cadastro de uma nova credencial"
+          width="280"
+        />
+      </a>
+      <br /><br />
+      <strong>Nova senha</strong>
+      <br />
+      <sub>Cadastro do serviço, identificador, categoria, senha e informações complementares.</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="docs/images/category-detail.jpeg">
+        <img
+          src="docs/images/category-detail.jpeg"
+          alt="Tela de edição de categoria e credenciais associadas"
+          width="280"
+        />
+      </a>
+      <br /><br />
+      <strong>Edição de categoria</strong>
+      <br />
+      <sub>Alteração dos dados da categoria e acesso às credenciais associadas.</sub>
+    </td>
+  </tr>
+</table>
+
+### Reorganização e preferências
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="docs/images/transfer-passwords.jpeg">
+        <img
+          src="docs/images/transfer-passwords.jpeg"
+          alt="Tela para transferência de senhas entre categorias"
+          width="280"
+        />
+      </a>
+      <br /><br />
+      <strong>Transferência de senhas</strong>
+      <br />
+      <sub>Movimentação das credenciais para outra categoria antes de uma exclusão ou reorganização.</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="docs/images/settings-with-white-theme.jpeg">
+        <img
+          src="docs/images/settings-with-white-theme.jpeg"
+          alt="Tela de ajustes do aplicativo utilizando o tema claro"
+          width="280"
+        />
+      </a>
+      <br /><br />
+      <strong>Ajustes e tema claro</strong>
+      <br />
+      <sub>Configuração do idioma, tema, nome de exibição e acesso às informações do aplicativo.</sub>
+    </td>
+  </tr>
+</table>
 
 ## Principais funcionalidades
 
